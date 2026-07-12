@@ -9,26 +9,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f8fafc; color: #0f172a; min-height: 100vh; }
+        body { background: #f0f4f8; color: #0f172a; min-height: 100vh; }
 
         /* ===== ANIMATIONS ===== */
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         @keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @keyframes whatsappPulse { 0%,100% { box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); } 50% { box-shadow: 0 4px 30px rgba(37, 211, 102, 0.6); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(37, 211, 102, 0.2); } 50% { box-shadow: 0 0 50px rgba(37, 211, 102, 0.4); } }
 
         /* ===== HEADER ===== */
         .app-header {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid #eef2f6;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
             position: sticky;
             top: 0;
             z-index: 1000;
             transition: all 0.3s ease;
         }
-        .app-header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        .app-header.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.06); }
 
         .brand-text {
             font-weight: 800;
@@ -51,41 +55,45 @@
             font-size: 0.9rem;
             padding: 8px 16px;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .back-link:hover {
             background: #f1f5f9;
             color: #0f172a;
         }
-        .back-link i { margin-right: 6px; }
 
         /* ===== GLASS CARD ===== */
         .glass-card {
-            background: white;
-            border: 1px solid #eef2f6;
-            border-radius: 16px;
-            padding: 24px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            border-radius: 20px;
+            padding: 28px;
             transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
         }
         .glass-card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.05);
         }
 
         /* ===== FORM ===== */
         .form-input {
-            border: 1px solid #e2e8f0;
+            border: 2px solid #e2e8f0;
             border-radius: 12px;
-            padding: 12px 16px;
+            padding: 12px 16px 12px 44px;
             width: 100%;
             color: #0f172a;
             transition: all 0.3s;
-            background: white;
+            background: #f8fafc;
             font-size: 0.95rem;
         }
         .form-input::placeholder { color: #94a3b8; }
         .form-input:focus {
             outline: none;
             border-color: #2563eb;
+            background: white;
             box-shadow: 0 0 0 4px rgba(37,99,235,0.06);
         }
         .form-label {
@@ -100,9 +108,25 @@
         .form-label i { color: #2563eb; margin-right: 4px; }
         .form-label .required { color: #ef4444; margin-left: 2px; }
 
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1rem;
+            z-index: 2;
+        }
+        .input-wrapper .form-input {
+            padding-left: 44px;
+        }
+
         /* ===== BUTTONS ===== */
         .btn-primary {
-            background: #1e293b;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
             color: white;
             padding: 14px 32px;
             border-radius: 9999px;
@@ -116,11 +140,24 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            position: relative;
+            overflow: hidden;
         }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        .btn-primary:hover::after { left: 100%; }
         .btn-primary:hover {
-            background: #0f172a;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
         .btn-primary:disabled {
             opacity: 0.5;
@@ -146,32 +183,115 @@
             background: #eff6ff;
         }
 
+        /* ===== WHATSAPP BUTTON ===== */
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #1da85a);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 9999px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: whatsappPulse 2s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-whatsapp::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #25D366, #1da85a, #25D366);
+            background-size: 300% 300%;
+            border-radius: 9999px;
+            z-index: -1;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        .btn-whatsapp:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 35px rgba(37, 211, 102, 0.4);
+        }
+        .btn-whatsapp:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+
+        /* ===== PAYMENT OPTIONS ===== */
+        .payment-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .payment-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+            border-color: #2563eb;
+        }
+        .payment-option.whatsapp {
+            border-color: #25D366;
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+        }
+        .payment-option.whatsapp:hover {
+            border-color: #1da85a;
+            box-shadow: 0 12px 40px rgba(37, 211, 102, 0.15);
+        }
+        .payment-option .icon { font-size: 2.2rem; margin-bottom: 8px; display: block; }
+        .payment-option .title { font-weight: 700; color: #0f172a; font-size: 1.05rem; }
+        .payment-option .subtitle { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+        .payment-option .badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 3px 12px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .payment-option .badge.popular { background: #dbeafe; color: #2563eb; }
+        .payment-option .badge.mpesa { background: #d1fae5; color: #059669; }
+        .payment-option .badge.secure { background: #e0e7ff; color: #4f46e5; }
+
         /* ===== STEP INDICATOR ===== */
         .step-indicator {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 30px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
         }
+        .step-item { display: flex; align-items: center; gap: 8px; }
         .step-dot {
             width: 40px;
             height: 4px;
             border-radius: 2px;
             background: #e2e8f0;
-            transition: all 0.4s;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .step-dot.active {
-            background: #2563eb;
-            width: 60px;
-        }
-        .step-dot.completed {
-            background: #10b981;
-        }
+        .step-dot.active { background: #2563eb; width: 60px; }
+        .step-dot.completed { background: #10b981; }
+        .step-number { font-size: 0.7rem; font-weight: 600; color: #94a3b8; transition: all 0.3s; }
+        .step-number.active { color: #2563eb; }
+        .step-number.completed { color: #10b981; }
 
         /* ===== CHECKOUT STEPS ===== */
         .checkout-step {
             display: none;
-            animation: slideUp 0.5s ease;
+            animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .checkout-step.active { display: block; }
 
@@ -179,20 +299,56 @@
         .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #f1f5f9;
         }
         .summary-item:last-child { border-bottom: none; }
         .summary-total {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 14px 0;
             margin-top: 8px;
             border-top: 2px solid #2563eb;
             font-size: 1.2rem;
             font-weight: 700;
         }
-        .summary-total .value { color: #2563eb; font-size: 1.4rem; }
+        .summary-total .value {
+            color: #2563eb;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== ORDER ITEMS ===== */
+        .order-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            animation: fadeIn 0.3s ease;
+        }
+        .order-item:last-child { border-bottom: none; }
+        .order-item-image {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8fafc;
+            flex-shrink: 0;
+            border: 1px solid #f1f5f9;
+        }
+        .order-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 6px;
+        }
+        .order-item-name { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
+        .order-item-price { font-weight: 700; color: #2563eb; font-size: 0.9rem; }
+        .order-item-quantity { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
 
         /* ===== CONFETTI ===== */
         .confetti-container {
@@ -220,80 +376,104 @@
             right: 30px;
             z-index: 9999;
             background: white;
-            padding: 16px 24px;
+            padding: 18px 24px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            border: 1px solid #eef2f6;
-            animation: slideUp 0.4s ease-out;
-            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 420px;
+            backdrop-filter: blur(12px);
         }
         .toast.hidden { display: none; }
 
-        /* ===== ORDER ITEMS ===== */
-        .order-item {
+        /* ===== WHATSAPP FLOATING ICON ===== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 999;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #25D366, #1da85a);
+            color: white;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f5f9;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 25px rgba(37, 211, 102, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            animation: whatsappPulse 2s infinite;
         }
-        .order-item:last-child { border-bottom: none; }
-        .order-item-image {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f8fafc;
-            flex-shrink: 0;
+        .whatsapp-float:hover {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 6px 40px rgba(37, 211, 102, 0.6);
         }
-        .order-item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 4px;
+        .whatsapp-float .tooltip {
+            position: absolute;
+            left: 70px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0f172a;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
         }
-        .order-item-name {
-            font-weight: 600;
-            color: #0f172a;
-            font-size: 0.9rem;
-        }
-        .order-item-price {
-            font-weight: 700;
-            color: #2563eb;
-            font-size: 0.9rem;
-        }
+        .whatsapp-float:hover .tooltip { opacity: 1; left: 75px; }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .glass-card { padding: 16px; }
+            .glass-card { padding: 18px; }
             .app-header .brand-text { font-size: 1.1rem; }
             .back-link { font-size: 0.8rem; padding: 6px 12px; }
             .step-dot { width: 30px; }
             .step-dot.active { width: 40px; }
+            .payment-option { padding: 16px; }
+            .whatsapp-float { width: 52px; height: 52px; font-size: 1.6rem; bottom: 20px; left: 20px; }
+            .toast { right: 16px; left: 16px; max-width: none; bottom: 16px; }
         }
         @media (max-width: 480px) {
-            .glass-card { padding: 12px; }
-            .form-input { font-size: 0.85rem; padding: 10px 14px; }
-            .btn-primary { font-size: 0.9rem; padding: 12px 20px; }
+            .glass-card { padding: 14px; border-radius: 14px; }
+            .form-input { font-size: 0.85rem; padding: 10px 14px 10px 40px; }
+            .btn-primary, .btn-whatsapp { font-size: 0.9rem; padding: 12px 20px; }
             .btn-outline { font-size: 0.85rem; padding: 10px 16px; }
             .order-item-image { width: 40px; height: 40px; }
             .order-item-name { font-size: 0.8rem; }
+            .payment-option .icon { font-size: 1.6rem; }
+            .payment-option .title { font-size: 0.9rem; }
+            .summary-total .value { font-size: 1.2rem; }
+            .whatsapp-float { width: 44px; height: 44px; font-size: 1.4rem; bottom: 16px; left: 16px; }
+            .whatsapp-float .tooltip { display: none; }
         }
 
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
 
+    <!-- ===== WHATSAPP FLOATING BUTTON ===== -->
+    <a href="https://wa.me/254745793237" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+        <span class="tooltip">Chat with us 💬</span>
+    </a>
+
     <!-- ===== HEADER ===== -->
     <header class="app-header" id="mainHeader">
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-            <a href="/" class="flex items-center gap-2">
-                <i class="fas fa-bolt text-2xl text-blue-600"></i>
+            <a href="/" class="flex items-center gap-2 group">
+                <i class="fas fa-bolt text-2xl text-blue-600 group-hover:scale-110 transition-transform"></i>
                 <span class="brand-text">Price<span>Point</span></span>
             </a>
             <div class="flex items-center gap-4">
@@ -307,19 +487,37 @@
     <!-- ===== MAIN CONTENT ===== -->
     <div class="max-w-7xl mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-[#0f172a]">Checkout</h1>
-                <p class="text-gray-500 text-sm mt-1">Complete your purchase securely</p>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-[#0f172a] tracking-tight">
+                    Checkout
+                    <span class="text-sm font-normal text-gray-400 ml-2">• Secure</span>
+                </h1>
+                <p class="text-gray-500 text-sm mt-1 flex items-center gap-2">
+                    <i class="fas fa-lock text-green-500 text-xs"></i>
+                    Your information is safe and secure
+                </p>
             </div>
-            <span class="text-gray-400 text-sm" id="orderTotal">KSh {{ "%.0f"|format(total) }}</span>
+            <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                <span class="text-gray-400 text-sm">Total:</span>
+                <span class="font-bold text-blue-600 text-lg" id="orderTotal">KSh {{ "%.0f"|format(total) }}</span>
+            </div>
         </div>
 
         <!-- Step Indicators -->
         <div class="step-indicator">
-            <div class="step-dot active" id="step1Dot"></div>
-            <div class="step-dot" id="step2Dot"></div>
-            <div class="step-dot" id="step3Dot"></div>
+            <div class="step-item">
+                <span class="step-number active" id="step1Num">1</span>
+                <div class="step-dot active" id="step1Dot"></div>
+            </div>
+            <div class="step-item">
+                <span class="step-number" id="step2Num">2</span>
+                <div class="step-dot" id="step2Dot"></div>
+            </div>
+            <div class="step-item">
+                <span class="step-number" id="step3Num">3</span>
+                <div class="step-dot" id="step3Dot"></div>
+            </div>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
@@ -328,92 +526,133 @@
                 <div class="glass-card">
                     <!-- Step 1: Shipping Information -->
                     <div class="checkout-step active" id="step1">
-                        <h2 class="text-xl font-bold text-[#0f172a] mb-6 flex items-center gap-2">
-                            <span class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                            Shipping Information
-                        </h2>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/20">1</div>
+                            <div>
+                                <h2 class="text-xl font-bold text-[#0f172a]">Shipping Information</h2>
+                                <p class="text-sm text-gray-400">Where should we deliver your order?</p>
+                            </div>
+                        </div>
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="form-label"><i class="fas fa-user"></i> First Name <span class="required">*</span></label>
-                                    <input type="text" class="form-input" placeholder="John" id="firstName" value="John" />
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" class="form-input" placeholder="John" id="firstName" />
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="form-label"><i class="fas fa-user"></i> Last Name <span class="required">*</span></label>
-                                    <input type="text" class="form-input" placeholder="Doe" id="lastName" value="Doe" />
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" class="form-input" placeholder="Doe" id="lastName" />
+                                    </div>
                                 </div>
                             </div>
                             <div>
                                 <label class="form-label"><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
-                                <input type="email" class="form-input" placeholder="john@example.com" id="email" value="john@example.com" />
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input type="email" class="form-input" placeholder="john@example.com" id="email" />
+                                </div>
                             </div>
                             <div>
                                 <label class="form-label"><i class="fas fa-phone"></i> Phone Number <span class="required">*</span></label>
-                                <input type="tel" class="form-input" placeholder="+254 700 000 000" id="phone" value="+254 700 000 000" />
+                                <div class="input-wrapper">
+                                    <i class="fas fa-phone input-icon"></i>
+                                    <input type="tel" class="form-input" placeholder="+254 700 000 000" id="phone" />
+                                </div>
                             </div>
                             <div>
                                 <label class="form-label"><i class="fas fa-map-marker-alt"></i> Shipping Address <span class="required">*</span></label>
-                                <input type="text" class="form-input" placeholder="123 Main Street" id="address" value="123 Main Street" />
+                                <div class="input-wrapper">
+                                    <i class="fas fa-map-marker-alt input-icon"></i>
+                                    <input type="text" class="form-input" placeholder="123 Main Street" id="address" />
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="form-label"><i class="fas fa-city"></i> City <span class="required">*</span></label>
-                                    <input type="text" class="form-input" placeholder="Nairobi" id="city" value="Nairobi" />
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-city input-icon"></i>
+                                        <input type="text" class="form-input" placeholder="Nairobi" id="city" />
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="form-label"><i class="fas fa-mailbox"></i> Postal Code</label>
-                                    <input type="text" class="form-input" placeholder="00100" id="zip" value="00100" />
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-mailbox input-icon"></i>
+                                        <input type="text" class="form-input" placeholder="00100" id="zip" />
+                                    </div>
                                 </div>
                             </div>
                             <div>
                                 <label class="form-label"><i class="fas fa-globe"></i> Country <span class="required">*</span></label>
-                                <input type="text" class="form-input" placeholder="Kenya" id="country" value="Kenya" />
+                                <div class="input-wrapper">
+                                    <i class="fas fa-globe input-icon"></i>
+                                    <input type="text" class="form-input" placeholder="Kenya" id="country" value="Kenya" />
+                                </div>
                             </div>
                         </div>
-                        <button onclick="goToStep(2)" class="btn-primary mt-6">
-                            Continue to Payment <i class="fas fa-arrow-right"></i>
+                        <button onclick="goToStep(2)" class="btn-primary mt-6 group">
+                            <span>Continue to Payment</span>
+                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                         </button>
                     </div>
 
                     <!-- Step 2: Payment -->
                     <div class="checkout-step" id="step2">
-                        <h2 class="text-xl font-bold text-[#0f172a] mb-6 flex items-center gap-2">
-                            <span class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                            Payment Details
-                        </h2>
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4 flex items-start gap-3">
-                            <i class="fas fa-lock text-blue-600 text-lg mt-0.5"></i>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/20">2</div>
                             <div>
-                                <p class="text-sm font-semibold text-blue-800">Secure Checkout</p>
-                                <p class="text-xs text-blue-600">Your payment information is encrypted and secure. No real payment will be processed.</p>
+                                <h2 class="text-xl font-bold text-[#0f172a]">Choose Payment Method</h2>
+                                <p class="text-sm text-gray-400">Select how you'd like to complete your order</p>
                             </div>
                         </div>
-                        <div class="space-y-4">
+
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+                            <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
                             <div>
-                                <label class="form-label"><i class="fas fa-credit-card"></i> Card Number</label>
-                                <input type="text" class="form-input" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" readonly />
-                            </div>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="col-span-2">
-                                    <label class="form-label"><i class="fas fa-calendar"></i> Expiry Date</label>
-                                    <input type="text" class="form-input" placeholder="MM/YY" value="12/25" readonly />
-                                </div>
-                                <div>
-                                    <label class="form-label"><i class="fas fa-shield-alt"></i> CVC</label>
-                                    <input type="text" class="form-input" placeholder="123" value="123" readonly />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="form-label"><i class="fas fa-user"></i> Name on Card</label>
-                                <input type="text" class="form-input" placeholder="John Doe" value="John Doe" />
+                                <p class="text-sm font-semibold text-blue-800">🔒 100% Secure Checkout</p>
+                                <p class="text-xs text-blue-600">Your payment is encrypted. We never store your card details.</p>
                             </div>
                         </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- Option 1: Card Payment -->
+                            <div class="payment-option" onclick="placeOrder()">
+                                <span class="icon">💳</span>
+                                <div class="title">Card Payment</div>
+                                <div class="subtitle">Pay with debit or credit card</div>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="badge popular">✓ Secure</span>
+                                    <span class="badge secure">🔒 Encrypted</span>
+                                </div>
+                                <button class="mt-3 w-full bg-blue-600 text-white py-2.5 px-4 rounded-full font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                                    <i class="fas fa-credit-card"></i> Pay Now
+                                </button>
+                            </div>
+
+                            <!-- Option 2: WhatsApp Order -->
+                            <div class="payment-option whatsapp" onclick="orderViaWhatsApp()">
+                                <span class="icon">📱</span>
+                                <div class="title">Order via WhatsApp</div>
+                                <div class="subtitle">Pay with M-Pesa or Bank Transfer</div>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="badge mpesa">💳 M-Pesa</span>
+                                    <span class="badge" style="background:#fef3c7;color:#d97706;">🏦 Bank Transfer</span>
+                                </div>
+                                <button class="btn-whatsapp mt-3 py-2.5 px-4 text-sm">
+                                    <i class="fab fa-whatsapp"></i>
+                                    Send Order on WhatsApp
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="flex gap-4 mt-6">
                             <button onclick="goToStep(1)" class="btn-outline flex-1">
                                 <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                            <button onclick="placeOrder()" class="btn-primary flex-1">
-                                <i class="fas fa-lock"></i> Place Order
                             </button>
                         </div>
                     </div>
@@ -421,19 +660,26 @@
                     <!-- Step 3: Confirmation -->
                     <div class="checkout-step text-center" id="step3">
                         <div class="py-12">
-                            <div class="w-24 h-24 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
-                                <i class="fas fa-check text-4xl text-green-600"></i>
+                            <div class="w-28 h-28 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-6 animate-bounce">
+                                <i class="fas fa-check text-5xl text-green-600"></i>
                             </div>
-                            <h2 class="text-2xl font-bold text-[#0f172a]">Order Placed! 🎉</h2>
+                            <h2 class="text-3xl font-extrabold text-[#0f172a]">Order Placed! 🎉</h2>
                             <p class="text-gray-500 mt-2">Your order has been confirmed and is being processed</p>
-                            <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <p class="text-gray-400 text-sm">Order ID</p>
-                                <p class="text-[#0f172a] font-bold text-lg" id="orderId">PP-XXXXXXXX</p>
+                            <div class="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                                <p class="text-gray-400 text-sm font-medium">Order ID</p>
+                                <p class="text-[#0f172a] font-bold text-2xl tracking-wider" id="orderId">PP-XXXXXXXX</p>
+                                <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-400">
+                                    <span><i class="fas fa-envelope text-blue-500"></i> Confirmation sent</span>
+                                    <span><i class="fas fa-clock text-amber-500"></i> Processing</span>
+                                </div>
                             </div>
-                            <div class="mt-6 flex flex-col gap-3">
+                            <div class="mt-8 flex flex-col sm:flex-row gap-3">
                                 <a href="/" class="btn-primary">
                                     <i class="fas fa-arrow-left"></i> Continue Shopping
                                 </a>
+                                <button onclick="window.print()" class="btn-outline" style="width:auto;padding:14px 24px;">
+                                    <i class="fas fa-print"></i> Print Receipt
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -447,18 +693,20 @@
                         <i class="fas fa-receipt text-blue-600"></i> Order Summary
                     </h3>
                     
-                    {% for item in cart_items %}
-                    <div class="order-item">
-                        <div class="order-item-image">
-                            <img src="{{ item.image }}" alt="{{ item.name }}" onerror="this.style.display='none'">
+                    <div class="max-h-60 overflow-y-auto pr-1">
+                        {% for item in cart_items %}
+                        <div class="order-item">
+                            <div class="order-item-image">
+                                <img src="{{ item.image }}" alt="{{ item.name }}" onerror="this.style.display='none'">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="order-item-name truncate">{{ item.name }}</div>
+                                <div class="order-item-price">KSh {{ "%.0f"|format(item.price) }}</div>
+                            </div>
+                            <div class="order-item-quantity">×{{ item.quantity }}</div>
                         </div>
-                        <div class="flex-1">
-                            <div class="order-item-name">{{ item.name }}</div>
-                            <div class="order-item-price">KSh {{ "%.0f"|format(item.price) }}</div>
-                        </div>
-                        <div class="text-gray-400 text-sm">×{{ item.quantity }}</div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
 
                     <div class="border-t border-gray-100 mt-4 pt-4 space-y-2 text-sm">
                         <div class="summary-item">
@@ -488,10 +736,32 @@
                     </div>
                     {% endif %}
 
+                    <!-- WhatsApp Quick Order Divider -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center gap-3 mb-3">
+                            <hr class="flex-1 border-gray-200" />
+                            <span class="text-xs text-gray-400 font-medium">or order via</span>
+                            <hr class="flex-1 border-gray-200" />
+                        </div>
+
+                        <!-- Quick WhatsApp Button in Summary -->
+                        <button onclick="orderViaWhatsApp()" 
+                                class="w-full py-3 px-4 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
+                                style="background: linear-gradient(135deg, #25D366, #1da85a); color: white; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                            Order via WhatsApp
+                            <span class="text-xs opacity-75">(M-Pesa)</span>
+                        </button>
+                        <p class="text-xs text-center text-gray-400 mt-1.5 flex items-center justify-center gap-1">
+                            <i class="fas fa-clock"></i> We'll confirm within minutes
+                        </p>
+                    </div>
+
                     <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-400">
-                        <span><i class="fas fa-lock text-green-500"></i> Secure Checkout</span>
+                        <span><i class="fas fa-lock text-green-500"></i> Secure</span>
                         <span><i class="fas fa-undo text-orange-500"></i> 30-Day Returns</span>
                         <span><i class="fas fa-shield-alt text-blue-500"></i> Warranty</span>
+                        <span><i class="fas fa-truck text-purple-500"></i> Fast Delivery</span>
                     </div>
                 </div>
             </div>
@@ -504,40 +774,87 @@
     <!-- Toast -->
     <div id="toast" class="toast hidden">
         <div class="flex items-center gap-3">
-            <i class="fas fa-check-circle text-green-500 text-xl"></i>
-            <p id="toastMessage" class="font-semibold text-[#0f172a]"></p>
+            <i class="fas fa-check-circle text-green-500 text-xl" id="toastIcon"></i>
+            <div>
+                <p id="toastMessage" class="font-semibold text-[#0f172a]"></p>
+                <p id="toastSubMessage" class="text-xs text-gray-400"></p>
+            </div>
         </div>
     </div>
 
     <script>
         let currentStep = 1;
 
+        // ============================================================
+        // STEP NAVIGATION
+        // ============================================================
         function goToStep(step) {
             document.querySelectorAll('.checkout-step').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
 
             for (let i = 1; i <= 3; i++) {
                 const dot = document.getElementById('step' + i + 'Dot');
+                const num = document.getElementById('step' + i + 'Num');
                 dot.classList.remove('active', 'completed');
-                if (i < step) dot.classList.add('completed');
-                if (i === step) dot.classList.add('active');
+                num.classList.remove('active', 'completed');
+                if (i < step) { dot.classList.add('completed'); num.classList.add('completed'); }
+                if (i === step) { dot.classList.add('active'); num.classList.add('active'); }
             }
             currentStep = step;
             
-            // Scroll to top of form
             document.querySelector('.glass-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function placeOrder() {
-            const btn = document.querySelector('#step2 .btn-primary');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        // ============================================================
+        // GET CUSTOMER DATA
+        // ============================================================
+        function getCustomerData() {
+            return {
+                first_name: document.getElementById('firstName').value.trim(),
+                last_name: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                zip: document.getElementById('zip').value.trim(),
+                country: document.getElementById('country').value.trim() || 'Kenya'
+            };
+        }
 
+        function validateCustomerData() {
+            const data = getCustomerData();
+            if (!data.first_name || !data.last_name || !data.email || !data.phone || !data.address || !data.city) {
+                showToast('⚠️ Please fill in all required fields', 'warning');
+                goToStep(1);
+                document.querySelectorAll('.form-input').forEach(el => {
+                    if (!el.value.trim()) {
+                        el.style.borderColor = '#ef4444';
+                        setTimeout(() => el.style.borderColor = '', 2000);
+                    }
+                });
+                return false;
+            }
+            return true;
+        }
+
+        // ============================================================
+        // PLACE ORDER (Card Payment)
+        // ============================================================
+        function placeOrder() {
+            if (!validateCustomerData()) return;
+
+            const btn = document.querySelector('#step2 .btn-primary') || document.querySelector('.payment-option .bg-blue-600');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
+
+            const data = getCustomerData();
             const customerData = {
-                customer_name: document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
-                customer_email: document.getElementById('email').value,
-                customer_phone: document.getElementById('phone').value,
-                customer_address: document.getElementById('address').value + ', ' + document.getElementById('city').value + ', ' + document.getElementById('country').value
+                customer_name: data.first_name + ' ' + data.last_name,
+                customer_email: data.email,
+                customer_phone: data.phone,
+                customer_address: data.address + ', ' + data.city + ', ' + data.country
             };
 
             fetch('/place-order', {
@@ -551,52 +868,246 @@
                     document.getElementById('orderId').textContent = data.order_id;
                     goToStep(3);
                     launchConfetti();
-                    showToast('Order placed successfully! 🎉');
+                    showToast('🎉 Order placed successfully!', 'success', 'Your order #' + data.order_id + ' is being processed');
                 } else {
-                    showToast('❌ ' + data.message);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock"></i> Place Order';
+                    showToast('❌ ' + (data.message || 'Failed to place order'), 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+                    }
                 }
             })
             .catch(() => {
-                showToast('❌ Something went wrong. Please try again.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-lock"></i> Place Order';
+                showToast('❌ Something went wrong. Please try again.', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+                }
             });
         }
 
+        // ============================================================
+        // ORDER VIA WHATSAPP - PREMIUM MODERN MESSAGE
+        // ============================================================
+        function orderViaWhatsApp() {
+            if (!validateCustomerData()) return;
+
+            const btn = document.querySelector('#step2 .btn-whatsapp') || document.querySelector('.btn-whatsapp');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            }
+
+            const data = getCustomerData();
+            const customerName = data.first_name + ' ' + data.last_name;
+            const fullAddress = data.address + ', ' + data.city + ', ' + data.country;
+
+            const cartItems = {{ cart_items | tojson | safe }};
+            const subtotal = {{ subtotal }};
+            const shipping = {{ shipping }};
+            const total = {{ total }};
+
+            const orderId = 'WA-' + Date.now().toString(36).toUpperCase();
+            const currentDate = new Date().toLocaleString('en-KE', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // ============================================================
+            // 🎯 PREMIUM MODERN WHATSAPP MESSAGE
+            // ============================================================
+            let message = '╔═══════════════════════════════════════════════════╗\n';
+            message += '║  🛍️  PRICE POINT KENYA - NEW ORDER              ║\n';
+            message += '╚═══════════════════════════════════════════════════╝\n\n';
+            
+            message += '📋 *ORDER DETAILS*\n';
+            message += '─────────────────────────────────────\n';
+            message += '🆔 *Order ID:* ' + orderId + '\n';
+            message += '📅 *Date:* ' + currentDate + '\n';
+            message += '📦 *Status:* ⏳ Pending Confirmation\n\n';
+            
+            message += '👤 *CUSTOMER INFORMATION*\n';
+            message += '─────────────────────────────────────\n';
+            message += '┌───────────────────────────────────┐\n';
+            message += '│ 👤 Name:   ' + customerName.padEnd(30) + '│\n';
+            message += '│ 📧 Email:  ' + data.email.padEnd(30) + '│\n';
+            message += '│ 📞 Phone:  ' + data.phone.padEnd(30) + '│\n';
+            message += '│ 📍 City:   ' + data.city.padEnd(30) + '│\n';
+            message += '│ 🏠 Address:' + data.address.padEnd(30) + '│\n';
+            message += '└───────────────────────────────────┘\n\n';
+            
+            message += '🛒 *ORDER ITEMS*\n';
+            message += '─────────────────────────────────────\n';
+            message += '┌────────┬──────────────────────┬────────────┬──────────┐\n';
+            message += '│  QTY   │ ITEM                 │ UNIT PRICE │  TOTAL   │\n';
+            message += '├────────┼──────────────────────┼────────────┼──────────┤\n';
+            
+            cartItems.forEach(item => {
+                const qty = String(item.quantity).padStart(6);
+                const name = item.name.substring(0, 20).padEnd(20);
+                const price = 'KSh ' + String(item.price.toLocaleString()).padStart(10);
+                const itemTotal = 'KSh ' + String((item.price * item.quantity).toLocaleString()).padStart(8);
+                message += '│ ' + qty + ' │ ' + name + ' │ ' + price + ' │ ' + itemTotal + ' │\n';
+            });
+            
+            message += '└────────┴──────────────────────┴────────────┴──────────┘\n\n';
+            
+            message += '💰 *PAYMENT SUMMARY*\n';
+            message += '─────────────────────────────────────\n';
+            message += '┌───────────────────────────────────┐\n';
+            message += '│ 📦 Subtotal:      KSh ' + String(subtotal.toLocaleString()).padStart(12) + '│\n';
+            if (shipping > 0) {
+                message += '│ 🚚 Shipping:      KSh ' + String(shipping.toLocaleString()).padStart(12) + '│\n';
+            } else {
+                message += '│ 🚚 Shipping:      FREE'.padStart(33) + '│\n';
+            }
+            message += '├───────────────────────────────────┤\n';
+            message += '│ 💵 TOTAL AMOUNT:  KSh ' + String(total.toLocaleString()).padStart(12) + '│\n';
+            message += '└───────────────────────────────────┘\n\n';
+            
+            message += '💳 *PAYMENT OPTIONS*\n';
+            message += '─────────────────────────────────────\n';
+            message += '┌───────────────────────────────────┐\n';
+            message += '│ 1️⃣ M-Pesa Paybill: 123456       │\n';
+            message += '│    Account: ' + orderId.padEnd(26) + '│\n';
+            message += '│                                     │\n';
+            message += '│ 2️⃣ Bank Transfer:                │\n';
+            message += '│    Bank:   Equity Bank           │\n';
+            message += '│    Account: 1234567890           │\n';
+            message += '│    Name:   Price Point Ltd       │\n';
+            message += '└───────────────────────────────────┘\n\n';
+            
+            message += '📦 *DELIVERY INFORMATION*\n';
+            message += '─────────────────────────────────────\n';
+            message += '📍 ' + fullAddress + '\n';
+            message += '🚚 Estimated Delivery: 1-3 business days\n';
+            message += '📞 Contact: +254 745 793 237\n\n';
+            
+            message += '✅ *NEXT STEPS*\n';
+            message += '─────────────────────────────────────\n';
+            message += '1️⃣ Reply ✅ to confirm this order\n';
+            message += '2️⃣ Make payment using options above\n';
+            message += '3️⃣ Send payment confirmation\n';
+            message += '4️⃣ Order will be processed immediately\n';
+            message += '5️⃣ Tracking number sent upon dispatch\n\n';
+            
+            message += '🌟 *Thank you for choosing Price Point Kenya!* 🌟\n';
+            message += 'We appreciate your business and trust. 🙏\n\n';
+            
+            message += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            message += '📧 support@pricepoint.co.ke  |  📞 0745 793 237\n';
+            message += '🌐 www.pricepoint.co.ke  |  ⭐ Rate us 5 stars!\n';
+            message += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+
+            // Create order in system
+            const orderData = {
+                order_id: orderId,
+                items: cartItems,
+                subtotal: subtotal,
+                shipping: shipping,
+                total: total,
+                status: 'pending_whatsapp',
+                source: 'whatsapp',
+                created_at: new Date().toISOString(),
+                customer_name: customerName,
+                customer_email: data.email,
+                customer_phone: data.phone,
+                customer_address: fullAddress,
+                customer: {
+                    name: customerName,
+                    email: data.email,
+                    phone: data.phone,
+                    address: fullAddress
+                }
+            };
+
+            fetch('/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                const encoded = encodeURIComponent(message);
+                // 🔥 YOUR WHATSAPP NUMBER: 0745793237
+                const whatsappNumber = '254745793237';
+                window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
+
+                document.getElementById('orderId').textContent = orderId;
+                goToStep(3);
+                launchConfetti();
+                showToast('✅ Order sent via WhatsApp!', 'success', 'We\'ll confirm your order shortly');
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 6000);
+            })
+            .catch(() => {
+                const encoded = encodeURIComponent(message);
+                const whatsappNumber = '254745793237';
+                window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
+
+                document.getElementById('orderId').textContent = orderId;
+                goToStep(3);
+                launchConfetti();
+                showToast('⚠️ Order saved locally', 'warning', 'Please confirm your order via WhatsApp');
+            });
+        }
+
+        // ============================================================
+        // CONFETTI
+        // ============================================================
         function launchConfetti() {
             const container = document.getElementById('confettiContainer');
-            const colors = ['#2563eb', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4'];
+            const colors = ['#2563eb', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4', '#25D366', '#f97316', '#ec4899'];
 
-            for (let i = 0; i < 120; i++) {
+            for (let i = 0; i < 150; i++) {
                 const piece = document.createElement('div');
                 piece.className = 'confetti-piece';
                 piece.style.left = Math.random() * 100 + '%';
                 piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-                piece.style.width = (Math.random() * 8 + 4) + 'px';
-                piece.style.height = (Math.random() * 8 + 4) + 'px';
-                piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                piece.style.animationDelay = (Math.random() * 2) + 's';
+                piece.style.width = (Math.random() * 10 + 4) + 'px';
+                piece.style.height = (Math.random() * 10 + 4) + 'px';
+                piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                piece.style.animationDuration = (Math.random() * 2.5 + 1.5) + 's';
+                piece.style.animationDelay = (Math.random() * 2.5) + 's';
                 container.appendChild(piece);
-                setTimeout(() => piece.remove(), 4000);
+                setTimeout(() => piece.remove(), 5000);
             }
         }
 
-        function showToast(message) {
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type = 'success', subMessage = '') {
             const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
+            const msgEl = document.getElementById('toastMessage');
+            const subEl = document.getElementById('toastSubMessage');
+            const iconEl = document.getElementById('toastIcon');
+            
+            msgEl.textContent = message;
+            subEl.textContent = subMessage;
+            
+            const icons = {
+                success: 'fas fa-check-circle text-green-500 text-xl',
+                error: 'fas fa-times-circle text-red-500 text-xl',
+                warning: 'fas fa-exclamation-triangle text-amber-500 text-xl',
+                info: 'fas fa-info-circle text-blue-500 text-xl'
+            };
+            iconEl.className = icons[type] || icons.success;
+            
             toast.classList.remove('hidden');
             clearTimeout(window.toastTimeout);
-            window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 4000);
+            window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 6000);
         }
 
-        // Header scroll effect
-        window.addEventListener('scroll', () => {
-            document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 20);
-        });
-
-        // Keyboard support
+        // ============================================================
+        // KEYBOARD SHORTCUTS
+        // ============================================================
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const toast = document.getElementById('toast');
@@ -604,6 +1115,30 @@
                     toast.classList.add('hidden');
                 }
             }
+            if (e.key === 'Enter' && currentStep === 1) {
+                const active = document.activeElement;
+                if (active && active.tagName === 'INPUT') {
+                    goToStep(2);
+                }
+            }
+            // Number shortcuts: 1, 2, 3 for steps
+            if (e.key >= '1' && e.key <= '3' && !e.ctrlKey && !e.metaKey) {
+                const step = parseInt(e.key);
+                if (step <= currentStep + 1) {
+                    goToStep(step);
+                }
+            }
+        });
+
+        // ============================================================
+        // AUTO-FOCUS FIRST INPUT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstInput = document.querySelector('#step1 input');
+            if (firstInput) setTimeout(() => firstInput.focus(), 300);
+            console.log('✅ Premium WhatsApp Checkout loaded');
+            console.log('📱 WhatsApp: 0745793237');
+            console.log('💰 Total: KSh {{ total }}');
         });
     </script>
 </body>
