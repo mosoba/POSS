@@ -12,9 +12,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     
-    <!-- ============================================================
-         PROFESSIONAL CSS - ADVANCED LAYOUT
-         ============================================================ -->
     <style>
         /* ============================================================
            RESET & VARIABLES
@@ -24,6 +21,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
         :root {
             --primary: #059669;
             --primary-dark: #047857;
@@ -43,17 +41,88 @@
             --gray-700: #334155;
             --gray-800: #1e293b;
             --gray-900: #0f172a;
-            --radius: 12px;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
             --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
             --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
             --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
+            --radius: 12px;
             --transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        
+        /* ===== DARK MODE ===== */
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+            --gray-50: #1e293b;
+            --gray-100: #334155;
+            --gray-200: #475569;
+            --gray-300: #64748b;
+            --gray-400: #94a3b8;
+            --gray-500: #cbd5e1;
+            --gray-800: #f1f5f9;
+            --gray-900: #ffffff;
+            --primary-bg: #064e3b;
+            --danger-bg: #7f1d1d;
+            --warning-bg: #78350f;
+        }
+        
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .panel,
+        [data-theme="dark"] .cart-panel,
+        [data-theme="dark"] .modal,
+        [data-theme="dark"] .product-card,
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .customer-select select,
+        [data-theme="dark"] .customer-select .add-btn,
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group select,
+        [data-theme="dark"] .quick-btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .cart-item,
+        [data-theme="dark"] .held-orders-panel,
+        [data-theme="dark"] .return-item,
+        [data-theme="dark"] .search-hint {
+            background: var(--bg-input);
+        }
+        
+        [data-theme="dark"] .cart-item .item-info .name,
+        [data-theme="dark"] .panel-title,
+        [data-theme="dark"] .cart-header h3,
+        [data-theme="dark"] .stat-info .value {
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .modal-overlay {
+            background: rgba(0,0,0,0.8);
+        }
+        
+        [data-theme="dark"] .search-hint .shortcuts {
+            background: var(--bg-card);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f1f5f9;
-            color: var(--gray-900);
+            background: var(--bg-body);
+            color: var(--text-primary);
             min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* ============================================================
@@ -143,7 +212,7 @@
         .rounded-lg { border-radius: 10px; }
         .rounded-xl { border-radius: 12px; }
         .rounded-full { border-radius: 9999px; }
-        .border { border: 1px solid var(--gray-200); }
+        .border { border: 1px solid var(--border-color); }
         .border-2 { border-width: 2px; }
         .border-gray-100 { border-color: var(--gray-100); }
         .border-gray-200 { border-color: var(--gray-200); }
@@ -178,7 +247,7 @@
         .bg-gray-50 { background-color: var(--gray-50); }
         .bg-gray-100 { background-color: var(--gray-100); }
         .bg-gray-200 { background-color: var(--gray-200); }
-        .bg-white { background-color: #ffffff; }
+        .bg-white { background-color: var(--bg-card); }
         .bg-primary { background-color: var(--primary); }
         .bg-primary-bg { background-color: var(--primary-bg); }
         .bg-danger { background-color: var(--danger); }
@@ -284,6 +353,25 @@
         .header-btn.logout { color: #fca5a5; }
         .header-btn.logout:hover { background: rgba(239,68,68,0.15); color: #fecaca; }
 
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--gray-400);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+
         /* ===== SYNC STATUS ===== */
         #syncStatus {
             background: var(--danger);
@@ -317,14 +405,14 @@
             padding: 14px 0;
         }
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: var(--radius);
             padding: 12px 16px;
             display: flex;
             align-items: center;
             gap: 12px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             transition: var(--transition);
             cursor: pointer;
         }
@@ -350,7 +438,7 @@
         .stat-icon.amber { background: #fef3c7; color: #d97706; }
         .stat-icon.teal { background: #ccfbf1; color: #0d9488; }
         .stat-info .label { font-size: 0.5rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        .stat-info .value { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+        .stat-info .value { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
 
         /* ============================================================
            MAIN LAYOUT
@@ -363,11 +451,11 @@
            PANELS
            ============================================================ */
         .panel {
-            background: white;
+            background: var(--bg-card);
             border-radius: var(--radius);
             padding: 16px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
         }
         .panel-header {
             display: flex;
@@ -378,7 +466,7 @@
         .panel-title {
             font-size: 0.85rem;
             font-weight: 700;
-            color: var(--gray-800);
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -394,17 +482,18 @@
         .search-box input {
             width: 100%;
             padding: 10px 16px 10px 40px;
-            border: 2px solid var(--gray-200);
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 0.85rem;
             transition: var(--transition);
-            background: var(--gray-50);
+            background: var(--bg-input);
             outline: none;
+            color: var(--text-primary);
         }
         .search-box input:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(5,150,105,0.08);
-            background: white;
+            background: var(--bg-card);
         }
         .search-box .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gray-400); }
         .search-box .clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); cursor: pointer; display: none; }
@@ -426,9 +515,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            border: 2px solid var(--gray-200);
-            color: var(--gray-500);
-            background: white;
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            background: var(--bg-card);
         }
         .category-pill:hover { border-color: var(--primary); color: var(--primary); }
         .category-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -449,9 +538,9 @@
         .product-grid::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
 
         .product-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             padding: 10px;
             transition: var(--transition);
             cursor: pointer;
@@ -501,7 +590,7 @@
         .product-card .name {
             font-size: 0.7rem;
             font-weight: 600;
-            color: var(--gray-800);
+            color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -537,7 +626,7 @@
         .product-card .out-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(2px);
             display: flex;
             align-items: center;
@@ -547,6 +636,9 @@
             color: #dc2626;
             border-radius: 10px;
             z-index: 3;
+        }
+        [data-theme="dark"] .product-card .out-overlay {
+            background: rgba(0,0,0,0.7);
         }
         .product-card .barcode {
             font-size: 0.4rem;
@@ -567,11 +659,11 @@
            CART PANEL
            ============================================================ */
         .cart-panel {
-            background: white;
+            background: var(--bg-card);
             border-radius: var(--radius);
             padding: 16px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             position: sticky;
             top: 80px;
             max-height: calc(100vh - 120px);
@@ -586,16 +678,124 @@
             align-items: center;
             margin-bottom: 10px;
         }
-        .cart-header h3 { font-size: 0.85rem; font-weight: 700; color: var(--gray-800); display: flex; align-items: center; gap: 8px; }
+        .cart-header h3 { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
         .cart-header .count { font-size: 0.7rem; color: var(--gray-400); }
 
         .customer-select { margin-bottom: 10px; }
         .customer-select label { font-size: 0.6rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
         .customer-select .row { display: flex; gap: 6px; }
-        .customer-select select { flex: 1; padding: 6px 12px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.8rem; background: white; outline: none; }
+        .customer-select select { flex: 1; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.8rem; background: var(--bg-input); outline: none; color: var(--text-primary); }
         .customer-select select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
-        .customer-select .add-btn { padding: 6px 12px; border: 1px solid var(--gray-200); border-radius: 8px; background: white; cursor: pointer; font-size: 0.8rem; transition: var(--transition); }
+        .customer-select .add-btn { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); cursor: pointer; font-size: 0.8rem; transition: var(--transition); color: var(--text-secondary); }
         .customer-select .add-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ===== PAYMENT METHOD ===== */
+        .payment-method-section {
+            margin-bottom: 8px;
+        }
+        .payment-method-section label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .payment-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+        .payment-btn {
+            padding: 4px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            background: var(--bg-input);
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+        .payment-btn:hover { transform: scale(1.02); }
+        .payment-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ===== TIP SECTION ===== */
+        .tip-section {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border-color);
+        }
+        .tip-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .tip-btn {
+            padding: 2px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            background: var(--bg-input);
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+        .tip-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+        .tip-btn.custom {
+            width: 80px;
+            padding: 2px 8px;
+        }
+        .tip-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            margin-top: 4px;
+            color: var(--gray-500);
+        }
+        .tip-display .value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* ===== ORDER NOTES ===== */
+        .order-notes {
+            margin-top: 6px;
+        }
+        .order-notes label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .order-notes textarea {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.65rem;
+            background: var(--bg-input);
+            resize: vertical;
+            min-height: 30px;
+            color: var(--text-primary);
+        }
+        .order-notes textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
 
         /* Cart Items */
         .cart-items {
@@ -615,8 +815,8 @@
             gap: 10px;
             padding: 6px 8px;
             border-radius: 8px;
-            background: var(--gray-50);
-            border: 1px solid var(--gray-100);
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
             margin-bottom: 4px;
             animation: slideUp 0.25s ease;
         }
@@ -628,7 +828,7 @@
             width: 32px;
             height: 32px;
             border-radius: 6px;
-            background: white;
+            background: var(--bg-card);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -638,7 +838,7 @@
         }
         .cart-item .item-img img { width: 100%; height: 100%; object-fit: contain; }
         .cart-item .item-info { flex: 1; min-width: 0; }
-        .cart-item .item-info .name { font-size: 0.7rem; font-weight: 600; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cart-item .item-info .name { font-size: 0.7rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cart-item .item-info .price { font-size: 0.65rem; color: var(--primary); font-weight: 600; }
         .cart-item .item-info .barcode { font-size: 0.45rem; color: var(--gray-400); font-family: monospace; }
         .cart-item .controls { display: flex; align-items: center; gap: 2px; }
@@ -654,15 +854,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-secondary);
         }
         .cart-item .controls button:hover { background: var(--gray-300); }
-        .cart-item .controls .qty { font-size: 0.75rem; font-weight: 700; width: 24px; text-align: center; }
+        .cart-item .controls .qty { font-size: 0.75rem; font-weight: 700; width: 24px; text-align: center; color: var(--text-primary); }
         .cart-item .controls .remove { color: var(--gray-400); background: transparent; width: 20px; height: 20px; font-size: 0.6rem; }
         .cart-item .controls .remove:hover { color: var(--danger); background: var(--danger-bg); }
 
         /* Cart Summary */
         .cart-summary {
-            border-top: 2px solid var(--gray-200);
+            border-top: 2px solid var(--border-color);
             padding-top: 10px;
             margin-top: 8px;
         }
@@ -671,6 +872,7 @@
             justify-content: space-between;
             padding: 2px 0;
             font-size: 0.8rem;
+            color: var(--text-secondary);
         }
         .cart-summary .row.total {
             border-top: 2px solid var(--primary);
@@ -678,6 +880,7 @@
             margin-top: 4px;
             font-weight: 700;
             font-size: 0.95rem;
+            color: var(--text-primary);
         }
         .cart-summary .row.total .amount { color: var(--primary); }
         .cart-summary .discount-row {
@@ -685,6 +888,8 @@
             align-items: center;
             gap: 8px;
             font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
         }
         .cart-summary .discount-row .value { font-weight: 700; color: var(--primary); }
         .cart-summary .discount-row .change-btn { color: #3b82f6; cursor: pointer; font-size: 0.65rem; font-weight: 600; background: none; border: none; }
@@ -710,8 +915,8 @@
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(5,150,105,0.25); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-outline {
-            border: 2px solid var(--gray-200);
-            color: var(--gray-600);
+            border: 2px solid var(--border-color);
+            color: var(--text-secondary);
             background: transparent;
             padding: 8px 14px;
             border-radius: 9999px;
@@ -733,9 +938,9 @@
         .held-orders-panel {
             margin-top: 8px;
             padding: 10px;
-            background: var(--gray-50);
+            background: var(--bg-input);
             border-radius: 8px;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             max-height: 100px;
             overflow-y: auto;
             display: none;
@@ -748,7 +953,8 @@
             align-items: center;
             padding: 4px 6px;
             font-size: 0.7rem;
-            border-bottom: 1px solid var(--gray-100);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
         }
         .held-order-item:last-child { border-bottom: none; }
         .held-order-item .restore { color: var(--primary); background: none; border: none; cursor: pointer; font-size: 0.6rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; transition: var(--transition); }
@@ -767,8 +973,8 @@
         }
         @media (max-width: 600px) { .quick-actions { grid-template-columns: repeat(3, 1fr); } }
         .quick-btn {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 8px 4px;
             text-align: center;
@@ -776,7 +982,8 @@
             transition: var(--transition);
             font-size: 0.55rem;
             font-weight: 600;
-            color: var(--gray-600);
+            color: var(--text-secondary);
+            box-shadow: var(--shadow);
         }
         .quick-btn:hover {
             background: var(--primary-bg);
@@ -787,6 +994,102 @@
         .quick-btn .icon { display: block; font-size: 1rem; margin-bottom: 2px; }
         .quick-btn.sync { background: #dbeafe; border-color: #2563eb; color: #2563eb; }
         .quick-btn.sync:hover { background: #2563eb; color: white; }
+        [data-theme="dark"] .quick-btn.sync { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
+        [data-theme="dark"] .quick-btn.sync:hover { background: #3b82f6; color: white; }
+
+        /* ============================================================
+           ADVANCED FEATURES TOGGLE
+           ============================================================ */
+        .advanced-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            box-shadow: var(--shadow);
+        }
+        .advanced-toggle:hover {
+            background: var(--primary-bg);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        .advanced-toggle .arrow {
+            transition: transform 0.3s ease;
+            display: inline-block;
+            font-size: 0.6rem;
+        }
+        .advanced-toggle .arrow.open {
+            transform: rotate(180deg);
+        }
+        .advanced-toggle .badge-adv {
+            background: var(--primary);
+            color: white;
+            font-size: 0.45rem;
+            padding: 1px 8px;
+            border-radius: 9999px;
+            font-weight: 700;
+        }
+
+        .advanced-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+            opacity: 0;
+            margin-top: 0;
+        }
+        .advanced-panel.open {
+            max-height: 600px;
+            opacity: 1;
+            margin-top: 12px;
+        }
+
+        .advanced-features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        @media (max-width: 768px) {
+            .advanced-features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 480px) {
+            .advanced-features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .adv-feature-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .adv-feature-btn:hover {
+            background: var(--primary-bg);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .adv-feature-btn .icon { display: block; font-size: 1.2rem; margin-bottom: 2px; }
 
         /* ============================================================
            MODALS
@@ -794,8 +1097,8 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15,23,42,0.5);
-            backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
             z-index: 999;
             display: flex;
             align-items: center;
@@ -807,7 +1110,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal {
-            background: white;
+            background: var(--bg-card);
             border-radius: 16px;
             max-width: 500px;
             width: 100%;
@@ -817,6 +1120,7 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
         }
         .modal .close {
             position: absolute;
@@ -831,8 +1135,8 @@
             border-radius: 6px;
             transition: var(--transition);
         }
-        .modal .close:hover { background: var(--gray-100); color: var(--gray-800); }
-        .modal .title { font-size: 1.05rem; font-weight: 700; color: var(--gray-900); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .modal .close:hover { background: var(--bg-input); color: var(--text-primary); }
+        .modal .title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 
         .form-group { margin-bottom: 14px; }
         .form-group label { font-size: 0.6rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
@@ -841,12 +1145,13 @@
         .form-group select {
             width: 100%;
             padding: 8px 12px;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 0.85rem;
             transition: var(--transition);
-            background: white;
+            background: var(--bg-input);
             outline: none;
+            color: var(--text-primary);
         }
         .form-group input:focus,
         .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(5,150,105,0.08); }
@@ -864,9 +1169,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            border: 1px solid var(--gray-200);
-            background: white;
-            color: var(--gray-600);
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
         }
         .discount-preset:hover { border-color: var(--warning); color: var(--warning); background: var(--warning-bg); }
 
@@ -875,16 +1180,79 @@
             align-items: center;
             gap: 12px;
             padding: 8px 12px;
-            background: var(--gray-50);
+            background: var(--bg-input);
             border-radius: 8px;
-            border: 1px solid var(--gray-100);
+            border: 1px solid var(--border-color);
             margin-bottom: 4px;
         }
         .return-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #dc2626; flex-shrink: 0; }
         .return-item .info { flex: 1; }
-        .return-item .info .name { font-size: 0.8rem; font-weight: 600; color: var(--gray-800); }
+        .return-item .info .name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
         .return-item .info .detail { font-size: 0.65rem; color: var(--gray-500); }
         .return-item .total { font-weight: 700; color: #dc2626; font-size: 0.8rem; }
+
+        /* ============================================================
+           CASH DRAWER STYLES
+           ============================================================ */
+        .cash-drawer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .cash-drawer-grid .btn {
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            color: white;
+        }
+        .cash-drawer-grid .btn:hover { transform: scale(1.02); }
+        .cash-drawer-grid .btn-open { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .cash-drawer-grid .btn-count { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .cash-stats {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .cash-stats .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 2px 0;
+        }
+        .cash-stats .row .value { font-weight: 700; color: var(--primary); }
+
+        /* ============================================================
+           STOCK CHECK
+           ============================================================ */
+        .stock-check-grid {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.7rem;
+        }
+        .stock-item .stock-low { color: #dc2626; font-weight: 600; }
+        .stock-item .stock-medium { color: #d97706; font-weight: 600; }
+        .stock-item .stock-high { color: #059669; font-weight: 600; }
+
+        .stock-summary {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .stock-summary.warning { background: #fef3c7; }
+        .stock-summary.danger { background: #fce4ec; }
+        [data-theme="dark"] .stock-summary.warning { background: #78350f; }
+        [data-theme="dark"] .stock-summary.danger { background: #7f1d1d; }
 
         /* ============================================================
            TOAST
@@ -937,6 +1305,7 @@
             .pos-grid { gap: 12px; }
             .panel { padding: 12px; }
             .cart-panel { padding: 12px; }
+            .advanced-features-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 480px) {
             .header-actions .stat-label { display: none; }
@@ -944,6 +1313,7 @@
             .product-grid { grid-template-columns: repeat(2, 1fr); }
             .stats-bar { grid-template-columns: 1fr 1fr; }
             .modal { padding: 20px; margin: 10px; }
+            .advanced-features-grid { grid-template-columns: 1fr 1fr; }
         }
 
         /* ============================================================
@@ -952,7 +1322,7 @@
         #barcode-reader {
             width: 100%;
             min-height: 200px;
-            background: var(--gray-100);
+            background: var(--bg-input);
             border-radius: 8px;
             overflow: hidden;
         }
@@ -965,20 +1335,67 @@
             text-align: center;
             padding: 40px 20px;
             color: var(--gray-400);
-            background: var(--gray-50);
+            background: var(--bg-input);
             border-radius: 12px;
-            border: 2px dashed var(--gray-200);
+            border: 2px dashed var(--border-color);
         }
         .search-hint .icon { font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--gray-300); }
         .search-hint .shortcuts {
             font-size: 0.6rem;
             color: var(--gray-400);
             margin-top: 8px;
-            background: white;
+            background: var(--bg-card);
             padding: 6px 12px;
             border-radius: 8px;
             display: inline-block;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
+        }
+
+        /* ============================================================
+           RECEIPT MODAL - Print Style
+           ============================================================ */
+        #receiptContent {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            padding: 16px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: var(--text-primary);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            #receiptContent {
+                font-family: 'Courier New', monospace !important;
+                font-size: 10pt !important;
+                line-height: 1.3 !important;
+                padding: 5mm !important;
+                background: white !important;
+                color: black !important;
+                width: 80mm !important;
+                max-width: 80mm !important;
+                margin: 0 auto !important;
+            }
+        }
+
+        /* ============================================================
+           SALES COUNTER
+           ============================================================ */
+        .sales-counter {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sales-counter .count {
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 20px;
+            text-align: center;
         }
     </style>
 </head>
@@ -999,10 +1416,17 @@
         </div>
         <div class="header-actions">
             <span class="time">🕐 <span id="clockDisplay"></span></span>
+            <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <div class="sales-counter">
+                <span style="color:var(--gray-400);font-size:0.6rem;">🚀</span>
+                <span class="count" id="quickSalesCount">0</span>
+            </div>
             <span id="syncStatus" onclick="manualSync()">
                 <span class="cloud">☁️</span>
                 <span class="spinner">⟳</span>
-                <span id="unsyncedCount">0</span> offline
+                <span id="unsyncedCount">0</span>
             </span>
             <span class="stat-label">Sales:</span>
             <span class="stat-value" id="userTodaySales">KSh 0</span>
@@ -1033,6 +1457,42 @@
             <div class="quick-btn" onclick="voidLastItem();"><span class="icon">↩</span>Void</div>
             <div class="quick-btn" onclick="toggleReturnModal();"><span class="icon">↩</span>Return</div>
             <div class="quick-btn sync" onclick="manualSync();"><span class="icon">☁️</span>Sync</div>
+        </div>
+
+        <!-- ===== ADVANCED FEATURES TOGGLE ===== -->
+        <button class="advanced-toggle" onclick="toggleAdvancedFeatures()">
+            <span>⚡ Advanced Features</span>
+            <span class="badge-adv">8</span>
+            <span class="arrow" id="advArrow">▼</span>
+        </button>
+
+        <div class="advanced-panel" id="advancedPanel">
+            <div class="advanced-features-grid">
+                <div class="adv-feature-btn" onclick="openCashDrawerModal();">
+                    <span class="icon">💰</span>Cash Drawer
+                </div>
+                <div class="adv-feature-btn" onclick="quickStockCheck();">
+                    <span class="icon">📊</span>Stock Check
+                </div>
+                <div class="adv-feature-btn" onclick="quickExchange();">
+                    <span class="icon">🔄</span>Exchange
+                </div>
+                <div class="adv-feature-btn" onclick="bulkAddToCart();">
+                    <span class="icon">📦</span>Bulk Add
+                </div>
+                <div class="adv-feature-btn" onclick="showOrderHistory();">
+                    <span class="icon">📋</span>History
+                </div>
+                <div class="adv-feature-btn" onclick="quickThemeSelect();">
+                    <span class="icon">🎨</span>Themes
+                </div>
+                <div class="adv-feature-btn" onclick="showDailyReport();">
+                    <span class="icon">📈</span>Report
+                </div>
+                <div class="adv-feature-btn" onclick="exportOrders();">
+                    <span class="icon">💾</span>Export
+                </div>
+            </div>
         </div>
 
         <!-- ===== MAIN GRID ===== -->
@@ -1093,6 +1553,16 @@
                     <input type="hidden" id="posCustomerPhone" value="N/A" />
                 </div>
 
+                <!-- ===== PAYMENT METHOD ===== -->
+                <div class="payment-method-section">
+                    <label>💳 Payment Method</label>
+                    <div class="payment-btn-group">
+                        <button class="payment-btn active" onclick="setPaymentMethod('cash')" id="payCash">💵 Cash</button>
+                        <button class="payment-btn" onclick="setPaymentMethod('card')" id="payCard">💳 Card</button>
+                        <button class="payment-btn" onclick="setPaymentMethod('mpesa')" id="payMpesa">📱 M-Pesa</button>
+                    </div>
+                </div>
+
                 <div class="cart-items" id="posCartItems">
                     <div class="cart-empty" id="emptyCartMessage">
                         <span class="icon">🛍️</span>
@@ -1104,7 +1574,30 @@
                 <div class="cart-summary">
                     <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
                     <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
+                    
+                    <!-- ===== TIP SECTION ===== -->
+                    <div class="tip-section">
+                        <div class="tip-btn-group">
+                            <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
+                            <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
+                            <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
+                            <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
+                            <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
+                        </div>
+                        <div class="tip-display">
+                            <span>Tip Added:</span>
+                            <span class="value" id="tipDisplay">KSh 0</span>
+                        </div>
+                    </div>
+
                     <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
+                    
+                    <!-- ===== ORDER NOTES ===== -->
+                    <div class="order-notes">
+                        <label>📝 Order Notes</label>
+                        <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
+                    </div>
+
                     <div class="discount-row">
                         <span>Discount:</span>
                         <span class="value" id="discountDisplay">0%</span>
@@ -1125,7 +1618,20 @@
         </div>
     </div>
 
-    <!-- ===== MODALS ===== -->
+    <!-- ===== RECEIPT MODAL ===== -->
+    <div id="receiptModal" class="modal-overlay hidden">
+        <div class="modal" style="max-width:400px;">
+            <button class="close" onclick="closeReceipt()">✕</button>
+            <div class="title">🧾 Receipt</div>
+            <div id="receiptContent"></div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+                <button onclick="printReceipt()" class="btn-primary" style="flex:1;">🖨️ Print</button>
+                <button onclick="closeReceipt()" class="btn-outline" style="flex:1;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODALS (Existing) ===== -->
     <div id="customerModal" class="modal-overlay hidden" onclick="closeCustomerModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <button class="close" onclick="closeCustomerModal()">✕</button>
@@ -1134,7 +1640,7 @@
                 <div class="form-group"><label>Full Name <span class="required">*</span></label><input type="text" id="custName" placeholder="John Doe" required></div>
                 <div class="form-group"><label>Email</label><input type="email" id="custEmail" placeholder="john@example.com"></div>
                 <div class="form-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="+254 700 000 000"></div>
-                <div style="display:flex;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-200);">
+                <div style="display:flex;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border-color);">
                     <button type="submit" class="btn-primary" style="flex:1;">💾 Add Customer</button>
                     <button type="button" class="btn-outline" style="flex:1;" onclick="closeCustomerModal()">Cancel</button>
                 </div>
@@ -1156,7 +1662,7 @@
                 <span class="discount-preset" onclick="setDiscountPreset(25)">25%</span>
                 <span class="discount-preset" onclick="setDiscountPreset(50)">50%</span>
             </div>
-            <div style="background:var(--gray-50);padding:12px;border-radius:10px;margin-bottom:14px;">
+            <div style="background:var(--bg-input);padding:12px;border-radius:10px;margin-bottom:14px;">
                 <div style="display:flex;justify-content:space-between;font-size:0.85rem;"><span>Subtotal:</span><span id="discountSubtotal">KSh 0</span></div>
                 <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--primary);font-size:0.95rem;"><span>New Total:</span><span id="discountNewTotal">KSh 0</span></div>
             </div>
@@ -1173,7 +1679,7 @@
             <div class="title">↩ Customer Return</div>
             <p style="font-size:0.75rem;color:var(--gray-500);margin-bottom:14px;">Select items to return. This will refund and restock inventory.</p>
             <div id="returnItemsList"></div>
-            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200);">
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color);">
                 <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1rem;"><span>Refund Total:</span><span style="color:#dc2626;" id="refundTotal">KSh 0</span></div>
                 <div style="display:flex;gap:10px;margin-top:10px;">
                     <button onclick="processReturn()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);">✅ Process Return</button>
@@ -1193,7 +1699,7 @@
                 <button onclick="startScanner()" class="btn-primary" id="startScannerBtn" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);">▶ Start</button>
                 <button onclick="closeBarcodeScanner()" class="btn-outline" style="flex:1;">Cancel</button>
             </div>
-            <div id="scannerResult" style="display:none;margin-top:12px;padding:10px;background:var(--gray-50);border-radius:8px;">
+            <div id="scannerResult" style="display:none;margin-top:12px;padding:10px;background:var(--bg-input);border-radius:8px;">
                 <p style="font-size:0.8rem;font-weight:600;color:var(--primary);">✅ Scanned:</p>
                 <p id="scannedValue" style="font-size:0.8rem;font-family:monospace;word-break:break-all;"></p>
             </div>
@@ -1208,7 +1714,7 @@
             <button class="close" onclick="closeBarcodeInputModal()">✕</button>
             <div class="title">⌨️ Enter Barcode</div>
             <p style="font-size:0.8rem;color:var(--gray-500);margin-bottom:12px;">Type the product ID or barcode number</p>
-            <input type="text" id="manualBarcode" style="width:100%;padding:10px 14px;border:1px solid var(--gray-200);border-radius:8px;font-size:0.9rem;outline:none;" placeholder="Enter product ID or barcode..." autofocus>
+            <input type="text" id="manualBarcode" style="width:100%;padding:10px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:0.9rem;outline:none;background:var(--bg-input);color:var(--text-primary);" placeholder="Enter product ID or barcode..." autofocus>
             <div style="display:flex;gap:10px;margin-top:14px;">
                 <button onclick="submitManualBarcode()" class="btn-primary" style="flex:1;">🔍 Find</button>
                 <button onclick="closeBarcodeInputModal()" class="btn-outline" style="flex:1;">Cancel</button>
@@ -1221,9 +1727,12 @@
         <span id="toastMessage">Added to cart!</span>
     </div>
 
+    <!-- ============================================================
+    JAVASCRIPT - COMPLETE WITH ALL ORIGINAL FUNCTIONS INTACT
+    ============================================================ -->
     <script>
         // ============================================================
-        // DATA - KEEP ORIGINAL LOGIC
+        // DATA
         // ============================================================
         const allProducts = {{ products | tojson | safe }};
         let filteredProducts = [];
@@ -1234,6 +1743,52 @@
         let returnItems = [];
         let heldOrders = [];
         let isSyncing = false;
+        let tipAmount = 0;
+        let paymentMethod = 'cash';
+
+        // ============================================================
+        // TOGGLE ADVANCED FEATURES
+        // ============================================================
+        function toggleAdvancedFeatures() {
+            const panel = document.getElementById('advancedPanel');
+            const arrow = document.getElementById('advArrow');
+            panel.classList.toggle('open');
+            arrow.classList.toggle('open');
+            localStorage.setItem('pos-advanced-open', panel.classList.contains('open') ? 'true' : 'false');
+        }
+
+        // Load advanced panel state
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('pos-advanced-open') === 'true') {
+                document.getElementById('advancedPanel').classList.add('open');
+                document.getElementById('advArrow').classList.add('open');
+            }
+        });
+
+        // ============================================================
+        // PAYMENT METHOD - NEW
+        // ============================================================
+        function setPaymentMethod(method) {
+            paymentMethod = method;
+            document.querySelectorAll('.payment-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('pay' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('active');
+            showToast('💳 Payment: ' + method.toUpperCase(), 'info');
+        }
+
+        // ============================================================
+        // TIP MANAGEMENT - NEW
+        // ============================================================
+        function addTip(amount) {
+            tipAmount = amount;
+            document.getElementById('tipDisplay').textContent = 'KSh ' + amount.toLocaleString();
+            updatePOSUI();
+            showToast('💝 Tip of KSh ' + amount.toLocaleString() + ' added!', 'success');
+        }
+
+        function addCustomTip() {
+            const val = parseFloat(document.getElementById('customTip').value);
+            if (val > 0) { addTip(val); document.getElementById('customTip').value = ''; }
+        }
 
         // ============================================================
         // CLOCK
@@ -1243,6 +1798,22 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        // ============================================================
+        // DARK MODE
+        // ============================================================
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('pos-theme', isDark ? 'light' : 'dark');
+            document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+            showToast(isDark ? '☀️ Light mode' : '🌙 Dark mode', 'info');
+        }
+        if (localStorage.getItem('pos-theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeIcon').textContent = '☀️';
+        }
 
         // ============================================================
         // ONLINE/OFFLINE
@@ -1314,21 +1885,18 @@
         // CORE: UPDATE LOCAL PRODUCT STOCK (WORKS OFFLINE)
         // ============================================================
         function updateLocalProductStock(productId, quantity) {
-            console.log(`📦 updateLocalProductStock: id=${productId}, qty=${quantity}`);
-            
+            console.log('📦 updateLocalProductStock: id=' + productId + ', qty=' + quantity);
             const product = allProducts.find(p => String(p.id) === String(productId));
             if (product) {
                 const oldStock = product.stock || 0;
                 product.stock = Math.max(0, oldStock - quantity);
-                console.log(`   📦 ${product.name}: ${oldStock} → ${product.stock}`);
+                console.log('   📦 ' + product.name + ': ' + oldStock + ' → ' + product.stock);
             }
-            
             const filteredProduct = filteredProducts.find(p => String(p.id) === String(productId));
             if (filteredProduct) {
                 const oldStock = filteredProduct.stock || 0;
                 filteredProduct.stock = Math.max(0, oldStock - quantity);
             }
-            
             renderProducts();
         }
 
@@ -1339,7 +1907,6 @@
             try {
                 const unsynced = await getUnsyncedOrders();
                 if (!unsynced.length) return;
-                
                 const deductions = {};
                 unsynced.forEach(order => {
                     if (order.is_return === true) {
@@ -1358,14 +1925,13 @@
                         });
                     }
                 });
-                
                 Object.keys(deductions).forEach(pid => {
                     const product = allProducts.find(p => String(p.id) === String(pid));
                     if (product) {
                         const oldStock = product.stock || 0;
                         const delta = deductions[pid];
                         product.stock = Math.max(0, oldStock - delta);
-                        console.log(`📦 Applied offline adjustment: ${product.name}: ${oldStock} → ${product.stock}`);
+                        console.log('📦 Applied offline adjustment: ' + product.name + ': ' + oldStock + ' → ' + product.stock);
                     }
                 });
             } catch (e) {
@@ -1586,10 +2152,10 @@
                 const total = oSynced + rSynced;
                 const failed = oFailed + rFailed;
                 if (total > 0) {
-                    showToast(`✅ ${total} items synced! (${oSynced} orders, ${rSynced} returns)`, 'success');
+                    showToast('✅ ' + total + ' items synced! (' + oSynced + ' orders, ' + rSynced + ' returns)', 'success');
                     loadUserStats(); loadSalesStats(); renderProducts();
                 } else {
-                    showToast(`⚠️ ${failed} items failed to sync`, 'warning');
+                    showToast('⚠️ ' + failed + ' items failed to sync', 'warning');
                 }
                 const remaining = await getUnsyncedOrders();
                 updateUnsyncedCount(remaining.length);
@@ -1636,14 +2202,14 @@
         }
 
         // ============================================================
-        // SEARCH & FILTER
+        // SEARCH & FILTER - ORIGINAL
         // ============================================================
         function searchProducts(query) {
             const term = query.toLowerCase().trim();
             document.getElementById('searchClear').classList.toggle('visible', term !== '');
             if (term === '') {
                 filteredProducts = currentCategory === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === currentCategory).slice(0, 50);
-                document.getElementById('resultCount').textContent = `${filteredProducts.length} of ${allProducts.length} products`;
+                document.getElementById('resultCount').textContent = filteredProducts.length + ' of ' + allProducts.length + ' products';
             } else {
                 const results = allProducts.filter(p => {
                     const name = (p.name || '').toLowerCase();
@@ -1653,7 +2219,7 @@
                     return name.includes(term) || cat.includes(term) || id.includes(term) || barcode.includes(term);
                 });
                 filteredProducts = results.slice(0, 100);
-                document.getElementById('resultCount').textContent = `${results.length} found${results.length > 100 ? ' (showing 100)' : ''}`;
+                document.getElementById('resultCount').textContent = results.length + ' found' + (results.length > 100 ? ' (showing 100)' : '');
             }
             renderProducts();
         }
@@ -1665,7 +2231,7 @@
             const input = document.getElementById('posSearch');
             if (input.value.trim() === '') {
                 filteredProducts = category === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === category).slice(0, 50);
-                document.getElementById('resultCount').textContent = `${filteredProducts.length} products${category !== 'all' ? ' in "' + category + '"' : ''}`;
+                document.getElementById('resultCount').textContent = filteredProducts.length + ' products' + (category !== 'all' ? ' in "' + category + '"' : '');
                 renderProducts();
             } else {
                 searchProducts(input.value);
@@ -1678,10 +2244,13 @@
             searchProducts('');
         }
 
+        // ============================================================
+        // RENDER PRODUCTS - ORIGINAL
+        // ============================================================
         function renderProducts() {
             const grid = document.getElementById('posProductGrid');
             if (!filteredProducts.length) {
-                grid.innerHTML = `<div class="search-hint"><span class="icon">🔍</span><p>No products found</p><div class="shortcuts">💡 Try a different search term</div></div>`;
+                grid.innerHTML = '<div class="search-hint"><span class="icon">🔍</span><p>No products found</p><div class="shortcuts">💡 Try a different search term</div></div>';
                 return;
             }
             let html = '';
@@ -1692,21 +2261,17 @@
                 const stockClass = stock <= 0 ? 'out' : stock < 10 ? 'low' : stock < 30 ? 'medium' : 'high';
                 const label = stock <= 0 ? 'Out' : stock < 10 ? 'Low' : stock < 30 ? 'Med' : 'In Stock';
                 const out = stock <= 0;
-                const barcode = p.barcode ? `<div class="barcode">${p.barcode}</div>` : '';
-                html += `
-                    <div class="product-card" data-id="${p.id || ''}" data-name="${p.name || ''}" data-price="${price}" data-stock="${stock}" data-image="${img}" data-barcode="${p.barcode || ''}" onclick="${out ? '' : 'addToPOSCart(this)'}" style="${out ? 'opacity:0.7;' : ''}">
-                        <div class="image-wrap">
-                            ${img ? `<img src="${img}" onerror="this.parentElement.innerHTML='<span class=placeholder>📦</span>'">` : `<span class="placeholder">📦</span>`}
-                        </div>
-                        <span class="stock-tag ${stockClass}">${label}</span>
-                        ${out ? '<div class="out-overlay">OUT OF STOCK</div>' : ''}
-                        <div class="name">${p.name || 'Product'}</div>
-                        <div class="price">KSh ${price.toLocaleString()}</div>
-                        <div class="stock-info">📦 <span style="font-weight:600;${stock < 10 ? 'color:#dc2626;' : stock < 30 ? 'color:#d97706;' : 'color:#059669;'}">${stock}</span> in stock</div>
-                        ${barcode}
-                        <button class="add-btn" ${out ? 'disabled' : ''}>${out ? 'Out of Stock' : '➕ Add'}</button>
-                    </div>
-                `;
+                const barcode = p.barcode ? '<div class="barcode">' + p.barcode + '</div>' : '';
+                html += '<div class="product-card" data-id="' + (p.id || '') + '" data-name="' + (p.name || '') + '" data-price="' + price + '" data-stock="' + stock + '" data-image="' + img + '" data-barcode="' + (p.barcode || '') + '" onclick="' + (out ? '' : 'addToPOSCart(this)') + '" style="' + (out ? 'opacity:0.7;' : '') + '">' +
+                    '<div class="image-wrap">' + (img ? '<img src="' + img + '" onerror="this.parentElement.innerHTML=\'<span class=placeholder>📦</span>\'">' : '<span class="placeholder">📦</span>') + '</div>' +
+                    '<span class="stock-tag ' + stockClass + '">' + label + '</span>' +
+                    (out ? '<div class="out-overlay">OUT OF STOCK</div>' : '') +
+                    '<div class="name">' + (p.name || 'Product') + '</div>' +
+                    '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                    '<div class="stock-info">📦 <span style="font-weight:600;' + (stock < 10 ? 'color:#dc2626;' : stock < 30 ? 'color:#d97706;' : 'color:#059669;') + '">' + stock + '</span> in stock</div>' +
+                    barcode +
+                    '<button class="add-btn" ' + (out ? 'disabled' : '') + '>' + (out ? 'Out of Stock' : '➕ Add') + '</button>' +
+                    '</div>';
             });
             grid.innerHTML = html;
         }
@@ -1738,7 +2303,7 @@
         }
 
         // ============================================================
-        // CART
+        // CART - ORIGINAL (WORKING)
         // ============================================================
         function addToPOSCart(el) {
             const card = el.closest ? el.closest('.product-card') : el;
@@ -1763,7 +2328,7 @@
                 posCart.push({ id: pid, name, price, image, stock, barcode, quantity: 1 });
             }
             updatePOSUI();
-            showToast(`✅ Added ${name} (${stock} left)`);
+            showToast('✅ Added ' + name + ' (' + stock + ' left)');
         }
 
         function updatePOSQuantity(idx, delta) {
@@ -1785,18 +2350,23 @@
             if (!posCart.length) { showToast('⚠️ Cart is empty', 'warning'); return; }
             const removed = posCart.pop();
             updatePOSUI();
-            showToast(`↩️ Voided: ${removed.name}`, 'info');
+            showToast('↩️ Voided: ' + removed.name, 'info');
         }
 
         function clearCart() {
             if (posCart.length && !confirm('Clear all items?')) return;
             posCart = [];
             discountValue = 0;
+            tipAmount = 0;
             document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
             updatePOSUI();
             showToast('🔄 Cart cleared');
         }
 
+        // ============================================================
+        // UPDATE POS UI - MODIFIED TO INCLUDE TIP
+        // ============================================================
         function updatePOSUI() {
             const list = document.getElementById('posCartItemsList');
             const empty = document.getElementById('emptyCartMessage');
@@ -1809,7 +2379,7 @@
 
             let subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
             const discountAmt = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-            const total = Math.max(0, subtotal - discountAmt);
+            let total = Math.max(0, subtotal - discountAmt + tipAmount);
 
             if (subtotalEl) subtotalEl.textContent = 'KSh ' + subtotal.toLocaleString();
             if (discountEl) discountEl.textContent = '-KSh ' + discountAmt.toLocaleString();
@@ -1827,30 +2397,28 @@
             posCart.forEach((item, i) => {
                 const price = Number(item.price) || 0;
                 const q = Number(item.quantity) || 1;
-                const barcode = item.barcode ? `<div class="barcode">${item.barcode}</div>` : '';
-                html += `
-                    <div class="cart-item">
-                        <div class="item-img">${item.image ? `<img src="${item.image}" onerror="this.textContent='📱'">` : '📱'}</div>
-                        <div class="item-info">
-                            <div class="name">${item.name || 'Product'}</div>
-                            <div class="price">KSh ${price.toLocaleString()}</div>
-                            ${barcode}
-                            <div style="font-size:0.5rem;color:var(--gray-400);">Stock: ${item.stock}</div>
-                        </div>
-                        <div class="controls">
-                            <button onclick="updatePOSQuantity(${i}, -1)">−</button>
-                            <span class="qty">${q}</span>
-                            <button onclick="updatePOSQuantity(${i}, 1)">+</button>
-                            <button class="remove" onclick="removePOSItem(${i})">✕</button>
-                        </div>
-                    </div>
-                `;
+                const barcode = item.barcode ? '<div class="barcode">' + item.barcode + '</div>' : '';
+                html += '<div class="cart-item">' +
+                    '<div class="item-img">' + (item.image ? '<img src="' + item.image + '" onerror="this.textContent=\'📱\'">' : '📱') + '</div>' +
+                    '<div class="item-info">' +
+                    '<div class="name">' + (item.name || 'Product') + '</div>' +
+                    '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                    barcode +
+                    '<div style="font-size:0.5rem;color:var(--gray-400);">Stock: ' + item.stock + '</div>' +
+                    '</div>' +
+                    '<div class="controls">' +
+                    '<button onclick="updatePOSQuantity(' + i + ', -1)">−</button>' +
+                    '<span class="qty">' + q + '</span>' +
+                    '<button onclick="updatePOSQuantity(' + i + ', 1)">+</button>' +
+                    '<button class="remove" onclick="removePOSItem(' + i + ')">✕</button>' +
+                    '</div>' +
+                    '</div>';
             });
             list.innerHTML = html;
         }
 
         // ============================================================
-        // DISCOUNT
+        // DISCOUNT - ORIGINAL
         // ============================================================
         function toggleDiscountModal() {
             document.getElementById('discountModal').classList.toggle('hidden');
@@ -1889,7 +2457,7 @@
         }
 
         // ============================================================
-        // RETURNS - KEEP ORIGINAL LOGIC
+        // RETURNS - ORIGINAL
         // ============================================================
         function toggleReturnModal() {
             const modal = document.getElementById('returnModal');
@@ -1906,7 +2474,7 @@
         function loadReturnItems() {
             const container = document.getElementById('returnItemsList');
             if (!posCart.length) {
-                container.innerHTML = `<p style="text-align:center;padding:20px;color:var(--gray-400);font-size:0.85rem;">No items in cart to return</p>`;
+                container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--gray-400);font-size:0.85rem;">No items in cart to return</p>';
                 document.getElementById('refundTotal').textContent = 'KSh 0';
                 return;
             }
@@ -1920,17 +2488,15 @@
             returnItems.forEach((item, i) => {
                 const t = item.price * item.quantity;
                 if (item.selected) total += t;
-                html += `
-                    <div class="return-item">
-                        <input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleReturnItem(${i})">
-                        <div class="info">
-                            <div class="name">${item.name}</div>
-                            <div class="detail">Qty: ${item.quantity} × KSh ${item.price.toLocaleString()}</div>
-                            ${item.barcode ? `<div style="font-size:0.5rem;color:var(--gray-400);font-family:monospace;">${item.barcode}</div>` : ''}
-                        </div>
-                        <div class="total">KSh ${t.toLocaleString()}</div>
-                    </div>
-                `;
+                html += '<div class="return-item">' +
+                    '<input type="checkbox" ' + (item.selected ? 'checked' : '') + ' onchange="toggleReturnItem(' + i + ')">' +
+                    '<div class="info">' +
+                    '<div class="name">' + item.name + '</div>' +
+                    '<div class="detail">Qty: ' + item.quantity + ' × KSh ' + item.price.toLocaleString() + '</div>' +
+                    (item.barcode ? '<div style="font-size:0.5rem;color:var(--gray-400);font-family:monospace;">' + item.barcode + '</div>' : '') +
+                    '</div>' +
+                    '<div class="total">KSh ' + t.toLocaleString() + '</div>' +
+                    '</div>';
             });
             container.innerHTML = html;
             document.getElementById('refundTotal').textContent = 'KSh ' + total.toLocaleString();
@@ -1942,7 +2508,7 @@
         }
 
         // ============================================================
-        // PROCESS RETURN - KEEP ORIGINAL LOGIC
+        // PROCESS RETURN - ORIGINAL
         // ============================================================
         function processReturn() {
             const selectedItems = returnItems.filter(item => item.selected);
@@ -1954,7 +2520,7 @@
             const refundTotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const customerName = document.getElementById('posCustomer').value || 'Customer';
 
-            if (!confirm(`Process return for ${selectedItems.length} item(s) totaling KSh ${refundTotal.toLocaleString()}?`)) return;
+            if (!confirm('Process return for ' + selectedItems.length + ' item(s) totaling KSh ' + refundTotal.toLocaleString() + '?')) return;
 
             const returnItemsWithCorrectIds = selectedItems.map(item => {
                 const productId = getCorrectProductId(item);
@@ -1991,7 +2557,6 @@
 
             if (!navigator.onLine) {
                 console.log('📡 OFFLINE: Saving return to IndexedDB');
-
                 saveReturnToIndexedDB(returnData)
                     .then(() => {
                         selectedItems.forEach((item, index) => {
@@ -2000,14 +2565,12 @@
                                 updateLocalProductStock(correctId, -item.quantity);
                             }
                         });
-
                         const idsToRemove = selectedItems.map(item => item.id || item.product_id);
                         posCart = posCart.filter(cartItem => !idsToRemove.includes(cartItem.id) && !idsToRemove.includes(cartItem.product_id));
                         closeReturnModal();
                         updatePOSUI();
                         loadSalesStats();
-
-                        showToast(`✅ Return saved offline! Refund: KSh ${refundTotal.toLocaleString()}`, 'warning');
+                        showToast('✅ Return saved offline! Refund: KSh ' + refundTotal.toLocaleString(), 'warning');
                         updateUnsyncedCount();
                         btn.innerHTML = originalText;
                         btn.disabled = false;
@@ -2018,7 +2581,6 @@
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     });
-
                 return;
             }
 
@@ -2058,13 +2620,12 @@
                             updateLocalProductStock(correctId, -item.quantity);
                         }
                     });
-
                     const idsToRemove = selectedItems.map(item => item.id || item.product_id);
                     posCart = posCart.filter(cartItem => !idsToRemove.includes(cartItem.id) && !idsToRemove.includes(cartItem.product_id));
                     closeReturnModal();
                     updatePOSUI();
                     loadSalesStats();
-                    showToast(`✅ Return processed! Refund: KSh ${refundTotal.toLocaleString()}`, 'success');
+                    showToast('✅ Return processed! Refund: KSh ' + refundTotal.toLocaleString(), 'success');
                 } else {
                     showToast('❌ Error: ' + (data.message || 'Failed to process return'), 'error');
                 }
@@ -2081,14 +2642,12 @@
                                 updateLocalProductStock(correctId, -item.quantity);
                             }
                         });
-
                         const idsToRemove = selectedItems.map(item => item.id || item.product_id);
                         posCart = posCart.filter(cartItem => !idsToRemove.includes(cartItem.id) && !idsToRemove.includes(cartItem.product_id));
                         closeReturnModal();
                         updatePOSUI();
                         loadSalesStats();
-
-                        showToast(`✅ Return saved offline! Refund: KSh ${refundTotal.toLocaleString()}`, 'warning');
+                        showToast('✅ Return saved offline! Refund: KSh ' + refundTotal.toLocaleString(), 'warning');
                         updateUnsyncedCount();
                         btn.innerHTML = originalText;
                         btn.disabled = false;
@@ -2103,7 +2662,7 @@
         }
 
         // ============================================================
-        // PLACE ORDER - KEEP ORIGINAL LOGIC
+        // PLACE ORDER - ORIGINAL (MODIFIED TO INCLUDE TIP, NOTES, PAYMENT)
         // ============================================================
         function placePOSOrder() {
             if (posCart.length === 0) { 
@@ -2119,7 +2678,8 @@
             
             const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
             const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-            const total = Math.max(0, subtotal - discountAmount);
+            const total = Math.max(0, subtotal - discountAmount + tipAmount);
+            const notes = document.getElementById('orderNotes').value || '';
             
             const orderItems = posCart.map(item => ({
                 product_id: item.id,
@@ -2159,7 +2719,11 @@
                 synced: false,
                 synced_at: null,
                 barcodes: posCart.map(item => item.barcode).filter(b => b),
-                stock_deducted_locally: false
+                stock_deducted_locally: false,
+                payment_method: paymentMethod,
+                payment_status: 'paid',
+                tip_amount: tipAmount,
+                notes: notes
             };
             
             const btn = document.getElementById('posPlaceOrderBtn');
@@ -2167,9 +2731,9 @@
             btn.innerHTML = '⏳ Processing...';
             btn.disabled = true;
             
+            // ===== OFFLINE =====
             if (!navigator.onLine) {
-                console.log('📡 OFFLINE: Saving order to IndexedDB (stock will be deducted on sync)');
-                
+                console.log('📡 OFFLINE: Saving order to IndexedDB');
                 const localOrderId = 'OFF-' + Date.now().toString(36).toUpperCase();
                 orderData.order_id = localOrderId;
                 orderData.synced = false;
@@ -2178,12 +2742,20 @@
                 
                 saveOrderToIndexedDB(orderData)
                     .then(() => {
-                        showToast(`✅ Order #${localOrderId} saved offline! Stock will be deducted when synced.`, 'warning');
+                        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                        orders.push(orderData);
+                        localStorage.setItem('pos_orders', JSON.stringify(orders));
+                        showToast('✅ Order #' + localOrderId + ' saved offline!', 'warning');
+                        showReceipt(orderData);
                         posCart = [];
                         discountValue = 0;
+                        tipAmount = 0;
                         document.getElementById('discountDisplay').textContent = '0%';
+                        document.getElementById('tipDisplay').textContent = 'KSh 0';
+                        document.getElementById('orderNotes').value = '';
                         updatePOSUI();
                         updateUnsyncedCount();
+                        updateQuickSalesCount();
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     })
@@ -2193,10 +2765,10 @@
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     });
-                
                 return;
             }
             
+            // ===== ONLINE =====
             console.log('📡 ONLINE: Saving order to server');
             
             fetch('/admin/pos/place-order', {
@@ -2216,7 +2788,13 @@
                         data.order.synced = true;
                         data.order.synced_at = new Date().toISOString();
                         data.order.stock_deducted_locally = true;
+                        data.order.payment_method = paymentMethod;
+                        data.order.tip_amount = tipAmount;
+                        data.order.notes = notes;
                         saveOrderToIndexedDB(data.order).catch(err => console.warn('⚠️ Backup save failed:', err));
+                        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                        orders.push(data.order);
+                        localStorage.setItem('pos_orders', JSON.stringify(orders));
                     }
                     
                     if (data.stock_updated && data.stock_updated.length > 0) {
@@ -2228,11 +2806,17 @@
                         });
                     }
                     
+                    const receiptOrder = data.order || orderData;
+                    showReceipt(receiptOrder);
                     showToast(message, 'success');
                     posCart = [];
                     discountValue = 0;
+                    tipAmount = 0;
                     document.getElementById('discountDisplay').textContent = '0%';
+                    document.getElementById('tipDisplay').textContent = 'KSh 0';
+                    document.getElementById('orderNotes').value = '';
                     updatePOSUI();
+                    updateQuickSalesCount();
                     setTimeout(updateUnsyncedCount, 1000);
                 } else {
                     showToast('❌ Error: ' + (data.message || 'Unknown error'), 'error');
@@ -2242,7 +2826,6 @@
             })
             .catch(err => {
                 console.warn('⚠️ Server failed, saving to IndexedDB:', err);
-                
                 const localOrderId = 'OFF-' + Date.now().toString(36).toUpperCase();
                 orderData.order_id = localOrderId;
                 orderData.synced = false;
@@ -2251,12 +2834,20 @@
                 
                 saveOrderToIndexedDB(orderData)
                     .then(() => {
-                        showToast(`✅ Order #${localOrderId} saved offline! Stock will be deducted when synced.`, 'warning');
+                        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                        orders.push(orderData);
+                        localStorage.setItem('pos_orders', JSON.stringify(orders));
+                        showToast('✅ Order #' + localOrderId + ' saved offline!', 'warning');
+                        showReceipt(orderData);
                         posCart = [];
                         discountValue = 0;
+                        tipAmount = 0;
                         document.getElementById('discountDisplay').textContent = '0%';
+                        document.getElementById('tipDisplay').textContent = 'KSh 0';
+                        document.getElementById('orderNotes').value = '';
                         updatePOSUI();
                         updateUnsyncedCount();
+                        updateQuickSalesCount();
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     })
@@ -2270,7 +2861,7 @@
         }
 
         // ============================================================
-        // HOLD ORDERS
+        // HOLD ORDERS - ORIGINAL
         // ============================================================
         function holdOrder() {
             if (!posCart.length) { showToast('⚠️ Cart is empty', 'warning'); return; }
@@ -2282,10 +2873,12 @@
             });
             posCart = [];
             discountValue = 0;
+            tipAmount = 0;
             document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
             updatePOSUI();
             renderHeldOrders();
-            showToast(`⏸️ Order held! (${heldOrders.length} held)`, 'info');
+            showToast('⏸️ Order held! (' + heldOrders.length + ' held)', 'info');
         }
 
         function renderHeldOrders() {
@@ -2296,15 +2889,13 @@
             let html = '';
             heldOrders.forEach((o, i) => {
                 const total = o.items.reduce((s, item) => s + (item.price * item.quantity), 0);
-                html += `
-                    <div class="held-order-item">
-                        <span>${o.customer} - KSh ${total.toLocaleString()}</span>
-                        <div>
-                            <button class="restore" onclick="restoreOrder(${i})">Restore</button>
-                            <button class="remove" onclick="removeHeldOrder(${i})">✕</button>
-                        </div>
-                    </div>
-                `;
+                html += '<div class="held-order-item">' +
+                    '<span>' + o.customer + ' - KSh ' + total.toLocaleString() + '</span>' +
+                    '<div>' +
+                    '<button class="restore" onclick="restoreOrder(' + i + ')">Restore</button>' +
+                    '<button class="remove" onclick="removeHeldOrder(' + i + ')">✕</button>' +
+                    '</div>' +
+                    '</div>';
             });
             list.innerHTML = html;
         }
@@ -2315,7 +2906,9 @@
             document.getElementById('posCustomer').value = heldOrders[i].customer;
             heldOrders.splice(i, 1);
             discountValue = 0;
+            tipAmount = 0;
             document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
             updatePOSUI();
             renderHeldOrders();
             showToast('✅ Order restored!', 'success');
@@ -2328,7 +2921,7 @@
         }
 
         // ============================================================
-        // CUSTOMER
+        // CUSTOMER - ORIGINAL
         // ============================================================
         function toggleCustomerModal() { document.getElementById('customerModal').classList.toggle('hidden'); }
 
@@ -2357,7 +2950,7 @@
             document.getElementById('posCustomerEmail').value = email || '';
             document.getElementById('posCustomerPhone').value = phone || '';
             closeCustomerModal();
-            showToast(`✅ Customer added: ${name}`);
+            showToast('✅ Customer added: ' + name);
             document.getElementById('customerForm').reset();
             loadSalesStats();
         }
@@ -2372,9 +2965,10 @@
         }
 
         // ============================================================
-        // TOAST
+        // TOAST - ORIGINAL
         // ============================================================
-        function showToast(msg, type = 'success') {
+        function showToast(msg, type) {
+            type = type || 'success';
             const toast = document.getElementById('toast');
             const el = document.getElementById('toastMessage');
             if (toast && el) {
@@ -2382,57 +2976,465 @@
                 el.textContent = msg;
                 toast.classList.remove('hidden');
                 clearTimeout(window.toastTimeout);
-                window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 3500);
+                window.toastTimeout = setTimeout(function() { toast.classList.add('hidden'); }, 3500);
             } else { console.log('🔔', msg); }
         }
 
         // ============================================================
-        // BARCODE SCANNER
+        // RECEIPT FUNCTIONS
         // ============================================================
-        let html5QrCode = null;
-        let isScannerRunning = false;
-        let scannerStarted = false;
+        function showReceipt(orderData) {
+            const modal = document.getElementById('receiptModal');
+            modal.classList.remove('hidden');
+            
+            const content = document.getElementById('receiptContent');
+            const date = new Date(orderData.created_at || Date.now()).toLocaleString();
+            const items = orderData.items.map(function(item) {
+                return item.name + ' x' + item.quantity + ' = KSh ' + (item.price * item.quantity).toLocaleString();
+            }).join('\n');
+            
+            const discountAmount = orderData.subtotal - (orderData.total - (orderData.tip_amount || 0));
+            const tip = orderData.tip_amount || 0;
+            
+            content.textContent = 
+                '╔══════════════════════════════════╗\n' +
+                '║          PRICEPOINT POS          ║\n' +
+                '║         📍 Nairobi, Kenya        ║\n' +
+                '╠══════════════════════════════════╣\n' +
+                '║ 📅 ' + date + '                         ║\n' +
+                '║ 👤 ' + (orderData.customer_name || 'Walk-in Customer') + ' ║\n' +
+                '║ 📋 #' + orderData.order_id + '          ║\n' +
+                '║ 💳 ' + (orderData.payment_method || 'cash').toUpperCase() + ' ║\n' +
+                '╠══════════════════════════════════╣\n' +
+                items.split('\n').map(function(line) { return '║ ' + line.padEnd(40) + ' ║'; }).join('\n') + '\n' +
+                '╠══════════════════════════════════╣\n' +
+                '║ Subtotal:    KSh ' + orderData.subtotal.toLocaleString().padStart(12) + ' ║\n' +
+                '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n' +
+                (tip > 0 ? '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n' : '') +
+                '╠══════════════════════════════════╣\n' +
+                '║ TOTAL:       KSh ' + orderData.total.toLocaleString().padStart(12) + ' ║\n' +
+                '╠══════════════════════════════════╣\n' +
+                '║         ✅ THANK YOU!            ║\n' +
+                '║    Have a great day! 😊          ║\n' +
+                '╚══════════════════════════════════╝';
+        }
+
+        function printReceipt() {
+            const content = document.getElementById('receiptContent');
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            if (!printWindow) {
+                showToast('⚠️ Please allow popups for printing', 'warning');
+                return;
+            }
+            printWindow.document.write(
+                '<html><head><title>Receipt</title>' +
+                '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
+                '</head><body><pre>' + content.textContent + '</pre>' +
+                '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
+                '</body></html>'
+            );
+            printWindow.document.close();
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptModal').classList.add('hidden');
+        }
+
+        // ============================================================
+        // QUICK SALES COUNTER
+        // ============================================================
+        function updateQuickSalesCount() {
+            const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+            const today = new Date().toISOString().split('T')[0];
+            const count = orders.filter(function(o) { return o.created_at && o.created_at.startsWith(today); }).length;
+            document.getElementById('quickSalesCount').textContent = count;
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - CASH DRAWER
+        // ============================================================
+        let cashDrawerOpen = false;
+
+        function openCashDrawerModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'cashDrawerModal';
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:400px;">' +
+                '<button class="close" onclick="closeCashDrawer()">✕</button>' +
+                '<div class="title">💰 Cash Drawer</div>' +
+                '<div class="cash-stats"><div class="row"><span>Current Cash</span><span class="value" id="currentCashDisplay">KSh 0</span></div></div>' +
+                '<div class="cash-drawer-grid">' +
+                '<button onclick="openCashDrawer()" class="btn btn-open">🔓 Open Drawer</button>' +
+                '<button onclick="countCash()" class="btn btn-count">💰 Count Cash</button>' +
+                '</div>' +
+                '<div class="cash-stats" style="margin-top:12px;">' +
+                '<div class="row"><span>Today\'s Cash Sales</span><span class="value" id="todayCashSales">KSh 0</span></div>' +
+                '<div class="row" style="font-size:0.7rem;color:var(--gray-500);"><span>Cash Orders Today</span><span id="todayCashOrders">0</span></div>' +
+                '</div>' +
+                '<button onclick="closeCashDrawer()" class="btn-outline" style="margin-top:12px;">Close</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+            updateCashStats();
+        }
+
+        function closeCashDrawer() {
+            const modal = document.getElementById('cashDrawerModal');
+            if (modal) modal.remove();
+        }
+
+        function openCashDrawer() {
+            if (cashDrawerOpen) {
+                showToast('⚠️ Drawer already open!', 'warning');
+                return;
+            }
+            cashDrawerOpen = true;
+            showToast('💰 Cash drawer opened!', 'success');
+            setTimeout(function() { 
+                cashDrawerOpen = false;
+                showToast('🔒 Cash drawer closed', 'info');
+            }, 5000);
+        }
+
+        function countCash() {
+            const orders = getTodayOrders();
+            const cashOrders = orders.filter(function(o) { return o.payment_method === 'cash'; });
+            const cashTotal = cashOrders.reduce(function(sum, o) { return sum + (o.total || 0); }, 0);
+            document.getElementById('todayCashSales').textContent = 'KSh ' + cashTotal.toLocaleString();
+            document.getElementById('todayCashOrders').textContent = cashOrders.length;
+            document.getElementById('currentCashDisplay').textContent = 'KSh ' + cashTotal.toLocaleString();
+            showToast('💰 Cash count: KSh ' + cashTotal.toLocaleString(), 'success');
+        }
+
+        function updateCashStats() {
+            const orders = getTodayOrders();
+            const cashOrders = orders.filter(function(o) { return o.payment_method === 'cash'; });
+            const cashTotal = cashOrders.reduce(function(sum, o) { return sum + (o.total || 0); }, 0);
+            const current = document.getElementById('currentCashDisplay');
+            const sales = document.getElementById('todayCashSales');
+            const count = document.getElementById('todayCashOrders');
+            if (current) current.textContent = 'KSh ' + cashTotal.toLocaleString();
+            if (sales) sales.textContent = 'KSh ' + cashTotal.toLocaleString();
+            if (count) count.textContent = cashOrders.length;
+        }
+
+        function getTodayOrders() {
+            const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+            const today = new Date().toISOString().split('T')[0];
+            return orders.filter(function(o) { return o.created_at && o.created_at.startsWith(today); });
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - QUICK STOCK CHECK
+        // ============================================================
+        function quickStockCheck() {
+            const lowStock = allProducts.filter(function(p) { return (p.stock || 0) < 10 && (p.stock || 0) > 0; });
+            const outOfStock = allProducts.filter(function(p) { return (p.stock || 0) === 0; });
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:400px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">📦 Stock Check</div>' +
+                (outOfStock.length > 0 ? '<div class="stock-summary danger"><span style="font-size:0.8rem;">🚫 Out of Stock: <strong>' + outOfStock.length + '</strong></span></div>' : '') +
+                (lowStock.length > 0 ? '<div class="stock-summary warning"><span style="font-size:0.8rem;">⚠️ Low Stock: <strong>' + lowStock.length + '</strong></span></div>' : '') +
+                '<div class="stock-check-grid">' +
+                lowStock.map(function(p) { return '<div class="stock-item"><span>' + p.name + '</span><span class="stock-low">' + p.stock + ' left</span></div>'; }).join('') +
+                outOfStock.map(function(p) { return '<div class="stock-item"><span>' + p.name + '</span><span class="stock-low">OUT OF STOCK</span></div>'; }).join('') +
+                (lowStock.length === 0 && outOfStock.length === 0 ? '<div style="text-align:center;padding:20px;color:var(--text-muted);">✅ All products have sufficient stock!</div>' : '') +
+                '</div>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-primary" style="margin-top:12px;">Close</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - QUICK EXCHANGE
+        // ============================================================
+        function quickExchange() {
+            if (!posCart.length) {
+                showToast('⚠️ Add items to exchange', 'warning');
+                return;
+            }
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:400px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">🔄 Quick Exchange</div>' +
+                '<div style="background:var(--bg-input);padding:12px;border-radius:8px;margin-bottom:12px;">' +
+                '<p style="font-size:0.8rem;">Current cart total: <strong id="exchangeTotal">KSh ' + posCart.reduce(function(s, i) { return s + i.price * i.quantity; }, 0).toLocaleString() + '</strong></p>' +
+                '</div>' +
+                '<div class="form-group"><label>Exchange Reason</label><select id="exchangeReason" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-input);color:var(--text-primary);">' +
+                '<option value="damaged">Damaged Product</option>' +
+                '<option value="wrong">Wrong Item</option>' +
+                '<option value="size">Wrong Size</option>' +
+                '<option value="customer">Customer Request</option>' +
+                '</select></div>' +
+                '<div style="display:flex;gap:10px;">' +
+                '<button onclick="processExchange()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#7c3aed);">🔄 Exchange</button>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-outline" style="flex:1;">Cancel</button>' +
+                '</div>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        function processExchange() {
+            const reason = document.getElementById('exchangeReason').value;
+            const items = [...posCart];
+            items.forEach(function(item) {
+                const product = allProducts.find(function(p) { return String(p.id) === String(item.id); });
+                if (product) {
+                    product.stock = (product.stock || 0) + item.quantity;
+                }
+            });
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            updatePOSUI();
+            renderProducts();
+            document.querySelector('.modal-overlay').remove();
+            showToast('🔄 Exchange processed! Reason: ' + reason, 'success');
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - BULK ADD
+        // ============================================================
+        function bulkAddToCart() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            let itemsHtml = '';
+            allProducts.forEach(function(p) {
+                itemsHtml += '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border-color);">' +
+                    '<span style="font-size:0.7rem;flex:1;color:var(--text-primary);">' + p.name + '</span>' +
+                    '<input type="number" id="bulk_' + p.id + '" value="0" min="0" max="' + (p.stock || 0) + '" style="width:50px;padding:2px 4px;border:1px solid var(--border-color);border-radius:4px;font-size:0.6rem;background:var(--bg-input);color:var(--text-primary);">' +
+                    '<span style="font-size:0.5rem;color:var(--gray-400);">Stock: ' + p.stock + '</span>' +
+                    '</div>';
+            });
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:450px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">📦 Bulk Add to Cart</div>' +
+                '<div style="max-height:300px;overflow-y:auto;">' + itemsHtml + '</div>' +
+                '<div style="display:flex;gap:10px;margin-top:12px;">' +
+                '<button onclick="processBulkAdd()" class="btn-primary" style="flex:1;">✅ Add All</button>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-outline" style="flex:1;">Cancel</button>' +
+                '</div>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        function processBulkAdd() {
+            let added = 0;
+            allProducts.forEach(function(p) {
+                const qty = parseInt(document.getElementById('bulk_' + p.id).value) || 0;
+                if (qty > 0 && qty <= p.stock) {
+                    const existing = posCart.find(function(item) { return String(item.id) === String(p.id); });
+                    if (existing) {
+                        existing.quantity += qty;
+                    } else {
+                        posCart.push({
+                            id: p.id,
+                            name: p.name,
+                            price: p.price,
+                            image: p.image || '',
+                            stock: p.stock,
+                            barcode: p.barcode || '',
+                            quantity: qty
+                        });
+                    }
+                    added += qty;
+                }
+            });
+            document.querySelector('.modal-overlay').remove();
+            updatePOSUI();
+            showToast('✅ Added ' + added + ' items to cart!', 'success');
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - ORDER HISTORY
+        // ============================================================
+        function showOrderHistory() {
+            const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+            const modal = document.createElement('div');
+            let ordersHtml = '';
+            if (orders.length === 0) {
+                ordersHtml = '<p style="text-align:center;color:var(--text-muted);padding:40px;">No orders yet</p>';
+            } else {
+                orders.slice(-20).reverse().forEach(function(o) {
+                    ordersHtml += '<div style="background:var(--bg-input);padding:10px;border-radius:8px;margin-bottom:6px;border-left:4px solid var(--primary);">' +
+                        '<div style="display:flex;justify-content:space-between;">' +
+                        '<span style="font-weight:600;">#' + o.order_id + '</span>' +
+                        '<span style="color:var(--primary);font-weight:700;">KSh ' + (o.total || 0).toLocaleString() + '</span>' +
+                        '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-muted);">' +
+                        (o.customer_name || 'Walk-in') + ' • ' + (o.payment_method || 'cash') + ' • ' + new Date(o.created_at).toLocaleString() +
+                        (o.synced ? ' ✅' : ' ⏳') +
+                        '</div>' +
+                        '<div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">' +
+                        (o.items || []).map(function(i) { return i.name + ' x' + i.quantity; }).join(', ') +
+                        '</div>' +
+                        '</div>';
+                });
+            }
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:600px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">📋 Order History</div>' +
+                '<div style="max-height:400px;overflow-y:auto;">' + ordersHtml + '</div>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-primary" style="margin-top:12px;">Close</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - DAILY REPORT
+        // ============================================================
+        function showDailyReport() {
+            const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+            const today = new Date().toISOString().split('T')[0];
+            const todayOrders = orders.filter(function(o) { return o.created_at && o.created_at.startsWith(today); });
+            const totalSales = todayOrders.reduce(function(sum, o) { return sum + (o.total || 0); }, 0);
+            const totalItems = todayOrders.reduce(function(sum, o) { return sum + (o.items || []).length; }, 0);
+            const cashOrders = todayOrders.filter(function(o) { return o.payment_method === 'cash'; });
+            const cardOrders = todayOrders.filter(function(o) { return o.payment_method === 'card'; });
+            const mpesaOrders = todayOrders.filter(function(o) { return o.payment_method === 'mpesa'; });
+            const modal = document.createElement('div');
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:500px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">📊 Today\'s Report</div>' +
+                '<div style="background:var(--bg-input);padding:16px;border-radius:8px;">' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">' +
+                '<div style="background:var(--bg-card);padding:12px;border-radius:8px;text-align:center;"><div style="font-size:0.6rem;color:var(--text-muted);">Orders</div><div style="font-size:1.3rem;font-weight:700;">' + todayOrders.length + '</div></div>' +
+                '<div style="background:var(--bg-card);padding:12px;border-radius:8px;text-align:center;"><div style="font-size:0.6rem;color:var(--text-muted);">Sales</div><div style="font-size:1.3rem;font-weight:700;color:var(--primary);">KSh ' + totalSales.toLocaleString() + '</div></div>' +
+                '<div style="background:var(--bg-card);padding:12px;border-radius:8px;text-align:center;"><div style="font-size:0.6rem;color:var(--text-muted);">Items</div><div style="font-size:1.3rem;font-weight:700;">' + totalItems + '</div></div>' +
+                '</div>' +
+                '<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
+                '<div style="background:var(--bg-card);padding:8px;border-radius:6px;text-align:center;font-size:0.7rem;">💵 Cash: ' + cashOrders.length + '</div>' +
+                '<div style="background:var(--bg-card);padding:8px;border-radius:6px;text-align:center;font-size:0.7rem;">💳 Card: ' + cardOrders.length + '</div>' +
+                '<div style="background:var(--bg-card);padding:8px;border-radius:6px;text-align:center;font-size:0.7rem;">📱 M-Pesa: ' + mpesaOrders.length + '</div>' +
+                '</div>' +
+                '</div>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-primary" style="margin-top:12px;">Close</button>' +
+                '</div>';
+            modal.className = 'modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - EXPORT ORDERS
+        // ============================================================
+        function exportOrders() {
+            const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+            if (!orders.length) {
+                showToast('⚠️ No orders to export', 'warning');
+                return;
+            }
+            let csv = 'Order ID,Date,Customer,Items,Total,Payment Method,Status\n';
+            orders.forEach(function(o) {
+                const items = (o.items || []).map(function(i) { return i.name + '(' + i.quantity + ')'; }).join('; ');
+                csv += o.order_id + ',' + (o.created_at || '') + ',' + (o.customer_name || 'Walk-in') + ',' + items + ',' + (o.total || 0) + ',' + (o.payment_method || 'cash') + ',' + (o.synced ? 'Synced' : 'Pending') + '\n';
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'orders_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('💾 Orders exported successfully!', 'success');
+        }
+
+        // ============================================================
+        // ADVANCED FEATURES - THEME SELECTOR
+        // ============================================================
+        function quickThemeSelect() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = 
+                '<div class="modal" style="max-width:350px;">' +
+                '<button class="close" onclick="this.closest(\'.modal-overlay\').remove()">✕</button>' +
+                '<div class="title">🎨 Choose Theme</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;">' +
+                '<div onclick="setTheme(\'green\')" style="background:#059669;padding:20px;border-radius:10px;text-align:center;color:white;cursor:pointer;font-size:0.7rem;font-weight:600;">Green</div>' +
+                '<div onclick="setTheme(\'blue\')" style="background:#2563eb;padding:20px;border-radius:10px;text-align:center;color:white;cursor:pointer;font-size:0.7rem;font-weight:600;">Blue</div>' +
+                '<div onclick="setTheme(\'purple\')" style="background:#7c3aed;padding:20px;border-radius:10px;text-align:center;color:white;cursor:pointer;font-size:0.7rem;font-weight:600;">Purple</div>' +
+                '<div onclick="setTheme(\'rose\')" style="background:#e11d48;padding:20px;border-radius:10px;text-align:center;color:white;cursor:pointer;font-size:0.7rem;font-weight:600;">Rose</div>' +
+                '</div>' +
+                '<button onclick="this.closest(\'.modal-overlay\').remove()" class="btn-primary" style="margin-top:12px;">Close</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+
+        function setTheme(color) {
+            const themes = {
+                green: { primary: '#059669', primaryDark: '#047857', primaryLight: '#10b981' },
+                blue: { primary: '#2563eb', primaryDark: '#1d4ed8', primaryLight: '#3b82f6' },
+                purple: { primary: '#7c3aed', primaryDark: '#6d28d9', primaryLight: '#8b5cf6' },
+                rose: { primary: '#e11d48', primaryDark: '#be123c', primaryLight: '#f43f5e' }
+            };
+            const theme = themes[color];
+            document.documentElement.style.setProperty('--primary', theme.primary);
+            document.documentElement.style.setProperty('--primary-dark', theme.primaryDark);
+            document.documentElement.style.setProperty('--primary-light', theme.primaryLight);
+            localStorage.setItem('pos-theme-color', color);
+            showToast('🎨 Theme: ' + color.charAt(0).toUpperCase() + color.slice(1), 'info');
+        }
+
+        // Load saved theme
+        var savedTheme = localStorage.getItem('pos-theme-color');
+        if (savedTheme) setTheme(savedTheme);
+
+        // ============================================================
+        // BARCODE SCANNER - ORIGINAL
+        // ============================================================
+        var html5QrCode = null;
+        var isScannerRunning = false;
+        var scannerStarted = false;
 
         function openBarcodeScanner() {
-            const modal = document.getElementById('barcodeModal');
+            var modal = document.getElementById('barcodeModal');
             modal.classList.remove('hidden');
             document.getElementById('scannerResult').style.display = 'none';
             document.getElementById('scannedValue').textContent = '';
-            const btn = document.getElementById('startScannerBtn');
+            var btn = document.getElementById('startScannerBtn');
             btn.style.display = 'block';
             btn.innerHTML = '▶ Start';
             btn.disabled = false;
             if (html5QrCode) {
-                try { html5QrCode.stop().then(() => { html5QrCode.clear(); scannerStarted = false; }).catch(() => {}); } catch {}
+                try { html5QrCode.stop().then(function() { html5QrCode.clear(); scannerStarted = false; }).catch(function() {}); } catch(e) {}
             }
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showToast('⚠️ Camera not available', 'warning');
                 btn.style.display = 'none';
-                document.getElementById('barcode-reader').innerHTML = `
-                    <div style="text-align:center;padding:30px 10px;color:var(--gray-400);">
-                        <span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>
-                        <p>Camera not available</p>
-                        <button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>
-                    </div>
-                `;
+                document.getElementById('barcode-reader').innerHTML = 
+                    '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
+                    '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
+                    '<p>Camera not available</p>' +
+                    '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
+                    '</div>';
             }
         }
 
         function closeBarcodeScanner() {
             document.getElementById('barcodeModal').classList.add('hidden');
             if (html5QrCode && scannerStarted) {
-                try { html5QrCode.stop().then(() => { html5QrCode.clear(); scannerStarted = false; }).catch(() => {}); } catch {}
+                try { html5QrCode.stop().then(function() { html5QrCode.clear(); scannerStarted = false; }).catch(function() {}); } catch(e) {}
             }
             isScannerRunning = false;
         }
 
         function startScanner() {
             if (isScannerRunning) return;
-            const btn = document.getElementById('startScannerBtn');
+            var btn = document.getElementById('startScannerBtn');
             btn.innerHTML = '⏳ Starting...';
             btn.disabled = true;
             document.getElementById('barcode-reader').innerHTML = '';
-
             try {
                 html5QrCode = new Html5Qrcode("barcode-reader");
                 html5QrCode.start(
@@ -2443,22 +3445,21 @@
                       Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.DATA_MATRIX,
                       Html5QrcodeSupportedFormats.AZTEC, Html5QrcodeSupportedFormats.CODE_93, Html5QrcodeSupportedFormats.CODABAR,
                       Html5QrcodeSupportedFormats.PDF417] }
-                ).then(() => {
+                ).then(function() {
                     scannerStarted = true;
                     isScannerRunning = true;
                     btn.innerHTML = '⏸️ Scanning...';
                     btn.disabled = false;
-                }).catch(err => {
+                }).catch(function(err) {
                     btn.innerHTML = '📷 Try Again';
                     btn.disabled = false;
                     showToast('⚠️ Camera error: ' + err.message, 'error');
-                    document.getElementById('barcode-reader').innerHTML = `
-                        <div style="text-align:center;padding:30px 10px;color:var(--gray-400);">
-                            <span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>
-                            <p>Camera not accessible</p>
-                            <button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>
-                        </div>
-                    `;
+                    document.getElementById('barcode-reader').innerHTML = 
+                        '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
+                        '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
+                        '<p>Camera not accessible</p>' +
+                        '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
+                        '</div>';
                     btn.style.display = 'none';
                 });
             } catch(err) {
@@ -2473,7 +3474,7 @@
             document.getElementById('scannerResult').style.display = 'block';
             document.getElementById('scannedValue').textContent = decodedText;
             if (html5QrCode && scannerStarted) {
-                try { html5QrCode.pause(); isScannerRunning = false; document.getElementById('startScannerBtn').innerHTML = '▶ Resume'; } catch {}
+                try { html5QrCode.pause(); isScannerRunning = false; document.getElementById('startScannerBtn').innerHTML = '▶ Resume'; } catch(e) {}
             }
             searchProductByBarcode(decodedText);
         }
@@ -2481,18 +3482,18 @@
         function onScanError() {}
 
         function searchProductByBarcode(barcode) {
-            const term = String(barcode).trim();
-            let product = allProducts.find(p => String(p.barcode || '').trim() === term);
-            if (!product) product = allProducts.find(p => String(p.id || '').trim() === term);
-            if (!product) product = allProducts.find(p => (p.name || '').toLowerCase().includes(term.toLowerCase()));
+            var term = String(barcode).trim();
+            var product = allProducts.find(function(p) { return String(p.barcode || '').trim() === term; });
+            if (!product) product = allProducts.find(function(p) { return String(p.id || '').trim() === term; });
+            if (!product) product = allProducts.find(function(p) { return (p.name || '').toLowerCase().includes(term.toLowerCase()); });
             if (product) {
-                showToast(`✅ Found: ${product.name}`, 'success');
+                showToast('✅ Found: ' + product.name, 'success');
                 addToPOSCartByProduct(product);
                 setTimeout(closeBarcodeScanner, 1000);
             } else {
-                showToast(`❌ Product not found: ${barcode}`, 'error');
-                setTimeout(() => {
-                    if (confirm(`Product not found for "${barcode}". Search by name?`)) {
+                showToast('❌ Product not found: ' + barcode, 'error');
+                setTimeout(function() {
+                    if (confirm('Product not found for "' + barcode + '". Search by name?')) {
                         closeBarcodeScanner();
                         document.getElementById('posSearch').value = barcode;
                         searchProducts(barcode);
@@ -2502,20 +3503,20 @@
         }
 
         function addToPOSCartByProduct(product) {
-            const existing = posCart.find(item => item.id === product.id);
+            var existing = posCart.find(function(item) { return item.id === product.id; });
             if (existing) {
-                if (existing.quantity < product.stock) { existing.quantity++; showToast(`✅ Added another ${product.name} (${existing.quantity} total)`, 'success'); }
-                else { showToast(`⚠️ Not enough stock for ${product.name}`, 'warning'); }
+                if (existing.quantity < product.stock) { existing.quantity++; showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success'); }
+                else { showToast('⚠️ Not enough stock for ' + product.name, 'warning'); }
             } else {
                 posCart.push({ id: product.id, name: product.name, price: product.price, image: product.image || '', stock: product.stock || 0, barcode: product.barcode || '', quantity: 1 });
-                showToast(`✅ Added: ${product.name}`, 'success');
+                showToast('✅ Added: ' + product.name, 'success');
             }
             updatePOSUI();
         }
 
         function openBarcodeInputModal() {
             document.getElementById('barcodeInputModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('manualBarcode').focus(), 300);
+            setTimeout(function() { document.getElementById('manualBarcode').focus(); }, 300);
         }
 
         function closeBarcodeInputModal() {
@@ -2524,7 +3525,7 @@
         }
 
         function submitManualBarcode() {
-            const barcode = document.getElementById('manualBarcode').value.trim();
+            var barcode = document.getElementById('manualBarcode').value.trim();
             if (!barcode) { showToast('⚠️ Enter a barcode', 'warning'); return; }
             closeBarcodeInputModal();
             searchProductByBarcode(barcode);
@@ -2536,7 +3537,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeCustomerModal(); closeDiscountModal(); closeReturnModal();
-                closeBarcodeScanner(); closeBarcodeInputModal();
+                closeBarcodeScanner(); closeBarcodeInputModal(); closeReceipt();
             }
             if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); placePOSOrder(); }
             if (e.key === 'F1') { e.preventDefault(); document.getElementById('posSearch').focus(); }
@@ -2566,10 +3567,10 @@
         // ============================================================
         async function checkUnsyncedOrdersOnLoad() {
             try {
-                const u = await getUnsyncedOrders();
+                var u = await getUnsyncedOrders();
                 updateUnsyncedCount(u.length);
                 if (u.length && navigator.onLine) setTimeout(performAutoSync, 3000);
-            } catch (e) {}
+            } catch(e) {}
         }
 
         // ============================================================
@@ -2579,18 +3580,18 @@
             console.log('✅ POS Pro v9.0 initialized with ' + allProducts.length + ' products');
             await applyOfflineStockAdjustments();
 
-            document.getElementById('posProductGrid').innerHTML = `
-                <div class="search-hint">
-                    <span class="icon">🔍</span>
-                    <p>Search for products</p>
-                    <p style="font-size:0.7rem;color:var(--gray-400);">${allProducts.length} products available</p>
-                    <div class="shortcuts">⌨️ F1:Search | F2:Customer | F3:Discount | F4:Return | F5:Hold | F6:Sync | F7:Scan | F8:Manual Barcode | Ctrl+Enter:Checkout</div>
-                </div>
-            `;
-            document.getElementById('resultCount').textContent = `${allProducts.length} products available`;
+            document.getElementById('posProductGrid').innerHTML = 
+                '<div class="search-hint">' +
+                '<span class="icon">🔍</span>' +
+                '<p>Search for products</p>' +
+                '<p style="font-size:0.7rem;color:var(--gray-400);">' + allProducts.length + ' products available</p>' +
+                '<div class="shortcuts">⌨️ F1:Search | F2:Customer | F3:Discount | F4:Return | F5:Hold | F6:Sync | F7:Scan | F8:Manual Barcode | Ctrl+Enter:Checkout</div>' +
+                '</div>';
+            document.getElementById('resultCount').textContent = allProducts.length + ' products available';
             updatePOSUI();
             loadSalesStats();
             loadUserStats();
+            updateQuickSalesCount();
             setTimeout(checkUnsyncedOrdersOnLoad, 2000);
         });
     </script>
