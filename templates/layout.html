@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>{% block title %}PricePoint · Admin{% endblock %}</title>
+    
+    <!-- ===== FONTS & ICONS ===== -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* ============================================================
+           PRICEPOINT ADMIN · MASTER STYLESHEET
+           Version: 2.0 · Clean · Professional · Offline Ready
+           ============================================================ */
+
+        /* ===== ROOT VARIABLES ===== */
+        :root {
+            /* Colors */
+            --bg-primary: #f0f4f8;
+            --bg-sidebar: #0f172a;
+            --bg-surface: #ffffff;
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --text-sidebar: #94a3b8;
+            --text-sidebar-hover: #ffffff;
+            --border-color: #e2e8f0;
+            --border-sidebar: rgba(255, 255, 255, 0.06);
+            
+            /* Accent Colors */
+            --accent: #2563eb;
+            --accent-dark: #1d4ed8;
+            --accent-soft: rgba(37, 99, 235, 0.08);
+            --accent-gradient: linear-gradient(135deg, #2563eb, #7c3aed);
+            
+            /* Status Colors */
+            --success: #16a34a;
+            --success-soft: #dcfce7;
+            --danger: #dc2626;
+            --danger-soft: #fee2e2;
+            --warning: #d97706;
+            --warning-soft: #fef3c7;
+            --info: #2563eb;
+            --info-soft: #dbeafe;
+            --purple: #7c3aed;
+            --purple-soft: #ede9fe;
+            --gold: #f59e0b;
+            --gold-soft: #fef3c7;
+            --green-pos: #059669;
+            --green-pos-soft: #ecfdf5;
+            
+            /* Sizes */
+            --sidebar-width: 260px;
+            --header-height: 60px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12);
+            --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.08);
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ===== UTILITY ===== */
+        .mono {
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gap-2 {
+            gap: 0.5rem;
+        }
+        .gap-3 {
+            gap: 0.75rem;
+        }
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        /* ===== APP LAYOUT ===== */
+        .app {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg-primary);
+        }
+
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            min-height: 100vh;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            background: var(--bg-sidebar);
+            padding: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 100;
+            border-right: 1px solid var(--border-sidebar);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 3px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #33344a;
+            border-radius: 9999px;
+        }
+
+        .sidebar .brand {
+            padding: 16px 18px 18px 18px;
+            border-bottom: 1px solid var(--border-sidebar);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+            flex-shrink: 0;
+        }
+
+        .sidebar .brand-icon i {
+            color: white;
+            font-size: 1rem;
+        }
+
+        .sidebar .brand-text {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar .brand-text span {
+            color: var(--gold);
+        }
+
+        .sidebar .brand-sub {
+            font-size: 0.55rem;
+            color: #4d5069;
+            margin-top: -1px;
+            letter-spacing: 0.05em;
+        }
+
+        .sidebar .nav-label {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #4d5069;
+            padding: 16px 18px 6px 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: var(--radius-sm);
+            color: var(--text-sidebar);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.82rem;
+            transition: all var(--transition-base);
+            position: relative;
+            border: 1px solid transparent;
+            flex-shrink: 0;
+        }
+
+        .sidebar .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-sidebar-hover);
+        }
+
+        .sidebar .nav-item.active {
+            background: rgba(37, 99, 235, 0.15);
+            color: #ffffff;
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+
+        .sidebar .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .sidebar .nav-item i {
+            width: 18px;
+            font-size: 0.9rem;
+            color: #565a72;
+            transition: all var(--transition-base);
+        }
+
+        .sidebar .nav-item:hover i,
+        .sidebar .nav-item.active i {
+            color: #a5a6ff;
+        }
+
+        .sidebar .nav-item .badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.08);
+            color: #9599ad;
+            font-size: 0.5rem;
+            font-weight: 700;
+            padding: 1px 8px;
+            border-radius: 9999px;
+        }
+
+        .sidebar .nav-item.active .badge {
+            background: var(--accent);
+            color: white;
+        }
+
+        .sidebar .nav-item .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--danger);
+            margin-left: auto;
+            animation: pulse-dot 2s infinite;
+        }
+
+        .sidebar .nav-item .pos-badge {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            padding: 1px 10px;
+            border-radius: 9999px;
+            font-size: 0.45rem;
+            font-weight: 700;
+            margin-left: auto;
+            letter-spacing: 0.03em;
+        }
+
+        .sidebar .nav-item.pos-link {
+            background: rgba(5, 150, 105, 0.08);
+            border-color: rgba(5, 150, 105, 0.15);
+        }
+
+        .sidebar .nav-item.pos-link:hover {
+            background: rgba(5, 150, 105, 0.15);
+        }
+
+        .sidebar .nav-item.pos-link i {
+            color: #34d399;
+        }
+
+        .sidebar .spacer {
+            flex: 1;
+        }
+
+        .sidebar .footer {
+            padding: 12px 16px 16px 16px;
+            border-top: 1px solid var(--border-sidebar);
+            flex-shrink: 0;
+        }
+
+        .sidebar .footer .nav-item {
+            margin: 0;
+        }
+
+        /* ============================================================
+           SIDEBAR TOGGLE (Mobile)
+           ============================================================ */
+        .sidebar-toggle {
+            display: none;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bg-primary);
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+        }
+
+        .sidebar-backdrop.active {
+            display: block;
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            overflow-x: hidden;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 28px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header .page-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header .page-subtitle {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .header .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-primary);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .header .live-indicator .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        .header .logout-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header .logout-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+           CONTENT AREA
+           ============================================================ */
+        .content-area {
+            padding: 24px 32px 40px;
+            flex: 1;
+        }
+
+        /* ============================================================
+           SECTIONS (Toggle Visibility)
+           ============================================================ */
+        .section {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.hidden {
+            display: none;
+        }
+
+        /* ============================================================
+           COMPONENT: STAT CARD
+           ============================================================ */
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            transition: all var(--transition-slow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: transparent;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .stat-card .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        .stat-card .label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .change {
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            background: var(--success-soft);
+            color: var(--success);
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        .stat-card .change.negative {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        /* ============================================================
+           COMPONENT: GLASS CARD
+           ============================================================ */
+        .glass-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px 22px;
+            transition: all var(--transition-base);
+            width: 100%;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(37, 99, 235, 0.12);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ============================================================
+           COMPONENT: QUICK ACTION
+           ============================================================ */
+        .quick-action {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            text-align: center;
+            transition: all var(--transition-slow);
+            cursor: pointer;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(37, 99, 235, 0.15);
+            box-shadow: var(--shadow-md);
+        }
+
+        .quick-action i {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .quick-action p {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================================
+           COMPONENT: LIVE TICKER
+           ============================================================ */
+        .live-ticker {
+            background: var(--bg-sidebar);
+            border-radius: var(--radius-md);
+            padding: 12px 20px;
+            color: #e7e8f2;
+        }
+
+        .live-ticker .text-gray-600 {
+            color: #9599ad !important;
+        }
+
+        .live-ticker .text-gray-400 {
+            color: #6b6f85 !important;
+        }
+
+        .live-ticker .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+            display: inline-block;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.6;
+            }
+        }
+
+        /* ============================================================
+           COMPONENT: TABLE
+           ============================================================ */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: white;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            background: #fafbfd;
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+        }
+
+        tr:hover td {
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ============================================================
+           COMPONENT: BADGE
+           ============================================================ */
+        .badge {
+            padding: 2px 12px;
+            border-radius: 9999px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: var(--info-soft);
+            color: var(--info);
+        }
+
+        .badge-purple {
+            background: var(--purple-soft);
+            color: var(--purple);
+        }
+
+        .badge-gold {
+            background: var(--gold-soft);
+            color: var(--gold);
+        }
+
+        /* ============================================================
+           COMPONENT: BUTTONS
+           ============================================================ */
+        .btn-primary {
+            background: var(--text-primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-gradient {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-gradient.green {
+            background: linear-gradient(135deg, #059669, #10b981);
+            box-shadow: 0 4px 16px rgba(5, 150, 105, 0.2);
+        }
+
+        .btn-gradient.green:hover {
+            box-shadow: 0 8px 32px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 7px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-weight: 500;
+            font-size: 0.78rem;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.7rem;
+            transition: all var(--transition-base);
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: scale(1.05);
+        }
+
+        /* ============================================================
+           COMPONENT: FORM
+           ============================================================ */
+        .form-input {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 9px 12px;
+            width: 100%;
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            background: white;
+            font-size: 0.85rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        .form-input:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .form-label .required {
+            color: var(--danger);
+        }
+
+        /* ============================================================
+           COMPONENT: UPLOAD AREA
+           ============================================================ */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            background: #fafbfd;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            transform: scale(1.01);
+        }
+
+        .upload-area .icon {
+            font-size: 1.6rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .upload-preview {
+            max-width: 100%;
+            max-height: 120px;
+            margin-top: 8px;
+            border-radius: var(--radius-sm);
+            display: none;
+        }
+
+        .upload-preview.visible {
+            display: block;
+        }
+
+        #uploadMethod {
+            display: none;
+        }
+
+        /* ============================================================
+           COMPONENT: TOAST
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 99999;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 24px;
+            animation: slideUp 0.4s ease;
+            box-shadow: var(--shadow-xl);
+            max-width: 420px;
+            min-width: 280px;
+        }
+
+        .toast.hidden {
+            display: none;
+        }
+
+        .toast .toast-icon {
+            font-size: 1.2rem;
+        }
+
+        .toast .toast-icon.success {
+            color: var(--success);
+        }
+        .toast .toast-icon.error {
+            color: var(--danger);
+        }
+        .toast .toast-icon.warning {
+            color: var(--warning);
+        }
+        .toast .toast-icon.info {
+            color: var(--info);
+        }
+
+        .toast .toast-message {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+           COMPONENT: MODAL
+           ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.35s ease;
+        }
+
+        .modal-content .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color var(--transition-base);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+
+        .modal-content .close-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-primary);
+        }
+
+        .modal-content .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-content .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        /* ============================================================
+           COMPONENT: PAGINATION
+           ============================================================ */
+        .pagination {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .pagination .page-link {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            font-weight: 500;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            background: white;
+            text-decoration: none;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        .pagination .page-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .pagination .page-link.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* ============================================================
+           COMPONENT: POS
+           ============================================================ */
+        .product-pos-card {
+            transition: all var(--transition-slow);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+        }
+
+        .product-pos-card:hover {
+            border-color: var(--green-pos);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+        }
+
+        .product-pos-card:active {
+            transform: scale(0.95);
+        }
+
+        .pos-cart-item {
+            animation: slideUp 0.3s ease;
+        }
+
+        /* ============================================================
+           ANIMATIONS
+           ============================================================ */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .animate-slide {
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        /* ============================================================
+           RESPONSIVE DESIGN
+           ============================================================ */
+
+        /* Tablets & Small Laptops */
+        @media (max-width: 1024px) {
+            .content-area {
+                padding: 20px 24px 32px;
+            }
+            
+            .stat-card .value {
+                font-size: 1.3rem;
+            }
+            .stat-card {
+                padding: 16px 18px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 280px;
+                --header-height: 54px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: var(--sidebar-width);
+                max-width: 80vw;
+                transform: translateX(-105%);
+                transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                border: none;
+                box-shadow: var(--shadow-sidebar);
+                z-index: 1000;
+                border-radius: 0;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .content-area {
+                padding: 14px 16px 24px;
+            }
+
+            .header {
+                padding: 0 16px;
+                height: var(--header-height);
+            }
+
+            .header .page-title {
+                font-size: 0.8rem;
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
+
+            .stat-card .value {
+                font-size: 1.1rem;
+            }
+            .stat-card {
+                padding: 14px;
+            }
+
+            .glass-card {
+                padding: 14px 16px;
+            }
+
+            table {
+                min-width: 400px;
+            }
+            th {
+                font-size: 0.5rem;
+                padding: 8px 10px;
+            }
+            td {
+                font-size: 0.75rem;
+                padding: 8px 10px;
+            }
+
+            .quick-action {
+                padding: 12px 14px;
+            }
+            .quick-action i {
+                font-size: 1.2rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .btn-gradient,
+            .btn-primary {
+                font-size: 0.75rem;
+                padding: 7px 14px;
+            }
+
+            /* Sidebar toggle force visible on mobile */
+            .sidebar-toggle {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 6px !important;
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px !important;
+                padding: 8px 12px !important;
+                font-size: 1.1rem !important;
+                cursor: pointer !important;
+                color: #0f172a !important;
+                width: auto !important;
+                height: auto !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+                z-index: 1001 !important;
+                position: relative !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+            }
+
+            .sidebar-toggle:hover {
+                background: #f1f5f9 !important;
+                border-color: #2563eb !important;
+            }
+
+            .sidebar-toggle:active {
+                transform: scale(0.95) !important;
+            }
+
+            .sidebar-toggle i {
+                font-size: 1.2rem !important;
+                color: #0f172a !important;
+            }
+
+            /* Hide sidebar by default on mobile */
+            .sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                width: 280px !important;
+                max-width: 80vw !important;
+                height: 100vh !important;
+                transform: translateX(-105%) !important;
+                transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+                z-index: 1000 !important;
+                border: none !important;
+                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.25) !important;
+                border-radius: 0 !important;
+                overflow-y: auto !important;
+                padding-top: 16px !important;
+                background: #0f172a !important;
+            }
+
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+
+            .sidebar-backdrop {
+                display: none !important;
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.4) !important;
+                backdrop-filter: blur(4px) !important;
+                z-index: 999 !important;
+            }
+
+            .sidebar-backdrop.active {
+                display: block !important;
+            }
+
+            .main-content {
+                width: 100% !important;
+                margin-left: 0 !important;
+            }
+
+            .content-area {
+                padding: 10px 12px 20px !important;
+            }
+
+            .header {
+                padding: 0 12px !important;
+                height: 50px !important;
+            }
+
+            .header .page-subtitle {
+                display: none !important;
+            }
+        }
+
+        /* Small Mobile */
+        @media (max-width: 480px) {
+            .content-area {
+                padding: 10px 12px 16px;
+            }
+
+            .header {
+                padding: 0 12px;
+                height: 48px;
+            }
+
+            .header .page-subtitle {
+                display: none;
+            }
+
+            .stat-card .value {
+                font-size: 1rem;
+            }
+            .stat-card {
+                padding: 10px 12px;
+            }
+
+            .glass-card {
+                padding: 10px 12px;
+            }
+
+            table {
+                min-width: 320px;
+            }
+            th {
+                font-size: 0.45rem;
+                padding: 6px 8px;
+            }
+            td {
+                font-size: 0.7rem;
+                padding: 6px 8px;
+            }
+
+            .pagination .page-link {
+                padding: 3px 7px;
+                font-size: 0.65rem;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                bottom: 10px;
+                min-width: auto;
+                max-width: none;
+                padding: 12px 16px;
+            }
+
+            .modal-content {
+                padding: 16px;
+            }
+
+            .sidebar {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .sidebar-toggle {
+                padding: 6px 10px !important;
+                font-size: 1rem !important;
+                min-width: 36px !important;
+                min-height: 36px !important;
+            }
+        }
+
+        /* Desktop: hide the toggle button */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .sidebar,
+            .header,
+            .sidebar-toggle,
+            .btn-gradient,
+            .btn-outline,
+            .quick-action {
+                display: none !important;
+            }
+
+            .main-content {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .content-area {
+                padding: 20px !important;
+            }
+
+            .stat-card,
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                break-inside: avoid;
+            }
+
+            body {
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Brand -->
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-bolt"></i></div>
+                <div>
+                    <div class="brand-text">Price<span>Point</span></div>
+                    <div class="brand-sub">Administration</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-label">Main</div>
+            <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+
+            <div class="nav-label">Management</div>
+            <a href="#orders" class="nav-item" onclick="showSection('orders')">
+                <i class="fas fa-shopping-cart"></i><span>Orders</span>
+                <span class="dot" id="orderDot"></span>
+                <span class="badge" id="orderCount">{{ stats.total_orders|default(0) }}</span>
+            </a>
+            <a href="#products" class="nav-item" onclick="showSection('products')">
+                <i class="fas fa-box"></i><span>Products</span>
+                <span class="badge" id="productCount">{{ stats.total_products|default(0) }}</span>
+            </a>
+            <a href="#customers" class="nav-item" onclick="showSection('customers')">
+                <i class="fas fa-users"></i><span>Customers</span>
+                <span class="badge" id="customerCount">{{ stats.total_customers|default(0) }}</span>
+            </a>
+
+            <div class="nav-label">Sales</div>
+            <a href="/admin/pos" target="_blank" class="nav-item pos-link">
+                <i class="fas fa-cash-register"></i><span>Point of Sale</span>
+                <span class="pos-badge">LAUNCH</span>
+                <span class="dot" id="posDot"></span>
+            </a>
+
+            <div class="nav-label">Analytics</div>
+            <a href="#analytics" class="nav-item" onclick="showSection('analytics')">
+                <i class="fas fa-chart-pie"></i><span>Analytics</span>
+                <span class="dot"></span>
+            </a>
+            <a href="#add-product" class="nav-item" onclick="showSection('add-product')">
+                <i class="fas fa-plus-circle"></i><span>Add Product</span>
+            </a>
+
+            <div class="spacer"></div>
+
+            <div class="footer">
+                <a href="/" class="nav-item"><i class="fas fa-store"></i><span>View Shop</span></a>
+            </div>
+        </aside>
+
+        <!-- ===== BACKDROP (mobile) ===== -->
+        <div class="sidebar-backdrop" id="backdrop"></div>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+
+            <!-- ===== HEADER ===== -->
+            <header class="header" id="header">
+                <div class="flex items-center gap-3">
+                    <!-- ===== HAMBURGER MENU - ALWAYS VISIBLE ON MOBILE ===== -->
+                    <button class="sidebar-toggle" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <div class="page-title" id="pageTitle">{% block page_title %}Dashboard{% endblock %}</div>
+                        <div class="page-subtitle">Here's your store overview</div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="live-indicator">
+                        <span class="dot"></span>
+                        <span>Live</span>
+                    </div>
+                    <a href="{{ url_for('admin.admin_logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- ===== CONTENT ===== -->
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    <div id="orderModal" class="modal-overlay hidden" onclick="closeModal('orderModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal('orderModal')">&times;</button>
+            <h3 class="text-lg font-bold text-[#0f172a] mb-4">
+                <i class="fas fa-receipt text-blue-500 mr-2"></i>Order Details
+            </h3>
+            <div id="orderDetails"><p class="text-gray-400 text-center py-4">Loading...</p></div>
+        </div>
+    </div>
+
+    <div id="editProductModal" class="modal-overlay hidden" onclick="closeModal('editProductModal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width:700px;">
+            <button class="close-btn" onclick="closeModal('editProductModal')">&times;</button>
+            <h3 class="text-lg font-bold text-[#0f172a] mb-4">
+                <i class="fas fa-edit text-blue-500 mr-2"></i>Edit Product
+            </h3>
+            <form id="editProductForm" onsubmit="saveEditedProduct(event)">
+                <input type="hidden" id="editProdId" />
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div><label class="form-label">Product ID</label><input type="text" id="editProdIdDisplay" class="form-input" disabled style="background:#f1f5f9;" /></div>
+                    <div><label class="form-label">Product Name</label><input type="text" id="editProdName" class="form-input" required /></div>
+                    <div><label class="form-label">Category</label><select id="editProdCategory" class="form-input" required>
+                        <option value="Phones">📱 Phones</option>
+                        <option value="Laptops">💻 Laptops</option>
+                        <option value="Accessories">🎧 Accessories</option>
+                        <option value="Wearables">⌚ Wearables</option>
+                        <option value="Audio">🎵 Audio</option>
+                        <option value="Televisions">📺 Televisions</option>
+                        <option value="Gaming">🎮 Gaming</option>
+                        <option value="Tablets">📱 Tablets</option>
+                    </select></div>
+                    <div><label class="form-label">Selling Price (KES)</label><input type="number" id="editProdPrice" class="form-input" required /></div>
+                    <div><label class="form-label">Cost Price (KES)</label><input type="number" id="editProdCost" class="form-input" required /></div>
+                    <div><label class="form-label">Original Price (KES)</label><input type="number" id="editProdOriginal" class="form-input" /></div>
+                    <div><label class="form-label">Stock</label><input type="number" id="editProdStock" class="form-input" required /></div>
+                    <div><label class="form-label">Rating</label><input type="number" id="editProdRating" class="form-input" step="0.1" /></div>
+                    <div><label class="form-label">Badge</label><select id="editProdBadge" class="form-input">
+                        <option value="">None</option>
+                        <option value="Best Seller">⭐ Best Seller</option>
+                        <option value="New">🌟 New</option>
+                        <option value="Trending">🔥 Trending</option>
+                        <option value="Editor's Pick">✏️ Editor's Pick</option>
+                    </select></div>
+                    <div class="md:col-span-2"><label class="form-label">Image URL</label><input type="url" id="editProdImage" class="form-input" /></div>
+                    <div class="md:col-span-2"><label class="form-label">Description</label><textarea id="editProdDesc" class="form-input" rows="2"></textarea></div>
+                    <div class="md:col-span-2"><label class="form-label">Specifications</label><input type="text" id="editProdSpecs" class="form-input" /></div>
+                </div>
+                <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <button type="submit" class="btn-gradient" id="editSaveBtn"><i class="fas fa-save"></i> Update</button>
+                    <button type="button" onclick="closeModal('editProductModal')" class="btn-outline">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="customerModal" class="modal-overlay hidden" onclick="closeModal('customerModal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width:450px;">
+            <button class="close-btn" onclick="closeModal('customerModal')">&times;</button>
+            <h3 class="text-lg font-bold text-[#0f172a] mb-4">
+                <i class="fas fa-user-plus text-green-500 mr-2"></i>Add Customer
+            </h3>
+            <form id="customerForm" onsubmit="addCustomer(event)">
+                <div class="space-y-3">
+                    <div><label class="form-label"><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
+                        <input type="text" id="custName" class="form-input" placeholder="John Doe" required /></div>
+                    <div><label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="custEmail" class="form-input" placeholder="john@example.com" /></div>
+                    <div><label class="form-label"><i class="fas fa-phone"></i> Phone</label>
+                        <input type="tel" id="custPhone" class="form-input" placeholder="+254 700 000 000" /></div>
+                </div>
+                <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <button type="submit" class="btn-gradient flex-1"><i class="fas fa-save"></i> Add</button>
+                    <button type="button" onclick="closeModal('customerModal')" class="btn-outline flex-1">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast hidden">
+        <div class="flex items-center gap-3">
+            <i class="toast-icon success fas fa-check-circle"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+    <!-- ============================================================
+         SIDEBAR TOGGLE - PURE JAVASCRIPT (NO CONFLICT)
+         ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // SIDEBAR TOGGLE - SINGLE SOURCE OF TRUTH
+            // ============================================================
+            window.toggleSidebar = function() {
+                var sidebar = document.getElementById('sidebar');
+                var backdrop = document.getElementById('backdrop');
+                
+                if (!sidebar) {
+                    console.warn('Sidebar element not found');
+                    return;
+                }
+                
+                var isOpen = sidebar.classList.contains('open');
+                
+                if (isOpen) {
+                    sidebar.classList.remove('open');
+                    if (backdrop) backdrop.classList.remove('active');
+                } else {
+                    sidebar.classList.add('open');
+                    if (backdrop) backdrop.classList.add('active');
+                }
+            };
+
+            // ============================================================
+            // CLOSE SIDEBAR - For backdrop and nav clicks
+            // ============================================================
+            function closeSidebar() {
+                var sidebar = document.getElementById('sidebar');
+                var backdrop = document.getElementById('backdrop');
+                if (sidebar) sidebar.classList.remove('open');
+                if (backdrop) backdrop.classList.remove('active');
+            }
+
+            // ============================================================
+            // DOM READY - Setup event listeners
+            // ============================================================
+            document.addEventListener('DOMContentLoaded', function() {
+                var backdrop = document.getElementById('backdrop');
+                var hamburger = document.getElementById('hamburgerBtn');
+
+                // Debug
+                console.log('🔍 Hamburger button:', hamburger ? '✅ Found' : '❌ Missing');
+                console.log('🔍 Sidebar:', document.getElementById('sidebar') ? '✅ Found' : '❌ Missing');
+                console.log('🔍 Backdrop:', backdrop ? '✅ Found' : '❌ Missing');
+
+                // Close sidebar when clicking backdrop
+                if (backdrop) {
+                    backdrop.addEventListener('click', function() {
+                        closeSidebar();
+                    });
+                }
+
+                // Close sidebar when clicking nav items on mobile
+                document.querySelectorAll('.sidebar .nav-item').forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            closeSidebar();
+                        }
+                    });
+                });
+
+                // Close sidebar on resize to desktop
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        closeSidebar();
+                    }
+                });
+
+                // Close sidebar on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeSidebar();
+                    }
+                });
+
+                console.log('✅ Sidebar toggle system ready');
+            });
+
+        })();
+
+        // ============================================================
+        // CLOSE MODAL HELPER
+        // ============================================================
+        function closeModal(id) {
+            var modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        }
+    </script>
+    <!-- ===== SIDEBAR & SECTION TOGGLE - COMPLETE JAVASCRIPT ===== -->
+<script>
+    // ============================================================
+    // SIDEBAR TOGGLE
+    // ============================================================
+    function toggleSidebar() {
+        var sidebar = document.getElementById('sidebar');
+        var backdrop = document.getElementById('backdrop');
+        
+        if (!sidebar) {
+            console.warn('Sidebar element not found');
+            return;
+        }
+        
+        var isOpen = sidebar.classList.contains('open');
+        
+        if (isOpen) {
+            sidebar.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('active');
+        } else {
+            sidebar.classList.add('open');
+            if (backdrop) backdrop.classList.add('active');
+        }
+    }
+
+    function closeSidebar() {
+        var sidebar = document.getElementById('sidebar');
+        var backdrop = document.getElementById('backdrop');
+        if (sidebar) sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('active');
+    }
+
+    // ============================================================
+    // SECTION TOGGLES (Dashboard, Products, Orders, etc.)
+    // ============================================================
+    function showSection(sectionName) {
+        // Hide all sections
+        var sections = document.querySelectorAll('.section');
+        sections.forEach(function(section) {
+            section.classList.add('hidden');
+        });
+
+        // Show the selected section
+        var targetSection = document.getElementById(sectionName + '-section');
+        if (targetSection) {
+            targetSection.classList.remove('hidden');
+        }
+
+        // Update sidebar active state
+        var navItems = document.querySelectorAll('.sidebar .nav-item');
+        navItems.forEach(function(item) {
+            item.classList.remove('active');
+            // Check if this nav item has an onclick that matches
+            var onclick = item.getAttribute('onclick');
+            if (onclick && onclick.includes("showSection('" + sectionName + "')")) {
+                item.classList.add('active');
+            }
+        });
+
+        // Update page title
+        var pageTitle = document.getElementById('pageTitle');
+        var titles = {
+            'dashboard': 'Dashboard',
+            'orders': 'Orders',
+            'products': 'Products',
+            'customers': 'Customers',
+            'analytics': 'Analytics',
+            'add-product': 'Add Product',
+            'pos': 'Point of Sale'
+        };
+        if (pageTitle && titles[sectionName]) {
+            pageTitle.textContent = titles[sectionName];
+        }
+
+        // Close sidebar on mobile
+        if (window.innerWidth <= 768) {
+            closeSidebar();
+        }
+    }
+
+    // ============================================================
+    // CLOSE MODAL HELPER
+    // ============================================================
+    function closeModal(id) {
+        var modal = document.getElementById(id);
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // ============================================================
+    // TOAST NOTIFICATION
+    // ============================================================
+    function showToast(message, type) {
+        var toast = document.getElementById('toast');
+        if (!toast) return;
+
+        var icon = toast.querySelector('.toast-icon');
+        var msgEl = toast.querySelector('.toast-message');
+
+        // Reset classes
+        icon.className = 'toast-icon';
+        if (type === 'success') {
+            icon.classList.add('success', 'fas', 'fa-check-circle');
+        } else if (type === 'error') {
+            icon.classList.add('error', 'fas', 'fa-times-circle');
+        } else if (type === 'warning') {
+            icon.classList.add('warning', 'fas', 'fa-exclamation-triangle');
+        } else {
+            icon.classList.add('info', 'fas', 'fa-info-circle');
+        }
+
+        msgEl.textContent = message;
+        toast.classList.remove('hidden');
+
+        // Auto hide after 4 seconds
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(function() {
+            toast.classList.add('hidden');
+        }, 4000);
+    }
+
+    // ============================================================
+    // DOM READY - Setup sidebar click outside to close
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var backdrop = document.getElementById('backdrop');
+        var hamburger = document.getElementById('hamburgerBtn');
+
+        // Close sidebar when clicking backdrop
+        if (backdrop) {
+            backdrop.addEventListener('click', function() {
+                closeSidebar();
+            });
+        }
+
+        // Close sidebar on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        // Close sidebar on resize to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+
+        // If there's a hash in URL, show that section
+        var hash = window.location.hash.replace('#', '');
+        if (hash) {
+            showSection(hash);
+        }
+
+        console.log('✅ Admin JS loaded successfully');
+    });
+</script>
+    <!-- ============================================================
+     ANALYTICS & CHARTS JAVASCRIPT
+     ============================================================ -->
+<script>
+    // ============================================================
+    // LOAD ANALYTICS DATA
+    // ============================================================
+    function loadAnalytics() {
+        // Get data from the page (passed from Flask)
+        var analyticsData = {
+            monthly: {{ analytics.monthly_data|tojson|safe if analytics and analytics.monthly_data else {} }},
+            products: {{ analytics.product_sales|tojson|safe if analytics and analytics.product_sales else {} }},
+            totalRevenue: {{ stats.total_revenue|default(0) }},
+            totalCost: {{ stats.total_cost|default(0) }},
+            totalProfit: {{ stats.total_profit|default(0) }},
+            totalOrders: {{ stats.total_orders|default(0) }},
+            totalItemsSold: {{ analytics.total_items_sold|default(0) if analytics else 0 }}
+        };
+
+        // Populate monthly table
+        populateMonthlyTable(analyticsData.monthly);
+
+        // Populate product table
+        populateProductTable(analyticsData.products);
+
+        // Update summary stats
+        updateAnalyticsSummary(analyticsData);
+
+        // Create charts if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            createRevenueChart(analyticsData.monthly);
+            createCategoryChart(analyticsData.products);
+        } else {
+            console.warn('Chart.js not loaded - charts will be disabled');
+        }
+    }
+
+    // ============================================================
+    // POPULATE MONTHLY TABLE
+    // ============================================================
+    function populateMonthlyTable(monthlyData) {
+        var tbody = document.getElementById('monthlyTable');
+        if (!tbody) return;
+
+        var months = Object.keys(monthlyData);
+        
+        if (months.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">No monthly data available</td></tr>';
+            return;
+        }
+
+        // Sort months chronologically
+        months.sort(function(a, b) {
+            return new Date(a) - new Date(b);
+        });
+
+        var html = '';
+        months.forEach(function(month) {
+            var data = monthlyData[month];
+            html += '<tr>';
+            html += '<td class="font-semibold text-xs">' + month + '</td>';
+            html += '<td class="text-right text-xs">' + (data.orders || 0) + '</td>';
+            html += '<td class="text-right text-xs">' + (data.items || 0) + '</td>';
+            html += '<td class="text-right text-xs font-semibold text-green-600">KSh ' + formatNumber(data.revenue || 0) + '</td>';
+            html += '<td class="text-right text-xs text-gray-500">KSh ' + formatNumber(data.cost || 0) + '</td>';
+            html += '<td class="text-right text-xs font-semibold text-purple-600">KSh ' + formatNumber(data.profit || 0) + '</td>';
+            html += '<td class="text-right text-xs font-semibold ' + (data.margin > 20 ? 'text-green-600' : 'text-amber-600') + '">' + (data.margin || 0) + '%</td>';
+            html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // POPULATE PRODUCT TABLE
+    // ============================================================
+    function populateProductTable(productData) {
+        var tbody = document.getElementById('productTable');
+        if (!tbody) return;
+
+        var products = Object.keys(productData);
+        
+        if (products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">No product data available</td></tr>';
+            return;
+        }
+
+        // Sort by profit descending
+        products.sort(function(a, b) {
+            return (productData[b].profit || 0) - (productData[a].profit || 0);
+        });
+
+        // Show top 10
+        var topProducts = products.slice(0, 10);
+
+        var html = '';
+        topProducts.forEach(function(name) {
+            var data = productData[name];
+            var profit = data.profit || 0;
+            var revenue = data.revenue || 1;
+            var margin = revenue > 0 ? Math.round((profit / revenue) * 100 * 10) / 10 : 0;
+            
+            html += '<tr>';
+            html += '<td class="font-medium text-xs text-truncate" style="max-width:120px;">' + escapeHtml(name) + '</td>';
+            html += '<td class="text-right text-xs">' + (data.quantity || 0) + '</td>';
+            html += '<td class="text-right text-xs text-green-600">KSh ' + formatNumber(revenue) + '</td>';
+            html += '<td class="text-right text-xs text-gray-500">KSh ' + formatNumber(data.cost || 0) + '</td>';
+            html += '<td class="text-right text-xs font-semibold text-purple-600">KSh ' + formatNumber(profit) + '</td>';
+            html += '<td class="text-right text-xs font-semibold ' + (margin > 20 ? 'text-green-600' : 'text-amber-600') + '">' + margin + '%</td>';
+            html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // ============================================================
+    // UPDATE ANALYTICS SUMMARY
+    // ============================================================
+    function updateAnalyticsSummary(data) {
+        var elements = {
+            'totalRevenue': 'KSh ' + formatNumber(data.totalRevenue || 0),
+            'totalCost': 'KSh ' + formatNumber(data.totalCost || 0),
+            'totalProfit': 'KSh ' + formatNumber(data.totalProfit || 0),
+            'totalOrders': (data.totalOrders || 0),
+            'revRevenue': 'KSh ' + formatNumber(data.totalRevenue || 0),
+            'revProfit': 'KSh ' + formatNumber(data.totalProfit || 0),
+            'profitMargin': data.totalRevenue > 0 ? Math.round((data.totalProfit / data.totalRevenue) * 100 * 10) / 10 + '%' : '0%'
+        };
+
+        Object.keys(elements).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.textContent = elements[id];
+            }
+        });
+    }
+
+    // ============================================================
+    // CREATE REVENUE CHART
+    // ============================================================
+    function createRevenueChart(monthlyData) {
+        var canvas = document.getElementById('revenueChart');
+        if (!canvas) return;
+
+        var ctx = canvas.getContext('2d');
+        var months = Object.keys(monthlyData).sort(function(a, b) {
+            return new Date(a) - new Date(b);
+        });
+
+        // Use last 6 months or all if less
+        var displayMonths = months.slice(-6);
+        var revenues = displayMonths.map(function(m) { return monthlyData[m].revenue || 0; });
+        var profits = displayMonths.map(function(m) { return monthlyData[m].profit || 0; });
+
+        // Destroy existing chart if any
+        if (window._revenueChart) {
+            window._revenueChart.destroy();
+        }
+
+        window._revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: displayMonths,
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: revenues,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Profit',
+                        data: profits,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { size: 10 },
+                            boxWidth: 12,
+                            padding: 8
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return 'KSh ' + formatNumber(value);
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 9 },
+                            maxRotation: 30,
+                            minRotation: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // CREATE CATEGORY CHART
+    // ============================================================
+    function createCategoryChart(productData) {
+        var canvas = document.getElementById('categoryChart');
+        if (!canvas) return;
+
+        var ctx = canvas.getContext('2d');
+
+        // Aggregate by category (use first word or default)
+        var categoryMap = {};
+        Object.keys(productData).forEach(function(name) {
+            var data = productData[name];
+            // Try to get category from product name or use default
+            var category = 'Others';
+            if (name.toLowerCase().includes('phone')) category = 'Phones';
+            else if (name.toLowerCase().includes('laptop')) category = 'Laptops';
+            else if (name.toLowerCase().includes('accessory') || name.toLowerCase().includes('cable')) category = 'Accessories';
+            else if (name.toLowerCase().includes('audio') || name.toLowerCase().includes('speaker')) category = 'Audio';
+            else if (name.toLowerCase().includes('wearable') || name.toLowerCase().includes('watch')) category = 'Wearables';
+            else if (name.toLowerCase().includes('gaming')) category = 'Gaming';
+            else if (name.toLowerCase().includes('tv') || name.toLowerCase().includes('television')) category = 'Televisions';
+            else if (name.toLowerCase().includes('tablet')) category = 'Tablets';
+            
+            if (!categoryMap[category]) {
+                categoryMap[category] = 0;
+            }
+            categoryMap[category] += data.revenue || 0;
+        });
+
+        var categories = Object.keys(categoryMap);
+        var values = categories.map(function(c) { return categoryMap[c]; });
+
+        // Colors
+        var colors = [
+            '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+        ];
+
+        // Destroy existing chart if any
+        if (window._categoryChart) {
+            window._categoryChart.destroy();
+        }
+
+        window._categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categories,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, categories.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: { size: 10 },
+                            boxWidth: 12,
+                            padding: 6
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    // ============================================================
+    // HELPER: Format Number
+    // ============================================================
+    function formatNumber(num) {
+        if (num === null || num === undefined) return '0';
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return Math.round(num).toLocaleString();
+    }
+
+    // ============================================================
+    // HELPER: Escape HTML
+    // ============================================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ============================================================
+    // LOAD ANALYTICS WHEN SECTION IS SHOWN
+    // ============================================================
+    // Override showSection to load analytics when analytics tab is clicked
+    var originalShowSection = window.showSection;
+    window.showSection = function(sectionName) {
+        // Call original function
+        if (originalShowSection) {
+            originalShowSection(sectionName);
+        }
+
+        // Load analytics if analytics section is shown
+        if (sectionName === 'analytics') {
+            // Wait a bit for the section to become visible
+            setTimeout(function() {
+                loadAnalytics();
+            }, 100);
+        }
+    };
+
+    // Also load analytics on page load if analytics section is visible
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if analytics section is visible
+        var analyticsSection = document.getElementById('analytics-section');
+        if (analyticsSection && !analyticsSection.classList.contains('hidden')) {
+            setTimeout(function() {
+                loadAnalytics();
+            }, 200);
+        }
+    });
+
+    console.log('✅ Analytics JS loaded successfully');
+</script>
+    
+
+    <!-- ===== EXTRA SCRIPTS ===== -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

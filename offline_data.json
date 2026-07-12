@@ -1,0 +1,3247 @@
+{
+  "products": [
+    {
+      "id": "macbook_air_m3_15",
+      "name": "MacBook Air M3 15\"",
+      "price": 280000,
+      "cost_price": 230000,
+      "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Ultra-thin and powerful laptop with M3 chip and stunning 15-inch display.",
+      "stock": 4,
+      "rating": 4.8,
+      "reviews": 178,
+      "badge": "New",
+      "original_price": 310000,
+      "specs": [
+        "15.3-inch Liquid Retina",
+        "M3 Chip",
+        "16GB RAM",
+        "512GB SSD",
+        "18hr Battery"
+      ]
+    },
+    {
+      "id": "macbook_pro_m4",
+      "name": "MacBook Pro M4 16\"",
+      "price": 520000.0,
+      "cost_price": 400000.0,
+      "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Professional laptop with M4 Max chip, 16-inch Liquid Retina XDR display, and up to 22 hours of battery life. Perfect for creatives and professionals.",
+      "stock": 1,
+      "rating": 4.9,
+      "reviews": 0,
+      "badge": "Best Seller",
+      "original_price": 550000.0,
+      "specs": [
+        "M4 Max Chip",
+        "16 inch Retina XDR",
+        "22hr Battery",
+        "36GB RAM"
+      ]
+    },
+    {
+      "id": "dell_xps_16",
+      "name": "Dell XPS 16",
+      "price": 320000,
+      "cost_price": 260000,
+      "image": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Premium Windows laptop with 4K+ OLED display and Intel Core Ultra.",
+      "stock": 0,
+      "rating": 4.6,
+      "reviews": 145,
+      "badge": "",
+      "original_price": 350000,
+      "specs": [
+        "16-inch 4K+ OLED",
+        "Intel Core Ultra 9",
+        "32GB RAM",
+        "1TB SSD",
+        "InfinityEdge"
+      ]
+    },
+    {
+      "id": "nothing_phone_2",
+      "name": "Nothing Phone (2)",
+      "price": 85000,
+      "cost_price": 70000,
+      "image": "https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Unique transparent design with Glyph interface and clean Android experience.",
+      "stock": 26,
+      "rating": 4.2,
+      "reviews": 45,
+      "badge": "",
+      "original_price": 95000,
+      "specs": [
+        "6.7-inch OLED",
+        "Snapdragon 8+ Gen 1",
+        "50MP Camera",
+        "Glyph Interface"
+      ]
+    },
+    {
+      "id": "ps5_digital",
+      "name": "PlayStation 5 Digital Edition",
+      "price": 85000,
+      "cost_price": 65000,
+      "image": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&h=600&fit=crop&auto=format",
+      "category": "Gaming",
+      "description": "Next-gen gaming console with ultra-high speed SSD, ray tracing, and immersive haptic feedback. Digital edition - no disc drive.",
+      "stock": 5,
+      "rating": 4.9,
+      "reviews": 456,
+      "badge": "Best Seller",
+      "original_price": 95000,
+      "specs": [
+        "SSD Storage",
+        "Ray Tracing",
+        "4K Gaming",
+        "Digital Edition"
+      ]
+    },
+    {
+      "id": "google_pixel_9_pro",
+      "name": "Google Pixel 9 Pro",
+      "price": 185000,
+      "cost_price": 150000,
+      "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Pure Android experience with the best camera and Gemini AI features.",
+      "stock": 5,
+      "rating": 4.5,
+      "reviews": 98,
+      "badge": "New",
+      "original_price": 205000,
+      "specs": [
+        "6.7-inch OLED",
+        "Tensor G4",
+        "50MP Camera",
+        "12GB RAM",
+        "Vanilla Android"
+      ]
+    },
+    {
+      "id": "airpods_pro_3",
+      "name": "AirPods Pro 3",
+      "price": 42000,
+      "cost_price": 31000,
+      "image": "https://images.unsplash.com/photo-1606841838e0-bf1baf2dc3e9?w=600&h=600&fit=crop&auto=format",
+      "category": "Audio",
+      "description": "Top-tier wireless earbuds with Active Noise Cancellation, Adaptive Transparency, and Spatial Audio with dynamic head tracking.",
+      "stock": 14,
+      "rating": 4.8,
+      "reviews": 389,
+      "badge": "Best Seller",
+      "original_price": 48000,
+      "specs": [
+        "ANC",
+        "Spatial Audio",
+        "USB-C",
+        "MagSafe Charging"
+      ]
+    },
+    {
+      "id": "samsung_s24_ultra",
+      "name": "Samsung Galaxy S24 Ultra",
+      "price": 220000,
+      "cost_price": 180000,
+      "image": "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Premium Android flagship with S Pen, 200MP camera, and Galaxy AI features.",
+      "stock": 6,
+      "rating": 4.9,
+      "reviews": 312,
+      "badge": "Trending",
+      "original_price": 240000,
+      "specs": [
+        "6.8-inch Dynamic AMOLED",
+        "Snapdragon 8 Gen 3",
+        "200MP Camera",
+        "12GB RAM",
+        "S Pen Included"
+      ]
+    },
+    {
+      "id": "iphone_16_pro_max",
+      "name": "iPhone 16 Pro Max",
+      "price": 265000,
+      "cost_price": 195000,
+      "image": "https://images.unsplash.com/photo-1592286927505-1def25e4c479?w=600&h=600&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Latest Apple flagship with A18 Pro chip, titanium body, and 48MP camera system. Experience the future of mobile technology.",
+      "stock": 11,
+      "rating": 4.9,
+      "reviews": 312,
+      "badge": "Best Seller",
+      "original_price": 285000,
+      "specs": [
+        "A18 Pro Chip",
+        "48MP Camera",
+        "6.9 inch OLED",
+        "Titanium Body"
+      ]
+    },
+    {
+      "id": "xiaomi_14_pro",
+      "name": "Xiaomi 14 Pro",
+      "price": 125000,
+      "cost_price": 100000,
+      "image": "https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Premium Xiaomi flagship with Leica camera and Snapdragon 8 Gen 3.",
+      "stock": 17,
+      "rating": 4.3,
+      "reviews": 67,
+      "badge": "",
+      "original_price": 140000,
+      "specs": [
+        "6.73-inch OLED",
+        "Snapdragon 8 Gen 3",
+        "50MP Leica Camera",
+        "12GB RAM"
+      ]
+    },
+    {
+      "id": "hp_spectre_x360",
+      "name": "HP Spectre x360",
+      "price": 210000,
+      "cost_price": 170000,
+      "image": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Versatile 2-in-1 convertible laptop with stunning OLED display.",
+      "stock": 2,
+      "rating": 4.3,
+      "reviews": 89,
+      "badge": "",
+      "original_price": 240000,
+      "specs": [
+        "16-inch 4K OLED",
+        "Intel Core Ultra 7",
+        "16GB RAM",
+        "1TB SSD",
+        "360\u00b0 Hinge"
+      ]
+    },
+    {
+      "id": "samsung_s24_plus",
+      "name": "Samsung Galaxy S24+",
+      "price": 165000,
+      "cost_price": 135000,
+      "image": "https://images.unsplash.com/photo-1610945265064-0e34e5b5bdab?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Flagship performance with a large display and powerful camera system.",
+      "stock": 16,
+      "rating": 4.6,
+      "reviews": 156,
+      "badge": "",
+      "original_price": 185000,
+      "specs": [
+        "6.7-inch Dynamic AMOLED",
+        "Snapdragon 8 Gen 3",
+        "50MP Camera",
+        "12GB RAM"
+      ]
+    },
+    {
+      "id": "asus_zenbook_14",
+      "name": "Asus Zenbook 14",
+      "price": 180000,
+      "cost_price": 145000,
+      "image": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Ultra-portable laptop with OLED display and long battery life.",
+      "stock": 4,
+      "rating": 4.2,
+      "reviews": 76,
+      "badge": "",
+      "original_price": 200000,
+      "specs": [
+        "14-inch OLED",
+        "Intel Core Ultra 5",
+        "16GB RAM",
+        "512GB SSD",
+        "Lightweight"
+      ]
+    },
+    {
+      "id": "lenovo_thinkpad_x1",
+      "name": "Lenovo ThinkPad X1 Carbon",
+      "price": 260000,
+      "cost_price": 210000,
+      "image": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Business flagship with ultra-lightweight carbon fiber design.",
+      "stock": 8,
+      "rating": 4.5,
+      "reviews": 123,
+      "badge": "",
+      "original_price": 290000,
+      "specs": [
+        "14-inch 4K",
+        "Intel Core Ultra 7",
+        "16GB RAM",
+        "512GB SSD",
+        "Carbon Fiber"
+      ]
+    },
+    {
+      "id": "razer_blade_16",
+      "name": "Razer Blade 16",
+      "price": 420000,
+      "cost_price": 350000,
+      "image": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Premium gaming laptop with RTX 4090 and 240Hz OLED display.",
+      "stock": 5,
+      "rating": 4.7,
+      "reviews": 98,
+      "badge": "Trending",
+      "original_price": 460000,
+      "specs": [
+        "16-inch 240Hz OLED",
+        "RTX 4090",
+        "32GB RAM",
+        "2TB SSD",
+        "Thunderbolt 4"
+      ]
+    },
+    {
+      "id": "samsung_s25_ultra",
+      "name": "Samsung Galaxy S25 Ultra",
+      "price": 255000,
+      "cost_price": 185000,
+      "image": "",
+      "category": "Phones",
+      "description": "cv",
+      "stock": 7,
+      "rating": 4.5,
+      "reviews": 0,
+      "badge": "",
+      "original_price": null,
+      "specs": []
+    },
+    {
+      "id": "macbook_pro_m3_16",
+      "name": "MacBook Pro M3 16\"",
+      "price": 520000,
+      "cost_price": 430000,
+      "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop&auto=format",
+      "category": "Laptops",
+      "description": "Professional laptop with M3 Pro chip, Liquid Retina XDR display.",
+      "stock": 1,
+      "rating": 4.9,
+      "reviews": 203,
+      "badge": "Best Seller",
+      "original_price": 560000,
+      "specs": [
+        "16-inch Liquid Retina XDR",
+        "M3 Pro Chip",
+        "36GB RAM",
+        "1TB SSD",
+        "22hr Battery"
+      ]
+    },
+    {
+      "id": "iphone_15_pro",
+      "name": "iPhone 15 Pro",
+      "price": 195000,
+      "cost_price": 160000,
+      "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Professional-grade iPhone with A17 Pro chip and advanced camera system.",
+      "stock": 15,
+      "rating": 4.7,
+      "reviews": 189,
+      "badge": "New",
+      "original_price": 215000,
+      "specs": [
+        "6.1-inch OLED",
+        "A17 Pro Chip",
+        "48MP Camera",
+        "128GB Storage",
+        "Titanium Body"
+      ]
+    },
+    {
+      "id": "iphone_15_pro_max",
+      "name": "iPhone 15 Pro Max",
+      "price": 245000,
+      "cost_price": 200000,
+      "image": "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "The ultimate iPhone with titanium design, A17 Pro chip, and a 48MP camera system.",
+      "stock": 13,
+      "rating": 4.8,
+      "reviews": 234,
+      "badge": "Best Seller",
+      "original_price": 265000,
+      "specs": [
+        "6.7-inch OLED",
+        "A17 Pro Chip",
+        "48MP Camera",
+        "256GB Storage",
+        "Titanium Body"
+      ]
+    },
+    {
+      "id": "oneplus_12",
+      "name": "OnePlus 12",
+      "price": 145000,
+      "cost_price": 120000,
+      "image": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop&auto=format",
+      "category": "Phones",
+      "description": "Flagship killer with Snapdragon 8 Gen 3 and Hasselblad camera.",
+      "stock": 24,
+      "rating": 4.4,
+      "reviews": 87,
+      "badge": "",
+      "original_price": 165000,
+      "specs": [
+        "6.82-inch AMOLED",
+        "Snapdragon 8 Gen 3",
+        "50MP Camera",
+        "12GB RAM",
+        "100W Charging"
+      ]
+    },
+    {
+      "id": "anker_powerbank",
+      "name": "Anker 737 Power Bank 24K",
+      "price": 18000,
+      "cost_price": 14000,
+      "image": "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=400&h=400&fit=crop&auto=format",
+      "category": "Accessories",
+      "description": "High-capacity 24,000mAh power bank with 140W fast charging.",
+      "stock": 50,
+      "rating": 4.6,
+      "reviews": 456,
+      "badge": "",
+      "original_price": 22000,
+      "specs": [
+        "24,000mAh",
+        "140W Output",
+        "Digital Display",
+        "2 USB-C",
+        "1 USB-A"
+      ]
+    },
+    {
+      "id": "sony_wh1000xm5",
+      "name": "Sony WH-1000XM5",
+      "price": 48000,
+      "cost_price": 38000,
+      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop&auto=format",
+      "category": "Audio",
+      "description": "Industry-leading noise cancelling headphones with exceptional sound quality.",
+      "stock": 24,
+      "rating": 4.7,
+      "reviews": 321,
+      "badge": "Best Seller",
+      "original_price": 55000,
+      "specs": [
+        "Industry-leading ANC",
+        "30hr Battery",
+        "Spatial Audio",
+        "Lightweight Design"
+      ]
+    },
+    {
+      "id": "belkin_charger",
+      "name": "Belkin 3-in-1 MagSafe Charger",
+      "price": 22000,
+      "cost_price": 17000,
+      "image": "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop&auto=format",
+      "category": "Accessories",
+      "description": "Apple-certified 3-in-1 charging stand for iPhone, Apple Watch, AirPods.",
+      "stock": 29,
+      "rating": 4.3,
+      "reviews": 123,
+      "badge": "",
+      "original_price": 26000,
+      "specs": [
+        "MagSafe Certified",
+        "3-in-1 Charging",
+        "15W Fast Charging",
+        "Foldable Design"
+      ]
+    },
+    {
+      "id": "airpods_pro_2",
+      "name": "AirPods Pro 2 USB-C",
+      "price": 42000,
+      "cost_price": 34000,
+      "image": "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&h=400&fit=crop&auto=format",
+      "category": "Accessories",
+      "description": "Premium noise-cancelling earbuds with Spatial Audio and USB-C.",
+      "stock": 38,
+      "rating": 4.7,
+      "reviews": 567,
+      "badge": "Best Seller",
+      "original_price": 48000,
+      "specs": [
+        "Active Noise Cancellation",
+        "Spatial Audio",
+        "USB-C",
+        "MagSafe Charging",
+        "6hr Battery"
+      ]
+    },
+    {
+      "id": "xbox_series_x",
+      "name": "Xbox Series X",
+      "price": 82000,
+      "cost_price": 67000,
+      "image": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop&auto=format",
+      "category": "Gaming",
+      "description": "The fastest, most powerful Xbox with 12 teraflops of GPU performance.",
+      "stock": 19,
+      "rating": 4.8,
+      "reviews": 432,
+      "badge": "",
+      "original_price": 92000,
+      "specs": [
+        "4K Gaming",
+        "1TB SSD",
+        "12 Teraflops GPU",
+        "Quick Resume",
+        "Backward Compatible"
+      ]
+    },
+    {
+      "id": "samsung_watch_6",
+      "name": "Samsung Galaxy Watch 6",
+      "price": 65000,
+      "cost_price": 52000,
+      "image": "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=400&h=400&fit=crop&auto=format",
+      "category": "Wearables",
+      "description": "Premium smartwatch with body composition analysis and sleep tracking.",
+      "stock": 23,
+      "rating": 4.4,
+      "reviews": 189,
+      "badge": "",
+      "original_price": 75000,
+      "specs": [
+        "44mm Super AMOLED",
+        "Body Composition",
+        "Sleep Tracking",
+        "GPS",
+        "40hr Battery"
+      ]
+    },
+    {
+      "id": "samsung_buds3_pro",
+      "name": "Samsung Galaxy Buds3 Pro",
+      "price": 35000,
+      "cost_price": 28000,
+      "image": "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop&auto=format",
+      "category": "Accessories",
+      "description": "Premium earbuds with 360 Audio and voice control features.",
+      "stock": 34,
+      "rating": 4.5,
+      "reviews": 234,
+      "badge": "",
+      "original_price": 40000,
+      "specs": [
+        "360 Audio",
+        "Voice Control",
+        "Noise Cancelling",
+        "24-bit Audio",
+        "6hr Battery"
+      ]
+    },
+    {
+      "id": "sony_a80l",
+      "name": "Sony A80L OLED 55\"",
+      "price": 280000,
+      "cost_price": 220000,
+      "image": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop&auto=format",
+      "category": "Televisions",
+      "description": "Premium OLED TV with Cognitive Processor XR and Acoustic Surface Audio.",
+      "stock": 8,
+      "rating": 4.7,
+      "reviews": 134,
+      "badge": "",
+      "original_price": 310000,
+      "specs": [
+        "55-inch OLED",
+        "Cognitive Processor XR",
+        "120Hz",
+        "Acoustic Surface Audio",
+        "Google TV"
+      ]
+    },
+    {
+      "id": "apple_watch_ultra_2",
+      "name": "Apple Watch Ultra 2",
+      "price": 120000,
+      "cost_price": 98000,
+      "image": "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=400&h=400&fit=crop&auto=format",
+      "category": "Wearables",
+      "description": "The ultimate smartwatch for adventurers with titanium case.",
+      "stock": 19,
+      "rating": 4.8,
+      "reviews": 345,
+      "badge": "New",
+      "original_price": 135000,
+      "specs": [
+        "49mm Titanium",
+        "S9 Chip",
+        "Always-On Display",
+        "GPS + Cellular",
+        "36hr Battery"
+      ]
+    },
+    {
+      "id": "bose_qc_ultra",
+      "name": "Bose QuietComfort Ultra",
+      "price": 55000,
+      "cost_price": 44000,
+      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop&auto=format",
+      "category": "Audio",
+      "description": "Premium headphones with immersive audio and legendary comfort.",
+      "stock": 15,
+      "rating": 4.6,
+      "reviews": 234,
+      "badge": "",
+      "original_price": 62000,
+      "specs": [
+        "Immersive Audio",
+        "CustomTune ANC",
+        "24hr Battery",
+        "Aware Mode"
+      ]
+    },
+    {
+      "id": "ps5_slim",
+      "name": "PlayStation 5 Slim",
+      "price": 85000,
+      "cost_price": 70000,
+      "image": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400&h=400&fit=crop&auto=format",
+      "category": "Gaming",
+      "description": "Next-gen gaming with ultra-fast SSD and stunning 4K graphics.",
+      "stock": 22,
+      "rating": 4.9,
+      "reviews": 567,
+      "badge": "Best Seller",
+      "original_price": 95000,
+      "specs": [
+        "4K Gaming",
+        "Ultra-fast SSD",
+        "DualSense Controller",
+        "Wi-Fi 6",
+        "1TB Storage"
+      ]
+    },
+    {
+      "id": "samsung_s90c",
+      "name": "Samsung S90C OLED 65\"",
+      "price": 350000,
+      "cost_price": 280000,
+      "image": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop&auto=format",
+      "category": "Televisions",
+      "description": "Stunning OLED TV with Quantum HDR and 120Hz refresh rate.",
+      "stock": 6,
+      "rating": 4.8,
+      "reviews": 156,
+      "badge": "Trending",
+      "original_price": 390000,
+      "specs": [
+        "65-inch OLED",
+        "Quantum HDR",
+        "120Hz",
+        "Dolby Atmos",
+        "Smart TV"
+      ]
+    },
+    {
+      "id": "nintendo_switch_oled",
+      "name": "Nintendo Switch OLED",
+      "price": 62000,
+      "cost_price": 50000,
+      "image": "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=400&h=400&fit=crop&auto=format",
+      "category": "Gaming",
+      "description": "Hybrid gaming console with vibrant OLED display and enhanced audio.",
+      "stock": 28,
+      "rating": 4.5,
+      "reviews": 234,
+      "badge": "",
+      "original_price": 70000,
+      "specs": [
+        "7-inch OLED",
+        "Hybrid Design",
+        "Enhanced Audio",
+        "64GB Storage",
+        "Multiplayer"
+      ]
+    },
+    {
+      "id": "lg_g3",
+      "name": "LG G3 OLED 77\"",
+      "price": 550000,
+      "cost_price": 440000,
+      "image": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop&auto=format",
+      "category": "Televisions",
+      "description": "Cinematic OLED TV with Brightness Booster and Gallery Design.",
+      "stock": 3,
+      "rating": 4.9,
+      "reviews": 98,
+      "badge": "Best Seller",
+      "original_price": 600000,
+      "specs": [
+        "77-inch OLED",
+        "Brightness Booster",
+        "120Hz",
+        "Dolby Vision",
+        "Gallery Design"
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "id": 6,
+      "order_id": "POS-4A21C781",
+      "items": [
+        {
+          "name": "Samsung Galaxy Watch 6",
+          "type": "product",
+          "price": 65000,
+          "total": 65000,
+          "quantity": 1,
+          "cost_price": 52000,
+          "product_id": "samsung_watch_6"
+        }
+      ],
+      "subtotal": 65000.0,
+      "shipping": 0.0,
+      "total": 65000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T11:45:19.806369",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 5,
+      "order_id": "POS-C4BD847C",
+      "items": [
+        {
+          "name": "Google Pixel 9 Pro",
+          "type": "product",
+          "price": 185000,
+          "total": 185000,
+          "quantity": 1,
+          "cost_price": 150000,
+          "product_id": "google_pixel_9_pro"
+        }
+      ],
+      "subtotal": 185000.0,
+      "shipping": 0.0,
+      "total": 185000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T11:35:41.034419",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 4,
+      "order_id": "POS-70C69EAD",
+      "items": [
+        {
+          "name": "Nintendo Switch OLED",
+          "type": "product",
+          "price": 62000,
+          "total": 62000,
+          "quantity": 1,
+          "cost_price": 50000,
+          "product_id": "nintendo_switch_oled"
+        }
+      ],
+      "subtotal": 62000.0,
+      "shipping": 0.0,
+      "total": 62000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T11:25:39.410672",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 3,
+      "order_id": "POS-89722DD8",
+      "items": [
+        {
+          "name": "Nintendo Switch OLED",
+          "type": "product",
+          "price": 62000,
+          "total": 62000,
+          "quantity": 1,
+          "cost_price": 50000,
+          "product_id": "nintendo_switch_oled"
+        }
+      ],
+      "subtotal": 62000.0,
+      "shipping": 0.0,
+      "total": 62000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T11:21:48.852151",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 2,
+      "order_id": "POS-6E1F2A69",
+      "items": [
+        {
+          "name": "Google Pixel 9 Pro",
+          "type": "product",
+          "price": 185000,
+          "total": 185000,
+          "quantity": 1,
+          "cost_price": 150000,
+          "product_id": "google_pixel_9_pro"
+        }
+      ],
+      "subtotal": 185000.0,
+      "shipping": 0.0,
+      "total": 185000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T11:08:52.848527",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 1,
+      "order_id": "POS-BD4A2A4E",
+      "items": [
+        {
+          "name": "MacBook Air M3 15",
+          "type": "product",
+          "price": 280000,
+          "total": 280000,
+          "quantity": 1,
+          "cost_price": 230000,
+          "product_id": "macbook_air_m3_15"
+        }
+      ],
+      "subtotal": 280000.0,
+      "shipping": 0.0,
+      "total": 280000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T10:42:56.012599",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 92,
+      "order_id": "POS-85EB9770",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T10:20:20.861093",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 91,
+      "order_id": "POS-807B6AC0",
+      "items": [
+        {
+          "name": "MacBook Pro M4 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 400000.0,
+          "product_id": "macbook_pro_m4"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T10:18:30.615961",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 90,
+      "order_id": "POS-6CE42253",
+      "items": [
+        {
+          "name": "Lenovo ThinkPad X1 Carbon",
+          "type": "product",
+          "price": 260000,
+          "total": 260000,
+          "quantity": 1,
+          "cost_price": 210000,
+          "product_id": "lenovo_thinkpad_x1"
+        }
+      ],
+      "subtotal": 260000.0,
+      "shipping": 0.0,
+      "total": 260000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-08T10:17:41.233547",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 89,
+      "order_id": "ELEC-20260707220454",
+      "items": [
+        {
+          "name": "Asus Zenbook 14",
+          "type": "product",
+          "price": 180000,
+          "total": 360000,
+          "quantity": 2,
+          "product_id": "asus_zenbook_14"
+        }
+      ],
+      "subtotal": 360000.0,
+      "shipping": 0.0,
+      "total": 360000.0,
+      "status": "pending",
+      "source": "web",
+      "created_at": "2026-07-07T22:04:54.272337",
+      "customer": {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "+254 700 000 000",
+        "address": "123 Main Street, Nairobi, Kenya"
+      },
+      "customer_name": "John Doe",
+      "customer_email": "john@example.com",
+      "customer_phone": "+254 700 000 000",
+      "customer_address": "123 Main Street, Nairobi, Kenya",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 88,
+      "order_id": "POS-155E8A6F",
+      "items": [
+        {
+          "name": "MacBook Air M3 15",
+          "type": "product",
+          "price": 280000,
+          "total": 280000,
+          "quantity": 1,
+          "cost_price": 230000,
+          "product_id": "macbook_air_m3_15"
+        }
+      ],
+      "subtotal": 280000.0,
+      "shipping": 0.0,
+      "total": 280000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T20:24:25.785135",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 87,
+      "order_id": "POS-489230A8",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T20:22:49.145549",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 86,
+      "order_id": "POS-0D0B8193",
+      "items": [
+        {
+          "name": "MacBook Pro M4 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 400000.0,
+          "product_id": "macbook_pro_m4"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T20:21:16.533802",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_user@pricepoint.com",
+      "user_name": "John Doe",
+      "user_role": "user",
+      "staff_name": "John Doe"
+    },
+    {
+      "id": 85,
+      "order_id": "POS-101D8E82",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T20:19:32.441098",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 84,
+      "order_id": "RET-A230B278",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "return",
+          "price": 210000.0,
+          "total": 210000.0,
+          "quantity": 1,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": -210000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T20:17:22.786666",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 210000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 83,
+      "order_id": "RET-890E2FB7",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "return",
+          "price": 210000.0,
+          "total": 210000.0,
+          "quantity": 1,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": -210000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T20:17:08.057798",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 210000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 82,
+      "order_id": "POS-3FB73F77",
+      "items": [
+        {
+          "name": "PlayStation 5 Slim",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 70000,
+          "product_id": "ps5_slim"
+        }
+      ],
+      "subtotal": 85000.0,
+      "shipping": 0.0,
+      "total": 85000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T20:16:04.175416",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 81,
+      "order_id": "POS-78B2ED5A",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:53:58.963004",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 80,
+      "order_id": "POS-9CBBE657",
+      "items": [
+        {
+          "name": "MacBook Air M3 15",
+          "type": "product",
+          "price": 280000,
+          "total": 280000,
+          "quantity": 1,
+          "cost_price": 230000,
+          "product_id": "macbook_air_m3_15"
+        }
+      ],
+      "subtotal": 280000.0,
+      "shipping": 0.0,
+      "total": 280000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:53:22.351744",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 79,
+      "order_id": "POS-F4E9E799",
+      "items": [
+        {
+          "name": "MacBook Air M3 15",
+          "type": "product",
+          "price": 280000,
+          "total": 280000,
+          "quantity": 1,
+          "cost_price": 230000,
+          "product_id": "macbook_air_m3_15"
+        }
+      ],
+      "subtotal": 280000.0,
+      "shipping": 0.0,
+      "total": 280000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:51:52.419572",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 78,
+      "order_id": "POS-18E519EF",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:49:18.534632",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 77,
+      "order_id": "POS-D920D01E",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:48:56.053829",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 76,
+      "order_id": "POS-16D22A77",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:48:20.436464",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 75,
+      "order_id": "POS-34892FA2",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 630000,
+          "quantity": 3,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 630000.0,
+      "shipping": 0.0,
+      "total": 630000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:47:32.538106",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 74,
+      "order_id": "POS-6526F4E8",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:45:17.285421",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 73,
+      "order_id": "POS-EED668AB",
+      "items": [
+        {
+          "name": "MacBook Pro M4 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 400000.0,
+          "product_id": "macbook_pro_m4"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:44:18.111354",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 72,
+      "order_id": "POS-9094AA27",
+      "items": [
+        {
+          "name": "MacBook Pro M4 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 400000.0,
+          "product_id": "macbook_pro_m4"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:43:19.75733",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 71,
+      "order_id": "POS-85E67FBB",
+      "items": [
+        {
+          "name": "HP Spectre x360",
+          "type": "product",
+          "price": 210000,
+          "total": 210000,
+          "quantity": 1,
+          "cost_price": 170000,
+          "product_id": "hp_spectre_x360"
+        }
+      ],
+      "subtotal": 210000.0,
+      "shipping": 0.0,
+      "total": 210000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:39:19.59943",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 70,
+      "order_id": "POS-8EDB20CB",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:35:36.040203",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_user@pricepoint.com",
+      "user_name": "John Doe",
+      "user_role": "user",
+      "staff_name": "John Doe"
+    },
+    {
+      "id": 69,
+      "order_id": "POS-900D6773",
+      "items": [
+        {
+          "name": "MacBook Pro M3 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 430000,
+          "product_id": "macbook_pro_m3_16"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T19:34:09.144841",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "admin_1",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 68,
+      "order_id": "POS-91E64626",
+      "items": [
+        {
+          "name": "MacBook Pro M3 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 430000,
+          "product_id": "macbook_pro_m3_16"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T18:17:47.474832",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 67,
+      "order_id": "POS-E4419B45",
+      "items": [
+        {
+          "name": "Samsung Galaxy S25 Ultra",
+          "type": "product",
+          "price": 255000,
+          "total": 255000,
+          "quantity": 1,
+          "cost_price": 185000,
+          "product_id": "samsung_s25_ultra"
+        }
+      ],
+      "subtotal": 255000.0,
+      "shipping": 0.0,
+      "total": 255000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T18:13:38.269556",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 66,
+      "order_id": "POS-3B9C8DAE",
+      "items": [
+        {
+          "name": "Bose QuietComfort Ultra",
+          "type": "product",
+          "price": 55000,
+          "total": 55000,
+          "quantity": 1,
+          "cost_price": 44000,
+          "product_id": "bose_qc_ultra"
+        }
+      ],
+      "subtotal": 55000.0,
+      "shipping": 0.0,
+      "total": 55000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T17:11:00.375753",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 65,
+      "order_id": "POS-456BC1D3",
+      "items": [
+        {
+          "name": "AirPods Pro 3",
+          "type": "product",
+          "price": 42000,
+          "total": 84000,
+          "quantity": 2,
+          "cost_price": 31000,
+          "product_id": "airpods_pro_3"
+        },
+        {
+          "name": "Bose QuietComfort Ultra",
+          "type": "product",
+          "price": 55000,
+          "total": 55000,
+          "quantity": 1,
+          "cost_price": 44000,
+          "product_id": "bose_qc_ultra"
+        }
+      ],
+      "subtotal": 139000.0,
+      "shipping": 0.0,
+      "total": 139000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T17:04:46.833555",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 64,
+      "order_id": "POS-2CABE014",
+      "items": [
+        {
+          "name": "Apple Watch Ultra 2",
+          "type": "product",
+          "price": 120000,
+          "total": 120000,
+          "quantity": 1,
+          "cost_price": 98000,
+          "product_id": "apple_watch_ultra_2"
+        }
+      ],
+      "subtotal": 120000.0,
+      "shipping": 0.0,
+      "total": 120000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:58:43.913589",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 63,
+      "order_id": "POS-09974BAA",
+      "items": [
+        {
+          "name": "Sony A80L OLED 55",
+          "type": "product",
+          "price": 280000,
+          "total": 280000,
+          "quantity": 1,
+          "cost_price": 220000,
+          "product_id": "sony_a80l"
+        }
+      ],
+      "subtotal": 280000.0,
+      "shipping": 0.0,
+      "total": 280000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:58:33.05481",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 62,
+      "order_id": "POS-3D9B7CB1",
+      "items": [
+        {
+          "name": "Samsung Galaxy Buds3 Pro",
+          "type": "product",
+          "price": 35000,
+          "total": 35000,
+          "quantity": 1,
+          "cost_price": 28000,
+          "product_id": "samsung_buds3_pro"
+        }
+      ],
+      "subtotal": 35000.0,
+      "shipping": 0.0,
+      "total": 35000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:27:00.34165",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_admin@pricepoint.com",
+      "user_name": "Admin User",
+      "user_role": "admin",
+      "staff_name": "Admin User"
+    },
+    {
+      "id": 61,
+      "order_id": "POS-3F34AE2D",
+      "items": [
+        {
+          "name": "Bose QuietComfort Ultra",
+          "type": "product",
+          "price": 55000,
+          "total": 55000,
+          "quantity": 1,
+          "cost_price": 44000,
+          "product_id": "bose_qc_ultra"
+        }
+      ],
+      "subtotal": 55000.0,
+      "shipping": 0.0,
+      "total": 55000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:24:44.342221",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_pos@pricepoint.com",
+      "user_name": "POS Operator",
+      "user_role": "pos",
+      "staff_name": "POS Operator"
+    },
+    {
+      "id": 60,
+      "order_id": "POS-173FCD7D",
+      "items": [
+        {
+          "name": "MacBook Pro M3 16",
+          "type": "product",
+          "price": 520000,
+          "total": 520000,
+          "quantity": 1,
+          "cost_price": 430000,
+          "product_id": "macbook_pro_m3_16"
+        }
+      ],
+      "subtotal": 520000.0,
+      "shipping": 0.0,
+      "total": 520000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:24:00.612874",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 59,
+      "order_id": "POS-4E33EDE3",
+      "items": [
+        {
+          "name": "Asus Zenbook 14",
+          "type": "product",
+          "price": 180000,
+          "total": 180000,
+          "quantity": 1,
+          "cost_price": 145000,
+          "product_id": "asus_zenbook_14"
+        }
+      ],
+      "subtotal": 180000.0,
+      "shipping": 0.0,
+      "total": 180000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:23:49.964215",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": "legacy_manager@pricepoint.com",
+      "user_name": "Store Manager",
+      "user_role": "manager",
+      "staff_name": "Store Manager"
+    },
+    {
+      "id": 58,
+      "order_id": "POS-B6C8FDEE",
+      "items": [
+        {
+          "name": "Samsung Galaxy S24 Ultra",
+          "type": "product",
+          "price": 220000,
+          "total": 220000,
+          "quantity": 1,
+          "cost_price": 180000,
+          "product_id": "samsung_s24_ultra"
+        }
+      ],
+      "subtotal": 220000.0,
+      "shipping": 0.0,
+      "total": 220000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T16:13:17.392563",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 57,
+      "order_id": "POS-455E4141",
+      "items": [
+        {
+          "name": "Samsung Galaxy S24+",
+          "type": "product",
+          "price": 165000,
+          "total": 165000,
+          "quantity": 1,
+          "cost_price": 135000,
+          "product_id": "samsung_s24_plus"
+        }
+      ],
+      "subtotal": 165000.0,
+      "shipping": 0.0,
+      "total": 165000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T15:19:53.26291",
+      "customer": {
+        "name": "pert",
+        "email": "mosobacalvin2018@gmail.com",
+        "phone": "18604878343",
+        "address": "In-store purchase"
+      },
+      "customer_name": "pert",
+      "customer_email": "mosobacalvin2018@gmail.com",
+      "customer_phone": "18604878343",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 56,
+      "order_id": "POS-E146531B",
+      "items": [
+        {
+          "name": "PlayStation 5 Slim",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 70000,
+          "product_id": "ps5_slim"
+        }
+      ],
+      "subtotal": 85000.0,
+      "shipping": 0.0,
+      "total": 85000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T15:19:18.270091",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 55,
+      "order_id": "POS-38215A46",
+      "items": [
+        {
+          "name": "PlayStation 5 Slim",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 70000,
+          "product_id": "ps5_slim"
+        },
+        {
+          "name": "Xbox Series X",
+          "type": "product",
+          "price": 82000,
+          "total": 82000,
+          "quantity": 1,
+          "cost_price": 67000,
+          "product_id": "xbox_series_x"
+        }
+      ],
+      "subtotal": 167000.0,
+      "shipping": 0.0,
+      "total": 167000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T15:18:58.945273",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 54,
+      "order_id": "RET-61E7DE4B",
+      "items": [
+        {
+          "name": "Lenovo ThinkPad X1 Carbon",
+          "type": "return",
+          "price": 260000.0,
+          "total": 260000.0,
+          "quantity": 1,
+          "product_id": "lenovo_thinkpad_x1"
+        }
+      ],
+      "subtotal": 260000.0,
+      "shipping": 0.0,
+      "total": -260000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T15:12:01.484782",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 260000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 53,
+      "order_id": "RET-18361486",
+      "items": [
+        {
+          "name": "Lenovo ThinkPad X1 Carbon",
+          "type": "return",
+          "price": 260000.0,
+          "total": 260000.0,
+          "quantity": 1,
+          "product_id": "lenovo_thinkpad_x1"
+        }
+      ],
+      "subtotal": 260000.0,
+      "shipping": 0.0,
+      "total": -260000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T15:11:40.510442",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 260000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 52,
+      "order_id": "RET-18F4A91F",
+      "items": [
+        {
+          "name": "Lenovo ThinkPad X1 Carbon",
+          "type": "return",
+          "price": 260000.0,
+          "total": 260000.0,
+          "quantity": 1,
+          "product_id": "lenovo_thinkpad_x1"
+        }
+      ],
+      "subtotal": 260000.0,
+      "shipping": 0.0,
+      "total": -260000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T15:11:09.242519",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 260000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 51,
+      "order_id": "POS-A2FBEECD",
+      "items": [
+        {
+          "name": "Asus Zenbook 14",
+          "type": "product",
+          "price": 180000,
+          "total": 180000,
+          "quantity": 1,
+          "cost_price": 145000,
+          "product_id": "asus_zenbook_14"
+        }
+      ],
+      "subtotal": 180000.0,
+      "shipping": 0.0,
+      "total": 180000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T15:10:57.896975",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 50,
+      "order_id": "POS-AA33603C",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T14:32:53.784347",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 49,
+      "order_id": "POS-F66F8D2E",
+      "items": [
+        {
+          "name": "AirPods Pro 3",
+          "type": "product",
+          "price": 42000,
+          "total": 42000,
+          "quantity": 1,
+          "cost_price": 31000,
+          "product_id": "airpods_pro_3"
+        }
+      ],
+      "subtotal": 42000.0,
+      "shipping": 0.0,
+      "total": 42000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T14:11:15.074641",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 48,
+      "order_id": "POS-31C6FAAD",
+      "items": [
+        {
+          "name": "Samsung S90C OLED 65",
+          "type": "product",
+          "price": 350000,
+          "total": 350000,
+          "quantity": 1,
+          "cost_price": 280000,
+          "product_id": "samsung_s90c"
+        }
+      ],
+      "subtotal": 350000.0,
+      "shipping": 0.0,
+      "total": 350000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T14:10:46.356683",
+      "customer": {
+        "name": "Sarah Wanjiru",
+        "email": "sarah.wanjiru@email.com",
+        "phone": "+254711234567",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Sarah Wanjiru",
+      "customer_email": "sarah.wanjiru@email.com",
+      "customer_phone": "+254711234567",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 47,
+      "order_id": "POS-01883DE5",
+      "items": [
+        {
+          "name": "Google Pixel 9 Pro",
+          "type": "product",
+          "price": 185000,
+          "total": 185000,
+          "quantity": 1,
+          "cost_price": 150000,
+          "product_id": "google_pixel_9_pro"
+        }
+      ],
+      "subtotal": 185000.0,
+      "shipping": 0.0,
+      "total": 185000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T13:53:02.650504",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 46,
+      "order_id": "POS-39C87F2D",
+      "items": [
+        {
+          "name": "Samsung Galaxy S25 Ultra",
+          "type": "product",
+          "price": 255000,
+          "total": 255000,
+          "quantity": 1,
+          "cost_price": 185000,
+          "product_id": "samsung_s25_ultra"
+        }
+      ],
+      "subtotal": 255000.0,
+      "shipping": 0.0,
+      "total": 255000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T13:03:37.687282",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 45,
+      "order_id": "POS-BEF9460A",
+      "items": [
+        {
+          "name": "Nothing Phone (2)",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 70000,
+          "product_id": "nothing_phone_2"
+        }
+      ],
+      "subtotal": 85000.0,
+      "shipping": 0.0,
+      "total": 85000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T12:18:06.847818",
+      "customer": {
+        "name": "owen",
+        "email": "mosobacalvin2018@gmail.com",
+        "phone": "+254745793237",
+        "address": "In-store"
+      },
+      "customer_name": "owen",
+      "customer_email": "mosobacalvin2018@gmail.com",
+      "customer_phone": "+254745793237",
+      "customer_address": "In-store",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 44,
+      "order_id": "POS-A2F1374B",
+      "items": [
+        {
+          "name": "Samsung Galaxy S24 Ultra",
+          "type": "product",
+          "price": 220000,
+          "total": 220000,
+          "quantity": 1,
+          "cost_price": 180000,
+          "product_id": "samsung_s24_ultra"
+        }
+      ],
+      "subtotal": 220000.0,
+      "shipping": 0.0,
+      "total": 220000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T11:49:39.669492",
+      "customer": {
+        "name": "aCALVIN MOSOBAcv",
+        "email": "pos@example.com",
+        "phone": "N/A",
+        "address": "In-store"
+      },
+      "customer_name": "aCALVIN MOSOBAcv",
+      "customer_email": "pos@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 43,
+      "order_id": "POS-96EA83C8",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "cost_price": 260000,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T11:45:59.726874",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "pos@example.com",
+        "phone": "N/A",
+        "address": "In-store"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "pos@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 42,
+      "order_id": "RET-BEF885C8",
+      "items": [
+        {
+          "name": "Samsung Galaxy S24 Ultra",
+          "type": "return",
+          "price": 220000.0,
+          "total": 220000.0,
+          "quantity": 1,
+          "product_id": "samsung_s24_ultra"
+        }
+      ],
+      "subtotal": 220000.0,
+      "shipping": 0.0,
+      "total": -220000.0,
+      "status": "returned",
+      "source": "pos",
+      "created_at": "2026-07-07T10:29:41.909811",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "return@example.com",
+        "phone": "N/A",
+        "address": "Return"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "return@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "Return",
+      "original_order_id": null,
+      "return_reason": "Customer return",
+      "return_amount": 220000,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 41,
+      "order_id": "POS-55E25BB1",
+      "items": [
+        {
+          "name": "iPhone 15 Pro Max",
+          "type": "product",
+          "price": 245000,
+          "total": 245000,
+          "quantity": 1,
+          "cost_price": 200000,
+          "product_id": "iphone_15_pro_max"
+        }
+      ],
+      "subtotal": 245000.0,
+      "shipping": 0.0,
+      "total": 245000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T10:24:52.337542",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 40,
+      "order_id": "POS-DF053E3E",
+      "items": [
+        {
+          "name": "Samsung Galaxy S24 Ultra",
+          "type": "product",
+          "price": 220000,
+          "total": 220000,
+          "quantity": 1,
+          "cost_price": 180000,
+          "product_id": "samsung_s24_ultra"
+        },
+        {
+          "name": "Google Pixel 9 Pro",
+          "type": "product",
+          "price": 185000,
+          "total": 185000,
+          "quantity": 1,
+          "cost_price": 150000,
+          "product_id": "google_pixel_9_pro"
+        },
+        {
+          "name": "Xiaomi 14 Pro",
+          "type": "product",
+          "price": 125000,
+          "total": 125000,
+          "quantity": 1,
+          "cost_price": 100000,
+          "product_id": "xiaomi_14_pro"
+        },
+        {
+          "name": "iPhone 15 Pro",
+          "type": "product",
+          "price": 195000,
+          "total": 195000,
+          "quantity": 1,
+          "cost_price": 160000,
+          "product_id": "iphone_15_pro"
+        },
+        {
+          "name": "OnePlus 12",
+          "type": "product",
+          "price": 145000,
+          "total": 145000,
+          "quantity": 1,
+          "cost_price": 120000,
+          "product_id": "oneplus_12"
+        }
+      ],
+      "subtotal": 870000.0,
+      "shipping": 0.0,
+      "total": 870000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T10:21:07.967208",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 39,
+      "order_id": "POS-3CF47105",
+      "items": [
+        {
+          "name": "PlayStation 5 Digital Edition",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 65000,
+          "product_id": "ps5_digital"
+        }
+      ],
+      "subtotal": 85000.0,
+      "shipping": 0.0,
+      "total": 85000.0,
+      "status": "pending",
+      "source": "pos",
+      "created_at": "2026-07-07T09:40:16.238248",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 38,
+      "order_id": "POS-B9FD9A42",
+      "items": [
+        {
+          "name": "Samsung Galaxy S25 Ultra",
+          "type": "product",
+          "price": 255000,
+          "total": 255000,
+          "quantity": 1,
+          "cost_price": 185000.0,
+          "product_id": "samsung_s25_ultra"
+        }
+      ],
+      "subtotal": 255000.0,
+      "shipping": 0.0,
+      "total": 255000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T09:39:37.83406",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 37,
+      "order_id": "POS-B57E0755",
+      "items": [
+        {
+          "name": "Nothing Phone (2)",
+          "type": "product",
+          "price": 85000,
+          "total": 85000,
+          "quantity": 1,
+          "cost_price": 70000,
+          "product_id": "nothing_phone_2"
+        }
+      ],
+      "subtotal": 85000.0,
+      "shipping": 0.0,
+      "total": 85000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-07T09:38:23.722172",
+      "customer": {
+        "name": "Walk-in Customer",
+        "email": "walkin@example.com",
+        "phone": "N/A",
+        "address": "In-store purchase"
+      },
+      "customer_name": "Walk-in Customer",
+      "customer_email": "walkin@example.com",
+      "customer_phone": "N/A",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 23,
+      "order_id": "ELEC-20260706202213",
+      "items": [
+        {
+          "name": "Dell XPS 16",
+          "type": "product",
+          "price": 320000,
+          "total": 320000,
+          "quantity": 1,
+          "product_id": "dell_xps_16"
+        }
+      ],
+      "subtotal": 320000.0,
+      "shipping": 0.0,
+      "total": 320000.0,
+      "status": "confirmed",
+      "source": "web",
+      "created_at": "2026-07-06T20:22:13.433413",
+      "customer": {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "+254 700 000 000",
+        "address": "123 Main Street, Nairobi, Kenya"
+      },
+      "customer_name": "John Doe",
+      "customer_email": "john@example.com",
+      "customer_phone": "+254 700 000 000",
+      "customer_address": "123 Main Street, Nairobi, Kenya",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    },
+    {
+      "id": 22,
+      "order_id": "POS-E16C0394",
+      "items": [
+        {
+          "name": "iPhone 16 Pro Max",
+          "type": "product",
+          "price": 265000,
+          "total": 265000,
+          "quantity": 1,
+          "cost_price": 195000,
+          "product_id": "iphone_16_pro_max"
+        }
+      ],
+      "subtotal": 265000.0,
+      "shipping": 0.0,
+      "total": 265000.0,
+      "status": "confirmed",
+      "source": "pos",
+      "created_at": "2026-07-06T20:21:11.872482",
+      "customer": {
+        "name": "David Omondi",
+        "email": "david.omondi@email.com",
+        "phone": "+254766789012",
+        "address": "In-store purchase"
+      },
+      "customer_name": "David Omondi",
+      "customer_email": "david.omondi@email.com",
+      "customer_phone": "+254766789012",
+      "customer_address": "In-store purchase",
+      "original_order_id": null,
+      "return_reason": null,
+      "return_amount": null,
+      "is_return": false,
+      "user_id": null,
+      "user_name": null,
+      "user_role": null,
+      "staff_name": null
+    }
+  ],
+  "order_queue": []
+}
