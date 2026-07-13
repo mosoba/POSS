@@ -12,6 +12,10 @@
     ],
     "routes": [
         {
+            "src": "/manifest.json",
+            "dest": "/manifest.json"
+        },
+        {
             "src": "/(.*\\.(png|ico|svg|webmanifest|json|css|js))",
             "dest": "/$1"
         },
