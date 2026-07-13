@@ -1,70 +1,79 @@
 // ============================================================
-// SERVICE WORKER - PricePoint POS (Complete Offline Solution)
+// SERVICE WORKER - PricePoint POS (OFFLINE-FIRST)
 // ============================================================
 
-const CACHE_NAME = 'pricepoint-v4';
+const CACHE_NAME = 'pricepoint-v5';
 const OFFLINE_URL = '/offline.html';
 
-// ===== PAGES TO CACHE =====
+// ===== ONLY CACHE STATIC ASSETS THAT EXIST =====
 const urlsToCache = [
-    '/',
-    '/admin',
-    '/admin/pos',
-    '/login',
-    '/offline.html',
-    '/manifest.json',
+    '/pos',                    // ← Main POS page (STATIC HTML)
+    '/offline.html',           // ← Offline fallback
+    '/manifest.json',          // ← Manifest
+    '/static/sw.js',           // ← This file
+    '/static/icons/icon-72.png',
+    '/static/icons/icon-96.png',
+    '/static/icons/icon-128.png',
+    '/static/icons/icon-144.png',
+    '/static/icons/icon-152.png',
+    '/static/icons/icon-192.png',
+    '/static/icons/icon-384.png',
+    '/static/icons/icon-512.png'
 ];
 
 // ============================================================
-// INSTALL
+// INSTALL - Cache only what exists
 // ============================================================
 
 self.addEventListener('install', event => {
-    console.log('[SW] Installing...');
+    console.log('[SW] 📦 Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('[SW] Caching assets...');
+                // Use try/catch for each URL to avoid failures
                 return Promise.allSettled(
                     urlsToCache.map(url => {
                         return cache.add(url).catch(err => {
-                            console.log('[SW] Failed to cache:', url);
+                            console.warn('[SW] ⚠️ Failed to cache:', url, err.message);
+                            // Don't fail the whole install for one bad URL
+                            return Promise.resolve();
                         });
                     })
                 );
             })
             .then(() => {
-                console.log('[SW] Installation complete');
+                console.log('[SW] ✅ Installation complete');
                 return self.skipWaiting();
             })
     );
 });
 
 // ============================================================
-// ACTIVATE
+// ACTIVATE - Clean old caches
 // ============================================================
 
 self.addEventListener('activate', event => {
-    console.log('[SW] Activating...');
+    console.log('[SW] 🔧 Activating...');
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cache => {
                     if (cache !== CACHE_NAME) {
-                        console.log('[SW] Deleting old cache:', cache);
+                        console.log('[SW] 🗑️ Deleting old cache:', cache);
                         return caches.delete(cache);
                     }
                 })
             );
         }).then(() => {
-            console.log('[SW] Activation complete');
+            console.log('[SW] ✅ Activation complete');
             return self.clients.claim();
         })
     );
 });
 
 // ============================================================
-// FETCH - Smart offline strategy
+// FETCH - OFFLINE-FIRST STRATEGY
 // ============================================================
 
 self.addEventListener('fetch', event => {
@@ -77,8 +86,8 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // Skip Supabase requests - handled by IndexedDB
-    if (url.hostname.includes('supabase.co')) {
+    // Skip Supabase/API requests - let them fail gracefully
+    if (url.hostname.includes('supabase.co') || url.pathname.startsWith('/admin/api/')) {
         event.respondWith(
             fetch(request).catch(() => {
                 return new Response(JSON.stringify({
@@ -93,8 +102,8 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // API requests - try network, fallback to cache
-    if (url.pathname.startsWith('/admin/api/') || url.pathname.startsWith('/api/')) {
+    // ===== HTML PAGES - Network first, fallback to offline.html =====
+    if (request.headers.get('Accept')?.includes('text/html')) {
         event.respondWith(
             fetch(request)
                 .then(response => {
@@ -106,78 +115,87 @@ self.addEventListener('fetch', event => {
                     }
                     return response;
                 })
-                .catch(() => {
-                    return caches.match(request)
-                        .then(cached => {
-                            if (cached) {
-                                console.log('[SW] Serving cached API:', url.pathname);
-                                return cached;
-                            }
-                            return new Response(JSON.stringify({
-                                offline: true,
-                                message: 'You are offline.'
-                            }), {
-                                status: 503,
-                                headers: { 'Content-Type': 'application/json' }
-                            });
-                        });
-                })
-        );
-        return;
-    }
-    
-    // HTML pages - Network first
-    const isHTML = request.headers.get('Accept')?.includes('text/html');
-    
-    if (isHTML) {
-        event.respondWith(
-            fetch(request)
-                .then(response => {
-                    if (response && response.status === 200) {
-                        const cloned = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(request, cloned));
+                .catch(async () => {
+                    // Try cache first
+                    const cached = await caches.match(request);
+                    if (cached) {
+                        console.log('[SW] ✅ Serving cached page:', url.pathname);
+                        return cached;
                     }
-                    return response;
-                })
-                .catch(() => {
-                    return caches.match(request)
-                        .then(cached => {
-                            if (cached) return cached;
-                            return caches.match(OFFLINE_URL);
-                        });
+                    // Fallback to offline page
+                    console.log('[SW] 📡 Serving offline page');
+                    return caches.match(OFFLINE_URL);
                 })
         );
         return;
     }
     
-    // Assets - Cache first
+    // ===== STATIC ASSETS - Cache first (OFFLINE-FIRST) =====
     event.respondWith(
         caches.match(request)
-            .then(response => {
-                if (response) {
-                    return response;
+            .then(cached => {
+                if (cached) {
+                    console.log('[SW] ✅ Cache hit:', url.pathname);
+                    return cached;
                 }
+                
+                // Try network
                 return fetch(request)
-                    .then(networkResponse => {
-                        if (!networkResponse || networkResponse.status !== 200) {
-                            return networkResponse;
+                    .then(response => {
+                        if (response && response.status === 200) {
+                            const clone = response.clone();
+                            caches.open(CACHE_NAME)
+                                .then(cache => cache.put(request, clone))
+                                .catch(() => {});
                         }
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(request, responseToCache))
-                            .catch(() => {});
-                        return networkResponse;
+                        return response;
+                    })
+                    .catch(() => {
+                        // Return empty response for assets
+                        if (url.pathname.match(/\.(css|js|png|jpg|jpeg|svg|ico)$/)) {
+                            return new Response('', { status: 404 });
+                        }
+                        return new Response('Offline', { status: 503 });
                     });
             })
     );
 });
 
+// ============================================================
+// BACKGROUND SYNC - Auto-sync when online
+// ============================================================
+
+self.addEventListener('sync', event => {
+    if (event.tag === 'sync-orders') {
+        console.log('[SW] 🔄 Background sync triggered');
+        event.waitUntil(syncOrders());
+    }
+});
+
+async function syncOrders() {
+    try {
+        const clients = await self.clients.matchAll();
+        for (const client of clients) {
+            client.postMessage({
+                type: 'SYNC_ORDERS',
+                payload: { timestamp: Date.now() }
+            });
+        }
+        console.log('[SW] ✅ Sync triggered for all clients');
+    } catch(e) {
+        console.error('[SW] ❌ Sync failed:', e);
+    }
+}
+
+// ============================================================
+// MESSAGE HANDLER
+// ============================================================
+
 self.addEventListener('message', event => {
-    console.log('[SW] Message received:', event.data);
+    console.log('[SW] 📨 Message received:', event.data);
     if (event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
 
-console.log('[SW] Service Worker loaded');
+console.log('[SW] 🚀 Service Worker loaded');
