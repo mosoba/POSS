@@ -106,7 +106,7 @@ def static_files_root(filename):
 
 
 # ============================================================
-# POS ROUTE - Main POS Page
+# POS ROUTE - MAIN PAGE FOR PWA
 # ============================================================
 
 @app.route('/pos')
@@ -120,16 +120,10 @@ def pos_page():
         # Load products
         products = load_products()
         
-        # Load customers with fallback
+        # Load customers from database or use fallback
         try:
             from utils.data import load_customers
             customers = load_customers()
-            if not customers or len(customers) == 0:
-                customers = [
-                    {'name': 'Walk-in Customer', 'email': 'walkin@example.com', 'phone': 'N/A'},
-                    {'name': 'John Doe', 'email': 'john@example.com', 'phone': '+254 700 000 000'},
-                    {'name': 'Jane Smith', 'email': 'jane@example.com', 'phone': '+254 711 111 111'}
-                ]
         except:
             customers = [
                 {'name': 'Walk-in Customer', 'email': 'walkin@example.com', 'phone': 'N/A'},
@@ -137,9 +131,6 @@ def pos_page():
                 {'name': 'Jane Smith', 'email': 'jane@example.com', 'phone': '+254 711 111 111'}
             ]
         
-        if not products:
-            products = []
-            
         return render_template('pos.html', 
                              products=products, 
                              customers=customers,
@@ -147,7 +138,6 @@ def pos_page():
     except Exception as e:
         print(f'❌ Error in /pos: {e}')
         traceback.print_exc()
-        # Return with empty data rather than crashing
         return render_template('pos.html', 
                              products=[], 
                              customers=[],
@@ -177,7 +167,7 @@ def home():
     if 'user' in session:
         if session['user'].get('role') == 'admin':
             return redirect('/admin')
-        return redirect('/pos')  # ← Changed from /admin/pos to /pos
+        return redirect('/pos')  # ← CHANGED: /admin/pos → /pos
     return redirect('/login')
 
 
@@ -230,7 +220,7 @@ def user_login():
                     return redirect('/admin')
                 else:
                     flash('Welcome, ' + user.full_name + '!', 'success')
-                    return redirect('/pos')  # ← Changed from /admin/pos to /pos
+                    return redirect('/pos')  # ← CHANGED: /admin/pos → /pos
                     
         except Exception as e:
             print(f"DB auth error: {e}")
@@ -250,19 +240,19 @@ def user_login():
                 'password': 'electronics2026',
                 'name': 'John Doe',
                 'role': 'user',
-                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
+                'redirect': '/pos'  # ← CHANGED: /admin/pos → /pos
             },
             'pos@pricepoint.com': {
                 'password': 'electronics2026',
                 'name': 'POS Operator',
                 'role': 'pos',
-                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
+                'redirect': '/pos'  # ← CHANGED: /admin/pos → /pos
             },
             'manager@pricepoint.com': {
                 'password': 'electronics2026',
                 'name': 'Store Manager',
                 'role': 'manager',
-                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
+                'redirect': '/pos'  # ← CHANGED: /admin/pos → /pos
             }
         }
         
