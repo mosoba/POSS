@@ -52,7 +52,7 @@ app.register_blueprint(admin_bp)
 
 
 # ============================================================
-# PWA ROUTES - ADD THIS BLOCK
+# PWA ROUTES
 # ============================================================
 
 @app.route('/manifest.json')
@@ -106,6 +106,55 @@ def static_files_root(filename):
 
 
 # ============================================================
+# POS ROUTE - Main POS Page
+# ============================================================
+
+@app.route('/pos')
+def pos_page():
+    """Main POS page - Entry point for PWA"""
+    try:
+        # Check if user is logged in
+        if 'user' not in session:
+            return redirect(url_for('user_login'))
+        
+        # Load products
+        products = load_products()
+        
+        # Load customers with fallback
+        try:
+            from utils.data import load_customers
+            customers = load_customers()
+            if not customers or len(customers) == 0:
+                customers = [
+                    {'name': 'Walk-in Customer', 'email': 'walkin@example.com', 'phone': 'N/A'},
+                    {'name': 'John Doe', 'email': 'john@example.com', 'phone': '+254 700 000 000'},
+                    {'name': 'Jane Smith', 'email': 'jane@example.com', 'phone': '+254 711 111 111'}
+                ]
+        except:
+            customers = [
+                {'name': 'Walk-in Customer', 'email': 'walkin@example.com', 'phone': 'N/A'},
+                {'name': 'John Doe', 'email': 'john@example.com', 'phone': '+254 700 000 000'},
+                {'name': 'Jane Smith', 'email': 'jane@example.com', 'phone': '+254 711 111 111'}
+            ]
+        
+        if not products:
+            products = []
+            
+        return render_template('pos.html', 
+                             products=products, 
+                             customers=customers,
+                             session=session)
+    except Exception as e:
+        print(f'❌ Error in /pos: {e}')
+        traceback.print_exc()
+        # Return with empty data rather than crashing
+        return render_template('pos.html', 
+                             products=[], 
+                             customers=[],
+                             session=session)
+
+
+# ============================================================
 # END PWA ROUTES
 # ============================================================
 
@@ -128,7 +177,7 @@ def home():
     if 'user' in session:
         if session['user'].get('role') == 'admin':
             return redirect('/admin')
-        return redirect('/admin/pos')
+        return redirect('/pos')  # ← Changed from /admin/pos to /pos
     return redirect('/login')
 
 
@@ -181,7 +230,7 @@ def user_login():
                     return redirect('/admin')
                 else:
                     flash('Welcome, ' + user.full_name + '!', 'success')
-                    return redirect('/admin/pos')
+                    return redirect('/pos')  # ← Changed from /admin/pos to /pos
                     
         except Exception as e:
             print(f"DB auth error: {e}")
@@ -201,19 +250,19 @@ def user_login():
                 'password': 'electronics2026',
                 'name': 'John Doe',
                 'role': 'user',
-                'redirect': '/admin/pos'
+                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
             },
             'pos@pricepoint.com': {
                 'password': 'electronics2026',
                 'name': 'POS Operator',
                 'role': 'pos',
-                'redirect': '/admin/pos'
+                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
             },
             'manager@pricepoint.com': {
                 'password': 'electronics2026',
                 'name': 'Store Manager',
                 'role': 'manager',
-                'redirect': '/admin/pos'
+                'redirect': '/pos'  # ← Changed from /admin/pos to /pos
             }
         }
         
