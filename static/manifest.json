@@ -2,7 +2,7 @@
   "name": "PricePoint POS",
   "short_name": "PricePoint",
   "description": "Point of Sale System - Offline Ready",
-  "start_url": "/pos",
+  "start_url": "/static/pwa-entry.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
@@ -10,6 +10,7 @@
   "scope": "/",
   "id": "pricepoint-pos-v1",
   "categories": ["business", "productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/static/icons/icon-72.png",
