@@ -2,14 +2,14 @@
 // SERVICE WORKER - PricePoint POS (FIXED CACHING)
 // ============================================================
 
-const CACHE_NAME = 'pricepoint-v6';
+const CACHE_NAME = 'pricepoint-v7';
 const OFFLINE_URL = '/offline.html';
 
-// ===== ONLY CACHE WHAT EXISTS AND IS ACCESSIBLE =====
+// ===== CACHE ROOT ICONS =====
 const urlsToCache = [
     '/offline.html',
     '/manifest.json',
-    // ===== ICONS AT ROOT =====
+    // Root icons
     '/icon-72.png',
     '/icon-96.png',
     '/icon-128.png',
@@ -19,11 +19,12 @@ const urlsToCache = [
     '/icon-384.png',
     '/icon-512.png',
     '/favicon.ico',
-    '/favicon.svg'
+    '/favicon.svg',
+    '/apple-touch-icon.png'
 ];
 
 // ============================================================
-// INSTALL - Cache only what's accessible
+// INSTALL
 // ============================================================
 
 self.addEventListener('install', event => {
@@ -32,7 +33,6 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('[SW] Caching assets...');
-                // Cache each URL individually with better error handling
                 return Promise.allSettled(
                     urlsToCache.map(url => {
                         return cache.add(url)
@@ -52,7 +52,7 @@ self.addEventListener('install', event => {
 });
 
 // ============================================================
-// ACTIVATE - Clean old caches
+// ACTIVATE
 // ============================================================
 
 self.addEventListener('activate', event => {
@@ -75,20 +75,18 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH - Cache then Network (Stale-While-Revalidate)
+// FETCH
 // ============================================================
 
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
     
-    // Skip non-GET requests
     if (request.method !== 'GET') {
         event.respondWith(fetch(request));
         return;
     }
     
-    // Skip API calls - let them fail gracefully
     if (url.pathname.startsWith('/admin/api/') || url.pathname.includes('supabase.co')) {
         event.respondWith(
             fetch(request).catch(() => {
@@ -104,12 +102,10 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // ===== HTML PAGES - Network first, fallback to cache =====
     if (request.headers.get('Accept')?.includes('text/html')) {
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    // Cache the response for offline use
                     if (response && response.status === 200) {
                         const cloned = response.clone();
                         caches.open(CACHE_NAME)
@@ -117,21 +113,17 @@ self.addEventListener('fetch', event => {
                                 try {
                                     cache.put(request, cloned);
                                     console.log('[SW] 📦 Cached page:', url.pathname);
-                                } catch(e) {
-                                    console.warn('[SW] ⚠️ Could not cache page:', url.pathname);
-                                }
+                                } catch(e) {}
                             });
                     }
                     return response;
                 })
                 .catch(async () => {
-                    // Try cache
                     const cached = await caches.match(request);
                     if (cached) {
                         console.log('[SW] ✅ Serving cached page:', url.pathname);
                         return cached;
                     }
-                    // Fallback to offline page
                     console.log('[SW] 📡 Serving offline page');
                     return caches.match(OFFLINE_URL);
                 })
@@ -139,7 +131,6 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // ===== STATIC ASSETS - Cache first (OFFLINE-FIRST) =====
     event.respondWith(
         caches.match(request)
             .then(cached => {
@@ -147,8 +138,6 @@ self.addEventListener('fetch', event => {
                     console.log('[SW] ✅ Cache hit:', url.pathname);
                     return cached;
                 }
-                
-                // Try network
                 return fetch(request)
                     .then(response => {
                         if (response && response.status === 200) {
@@ -157,16 +146,13 @@ self.addEventListener('fetch', event => {
                                 .then(cache => {
                                     try {
                                         cache.put(request, clone);
-                                    } catch(e) {
-                                        // Ignore caching errors
-                                    }
+                                    } catch(e) {}
                                 })
                                 .catch(() => {});
                         }
                         return response;
                     })
                     .catch(() => {
-                        // Return empty response for assets
                         if (url.pathname.match(/\.(css|js|png|jpg|jpeg|svg|ico|woff|woff2|ttf)$/)) {
                             return new Response('', { status: 404 });
                         }
