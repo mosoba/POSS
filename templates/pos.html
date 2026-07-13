@@ -3705,5 +3705,126 @@
         }
     });
 </script>
+<script>
+    // ============================================================
+    // PHONE PWA FIX - Only for installed app
+    // ============================================================
+    
+    // Check if running as installed PWA on phone
+    const isInstalledPWA = window.matchMedia('(display-mode: standalone)').matches;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isInstalledPWA && isMobile) {
+        console.log('📱📱📱 PHONE PWA DETECTED! Applying fixes...');
+        
+        // ============================================================
+        // FIX 1: Force re-initialize after page load
+        // ============================================================
+        
+        // Wait for everything to load
+        window.addEventListener('load', function() {
+            console.log('🔄 PWA: Page fully loaded');
+            
+            // Check if functions exist
+            if (typeof addToPOSCart !== 'function') {
+                console.log('⚠️ Functions missing - reloading PWA...');
+                // Force reload from cache
+                location.reload();
+                return;
+            }
+            
+            // Fix product cards
+            const cards = document.querySelectorAll('.product-card');
+            console.log('🃏 Found', cards.length, 'product cards');
+            
+            cards.forEach(function(card, index) {
+                // Store original onclick
+                const originalOnclick = card.getAttribute('onclick');
+                
+                // Remove all existing listeners (clone and replace)
+                const newCard = card.cloneNode(true);
+                card.parentNode.replaceChild(newCard, card);
+                
+                // Add click listener
+                newCard.addEventListener('click', function(e) {
+                    console.log('🖱️ PWA: Product clicked:', index);
+                    
+                    // Try original onclick first
+                    if (originalOnclick) {
+                        try {
+                            eval(originalOnclick);
+                            console.log('✅ Used onclick attribute');
+                            return;
+                        } catch(err) {
+                            console.log('⚠️ onclick failed, using fallback');
+                        }
+                    }
+                    
+                    // Fallback: direct function call
+                    if (typeof addToPOSCart === 'function') {
+                        addToPOSCart(this);
+                        console.log('✅ Added via direct function');
+                    } else {
+                        console.log('❌ addToPOSCart not available');
+                    }
+                });
+                
+                console.log('✅ Card', index, 'fixed');
+            });
+            
+            // Force cart update
+            if (typeof updatePOSUI === 'function') {
+                updatePOSUI();
+                console.log('✅ Cart UI updated');
+            }
+        });
+        
+        // ============================================================
+        // FIX 2: Backup - run after 2 seconds
+        // ============================================================
+        
+        setTimeout(function() {
+            const cards = document.querySelectorAll('.product-card');
+            if (cards.length > 0 && !cards[0]._pwaFixed) {
+                console.log('🔄 PWA: Running backup fix...');
+                cards.forEach(function(card) {
+                    if (!card._pwaFixed) {
+                        card.addEventListener('click', function(e) {
+                            if (typeof addToPOSCart === 'function') {
+                                addToPOSCart(this);
+                            }
+                        });
+                        card._pwaFixed = true;
+                    }
+                });
+                console.log('✅ Backup fix applied to', cards.length, 'cards');
+            }
+        }, 2000);
+        
+        // ============================================================
+        // FIX 3: Show a reload button if still broken
+        // ============================================================
+        
+        setTimeout(function() {
+            const cards = document.querySelectorAll('.product-card');
+            if (cards.length > 0) {
+                // Try clicking the first card
+                try {
+                    cards[0].click();
+                } catch(e) {
+                    console.log('⚠️ Click test failed - showing fix button');
+                    // Add a fix button
+                    const btn = document.createElement('button');
+                    btn.textContent = '🔄 Fix PWA';
+                    btn.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;background:#f59e0b;color:white;border:none;border-radius:9999px;font-weight:700;z-index:9999;cursor:pointer;';
+                    btn.onclick = function() {
+                        location.reload();
+                    };
+                    document.body.appendChild(btn);
+                }
+            }
+        }, 3000);
+    }
+</script>
 </body>
 </html>
