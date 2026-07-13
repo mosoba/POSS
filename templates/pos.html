@@ -1726,6 +1726,81 @@
     <div id="toast" class="toast hidden">
         <span id="toastMessage">Added to cart!</span>
     </div>
+    <script>
+    // ============================================================
+    // 🔐 PERSISTENT LOGIN - Works Offline
+    // ============================================================
+    
+    // === Save session when user logs in ===
+    function saveSession(userData) {
+        try {
+            localStorage.setItem('pos_user', JSON.stringify({
+                user: userData,
+                saved: Date.now()
+            }));
+            console.log('✅ Session saved');
+        } catch(e) {
+            console.warn('⚠️ Could not save session');
+        }
+    }
+    
+    // === Get saved session ===
+    function getSavedSession() {
+        try {
+            const data = localStorage.getItem('pos_user');
+            if (!data) return null;
+            return JSON.parse(data).user;
+        } catch(e) {
+            return null;
+        }
+    }
+    
+    // === Check if user is logged in ===
+    function isLoggedIn() {
+        // First: Check server session ({% if session.user %})
+        {% if session.user %}
+            // Save it for offline use
+            saveSession({{ session.user | tojson | safe }});
+            return true;
+        {% else %}
+            // Fallback: Check localStorage
+            const saved = getSavedSession();
+            if (saved) {
+                console.log('✅ Restored session for:', saved.name);
+                return true;
+            }
+            return false;
+        {% endif %}
+    }
+    
+    // === Auto-login if offline ===
+    if (!navigator.onLine) {
+        const savedUser = getSavedSession();
+        if (savedUser) {
+            console.log('📡 Offline - Using saved session for:', savedUser.name);
+            // You're now logged in offline!
+        }
+    }
+    
+    // === If not logged in, redirect ===
+    if (!isLoggedIn()) {
+        if (navigator.onLine) {
+            window.location.href = '/login';
+        } else {
+            // Offline and not logged in - show message
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;font-family:system-ui;padding:20px;">
+                    <div style="background:white;border-radius:16px;padding:40px;max-width:400px;text-align:center;">
+                        <div style="font-size:3rem;">📡</div>
+                        <h2 style="font-size:1.2rem;color:#0f172a;">Please Connect to the Internet</h2>
+                        <p style="color:#64748b;font-size:0.9rem;">You need to log in once while online.</p>
+                        <button onclick="location.reload()" style="margin-top:16px;padding:10px 24px;background:#059669;color:white;border:none;border-radius:9999px;cursor:pointer;">🔄 Retry</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+</script>
 
     <!-- ============================================================
     JAVASCRIPT - COMPLETE WITH ALL ORIGINAL FUNCTIONS INTACT
@@ -3597,7 +3672,10 @@
     </script>
     <!-- ============================================================
      REGISTER SERVICE WORKER - CORRECT PATH FOR VERCEL
+     
      ============================================================ -->
+
+     
 <script>
     // ============================================================
     // REGISTER SERVICE WORKER
