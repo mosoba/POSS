@@ -2,10 +2,10 @@
 // SERVICE WORKER - PricePoint POS (FIXED CACHING)
 // ============================================================
 
-const CACHE_NAME = 'pricepoint-v7';
+const CACHE_NAME = 'pricepoint-v8';
 const OFFLINE_URL = '/offline.html';
 
-// ===== CACHE STATIC ICONS =====
+// ===== CACHE STATIC ICONS - CORRECT PATH =====
 const urlsToCache = [
     '/offline.html',
     '/manifest.json',
@@ -17,8 +17,7 @@ const urlsToCache = [
     '/static/icons/icon-152.png',
     '/static/icons/icon-192.png',
     '/static/icons/icon-384.png',
-    '/static/icons/icon-512.png',
-    '/favicon.ico'
+    '/static/icons/icon-512.png'
 ];
 
 // ============================================================
