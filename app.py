@@ -1,92 +1,220 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, send_from_directory
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 import traceback
 
+from config import Config
+from routes.shop import shop_bp
+from routes.api import api_bp
+from routes.admin import admin_bp
+from utils.data import load_orders, load_products, load_bundles, sync_products_from_supabase, sync_pending_data_if_possible
+
 app = Flask(__name__)
 application = app
-
-# ============================================================
-# CONFIGURATION
-# ============================================================
-
-app.secret_key = 'pricepoint-pos-secret-key-2026'
-app.permanent_session_lifetime = timedelta(days=30)
+app.config.from_object(Config)
+app.secret_key = Config.SECRET_KEY
+app.permanent_session_lifetime = Config.PERMANENT_SESSION_LIFETIME
 app.template_folder = 'templates'
-app.static_folder = 'static'
+app.static_folder = Config.STATIC_FOLDER
 
-# Create directories if they don't exist
-os.makedirs('templates', exist_ok=True)
-os.makedirs('static/icons', exist_ok=True)
+os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 
 
-# ============================================================
-# DATA - Hardcoded
-# ============================================================
-
-PRODUCTS = [
-    {'id': '1', 'name': 'iPhone 15 Pro Max', 'price': 245000, 'stock': 15, 'category': 'Phones', 
-     'image': 'https://images.unsplash.com/photo-1592286927505-1def25e4c479?w=500', 'barcode': 'IP15PM001'},
-    {'id': '2', 'name': 'MacBook Pro 16"', 'price': 450000, 'stock': 8, 'category': 'Laptops', 
-     'image': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500', 'barcode': 'MBP16M3'},
-    {'id': '3', 'name': 'AirPods Pro 2', 'price': 35000, 'stock': 25, 'category': 'Accessories', 
-     'image': 'https://images.unsplash.com/photo-1606841838e0-bf1baf2dc3e9?w=500', 'barcode': 'APP2'},
-    {'id': '4', 'name': 'Samsung Galaxy S24 Ultra', 'price': 225000, 'stock': 23, 'category': 'Phones', 
-     'image': 'https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=500', 'barcode': 'SGS24U'},
-    {'id': '5', 'name': 'iPad Pro 12.9"', 'price': 185000, 'stock': 12, 'category': 'Tablets', 
-     'image': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500', 'barcode': 'IP129'},
-    {'id': '6', 'name': 'HP Spectre x360', 'price': 125000, 'stock': 18, 'category': 'Laptops', 
-     'image': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500', 'barcode': 'HPSX360'},
-    {'id': '7', 'name': 'Apple Watch Series 9', 'price': 62000, 'stock': 26, 'category': 'Wearables', 
-     'image': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500', 'barcode': 'AW9'},
-    {'id': '8', 'name': 'USB-C Fast Cable', 'price': 1200, 'stock': 98, 'category': 'Accessories', 
-     'image': 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500', 'barcode': 'USBCF'}
-]
-
-CUSTOMERS = [
-    {'name': 'Walk-in Customer', 'email': 'walkin@example.com', 'phone': 'N/A'},
-    {'name': 'John Doe', 'email': 'john@example.com', 'phone': '+254 700 000 000'},
-    {'name': 'Jane Smith', 'email': 'jane@example.com', 'phone': '+254 711 111 111'}
-]
+@app.template_filter('format_number')
+def format_number_filter(value):
+    try:
+        if value is None:
+            return '0'
+        return f"{int(float(value)):,}"
+    except (ValueError, TypeError):
+        return '0'
 
 
-def load_products():
-    return PRODUCTS
+@app.errorhandler(404)
+def not_found(error):
+    if request.path.startswith('/admin/') or request.path.startswith('/api/'):
+        return jsonify({'error': 'Not found', 'message': 'The requested endpoint does not exist'}), 404
+    return render_template('404.html'), 404
 
 
-def load_customers():
-    return CUSTOMERS
+@app.errorhandler(500)
+def server_error(error):
+    print(f'Server error: {error}')
+    traceback.print_exc()
+    if request.path.startswith('/admin/') or request.path.startswith('/api/'):
+        return jsonify({'error': 'Server error', 'message': str(error)}), 500
+    return render_template('500.html'), 500
+
+
+app.register_blueprint(shop_bp)
+app.register_blueprint(api_bp)
+app.register_blueprint(admin_bp)
 
 
 # ============================================================
-# ROUTES
+# PWA ROUTES - ADD THIS BLOCK
+# ============================================================
+
+@app.route('/manifest.json')
+def manifest_root():
+    """Serve manifest from root URL for PWA"""
+    try:
+        return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+    except Exception as e:
+        print(f"❌ Error serving manifest: {e}")
+        return "Manifest not found", 404
+
+
+@app.route('/sw.js')
+def service_worker_root():
+    """Serve service worker from root URL for PWA"""
+    try:
+        return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    except Exception as e:
+        print(f"❌ Error serving sw.js: {e}")
+        return "Service Worker not found", 404
+
+
+@app.route('/offline.html')
+def offline_page_root():
+    """Serve offline page"""
+    try:
+        return render_template('offline.html')
+    except Exception as e:
+        print(f"❌ Error serving offline.html: {e}")
+        return "Offline page not found", 404
+
+
+@app.route('/favicon.ico')
+def favicon_root():
+    """Serve favicon"""
+    try:
+        return send_from_directory('static/icons', 'favicon.ico', mimetype='image/x-icon')
+    except Exception as e:
+        print(f"⚠️ Favicon not found: {e}")
+        return "", 204
+
+
+@app.route('/static/<path:filename>')
+def static_files_root(filename):
+    """Serve static files"""
+    try:
+        return send_from_directory('static', filename)
+    except Exception as e:
+        print(f"❌ Error serving static file: {e}")
+        return "File not found", 404
+
+
+# ============================================================
+# END PWA ROUTES
+# ============================================================
+
+
+@app.before_request
+def maybe_sync_pending_orders():
+    if request.path.startswith('/static/') or request.path.startswith('/favicon.ico'):
+        return None
+    sync_pending_data_if_possible()
+    return None
+
+
+# ============================================================
+# HOME & LOGIN ROUTES - WITH DATABASE AUTHENTICATION
 # ============================================================
 
 @app.route('/')
 def home():
+    """Redirect to login or dashboard"""
     if 'user' in session:
         if session['user'].get('role') == 'admin':
             return redirect('/admin')
-        return redirect('/pos')
+        return redirect('/admin/pos')
     return redirect('/login')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
+    """Unified login with database authentication"""
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
         
         if not email or not password:
             flash('Please enter both email and password', 'danger')
-            return render_template('login.html')
+            return render_template('admin_login.html')
         
-        # Simple users
+        # ============================================================
+        # DATABASE AUTHENTICATION - PRIMARY METHOD
+        # ============================================================
+        try:
+            from models.user import User
+            user, error = User.authenticate(email, password)
+            
+            if user:
+                session['user'] = {
+                    'id': user.id,
+                    'email': user.email,
+                    'name': user.full_name,
+                    'role': user.role
+                }
+                
+                # Log the login
+                try:
+                    import requests
+                    requests.post(
+                        f"{Config.SUPABASE_URL}/rest/v1/user_logs",
+                        headers=Config.SUPABASE_HEADERS,
+                        json={
+                            'user_id': user.id,
+                            'action': 'login',
+                            'details': {'method': 'web'},
+                            'ip_address': request.remote_addr,
+                            'created_at': datetime.utcnow().isoformat()
+                        },
+                        timeout=5
+                    )
+                except:
+                    pass
+                
+                if user.role == 'admin':
+                    flash('Welcome back, ' + user.full_name + '!', 'success')
+                    return redirect('/admin')
+                else:
+                    flash('Welcome, ' + user.full_name + '!', 'success')
+                    return redirect('/admin/pos')
+                    
+        except Exception as e:
+            print(f"DB auth error: {e}")
+            # Fall through to legacy auth
+        
+        # ============================================================
+        # LEGACY AUTHENTICATION - FALLBACK
+        # ============================================================
         users = {
-            'admin@pricepoint.com': {'password': 'electronics2026', 'name': 'Admin User', 'role': 'admin'},
-            'user@pricepoint.com': {'password': 'electronics2026', 'name': 'John Doe', 'role': 'user'},
-            'pos@pricepoint.com': {'password': 'electronics2026', 'name': 'POS Operator', 'role': 'pos'},
-            'manager@pricepoint.com': {'password': 'electronics2026', 'name': 'Store Manager', 'role': 'manager'}
+            'admin@pricepoint.com': {
+                'password': 'electronics2026',
+                'name': 'Admin User',
+                'role': 'admin',
+                'redirect': '/admin'
+            },
+            'user@pricepoint.com': {
+                'password': 'electronics2026',
+                'name': 'John Doe',
+                'role': 'user',
+                'redirect': '/admin/pos'
+            },
+            'pos@pricepoint.com': {
+                'password': 'electronics2026',
+                'name': 'POS Operator',
+                'role': 'pos',
+                'redirect': '/admin/pos'
+            },
+            'manager@pricepoint.com': {
+                'password': 'electronics2026',
+                'name': 'Store Manager',
+                'role': 'manager',
+                'redirect': '/admin/pos'
+            }
         }
         
         if email in users and users[email]['password'] == password:
@@ -97,206 +225,249 @@ def user_login():
                 'id': 'legacy_' + email
             }
             flash('Welcome, ' + users[email]['name'] + '!', 'success')
-            
-            if users[email]['role'] == 'admin':
-                return redirect('/admin')
-            return redirect('/pos')
+            return redirect(users[email]['redirect'])
         else:
             flash('Invalid email or password', 'danger')
-            return render_template('login.html')
+            return render_template('admin_login.html')
     
-    return render_template('login.html')
+    return render_template('admin_login.html')
 
 
 @app.route('/logout')
 def user_logout():
-    session.pop('user', None)
-    flash('Logged out successfully', 'success')
-    return redirect('/login')
-
-
-@app.route('/pos')
-def pos_page():
-    try:
-        if 'user' not in session:
-            return redirect('/login')
-        
-        products = load_products()
-        customers = load_customers()
-        
-        return render_template('pos.html', 
-                             products=products, 
-                             customers=customers,
-                             session=session)
-    except Exception as e:
-        print(f'Error: {e}')
-        traceback.print_exc()
-        return render_template('pos.html', products=[], customers=[], session=session)
-
-
-@app.route('/admin')
-def admin_dashboard():
-    if 'user' not in session or session['user'].get('role') != 'admin':
-        flash('Admin access required', 'danger')
-        return redirect('/pos')
+    """Logout user"""
+    user_id = session.get('user', {}).get('id')
     
-    return f"""
-    <html>
-    <head><title>Admin</title></head>
-    <body style="font-family: system-ui; padding: 40px; max-width: 800px; margin: 0 auto;">
-        <h1>📊 Admin Dashboard</h1>
-        <p>Welcome, {session['user']['name']}!</p>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="/pos" style="padding: 10px 20px; background: #059669; color: white; text-decoration: none; border-radius: 8px;">🛒 POS</a>
-            <a href="/logout" style="padding: 10px 20px; background: #ef4444; color: white; text-decoration: none; border-radius: 8px;">🚪 Logout</a>
-        </div>
-        <hr>
-        <h3>📈 Stats</h3>
-        <p>Products: {len(load_products())}</p>
-        <p>Customers: {len(load_customers())}</p>
-    </body>
-    </html>
-    """
+    # Log the logout
+    if user_id and not str(user_id).startswith('legacy_'):
+        try:
+            import requests
+            requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/user_logs",
+                headers=Config.SUPABASE_HEADERS,
+                json={
+                    'user_id': user_id,
+                    'action': 'logout',
+                    'ip_address': request.remote_addr,
+                    'created_at': datetime.utcnow().isoformat()
+                },
+                timeout=5
+            )
+        except:
+            pass
+    
+    session.pop('user', None)
+    session.pop('admin_logged_in', None)
+    flash('Logged out successfully', 'success')
+    return redirect(url_for('user_login'))
 
 
 # ============================================================
-# PWA ROUTES
+# HEALTH & DEBUG ROUTES
 # ============================================================
-
-@app.route('/manifest.json')
-def serve_manifest():
-    try:
-        return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
-    except Exception:
-        return {"error": "manifest not found"}, 404
-
-
-@app.route('/sw.js')
-def serve_sw():
-    try:
-        response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        return response
-    except Exception:
-        return "Service Worker not found", 404
-
-
-@app.route('/offline.html')
-def serve_offline():
-    try:
-        return render_template('offline.html')
-    except Exception:
-        return "<h1>Offline</h1><p>Please connect to the internet.</p>", 503
-
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    try:
-        return send_from_directory('static', filename)
-    except Exception:
-        return "File not found", 404
-
 
 @app.route('/health')
 def health():
-    return jsonify({
-        'status': 'ok',
-        'timestamp': datetime.utcnow().isoformat(),
-        'products': len(load_products()),
-        'customers': len(load_customers())
-    })
+    return jsonify({'status': 'ok', 'message': 'Server is running', 'timestamp': datetime.utcnow().isoformat()})
 
 
-@app.route('/test')
-def test():
-    return jsonify({
-        'status': 'ok',
-        'message': 'App is running!',
-        'products': len(load_products()),
-        'session': session.get('user', {}).get('email', 'None')
-    })
-
-
-# ============================================================
-# TEMPLATE FALLBACK - Create login.html if missing
-# ============================================================
-
-@app.route('/create-templates')
-def create_templates():
-    """Emergency: Create missing templates"""
+@app.route('/debug')
+def debug():
     try:
-        # Create login.html
-        with open('templates/login.html', 'w') as f:
-            f.write("""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login - PricePoint POS</title>
-    <style>
-        body { font-family: system-ui; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #0f172a; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        h1 { font-size: 1.5rem; color: #0f172a; text-align: center; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px; }
-        input { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
-        input:focus { outline: none; border-color: #059669; }
-        button { width: 100%; padding: 12px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-        button:hover { background: #047857; }
-        .flash { padding: 10px; border-radius: 8px; margin-bottom: 16px; }
-        .flash.danger { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
-        .flash.success { background: #ecfdf5; color: #059669; border: 1px solid #6ee7b7; }
-        .footer { text-align: center; font-size: 0.8rem; color: #94a3b8; margin-top: 16px; }
-        .demo-users { background: #f8fafc; padding: 12px; border-radius: 8px; margin-top: 16px; font-size: 0.8rem; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>💰 PricePoint POS</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form method="POST">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="admin@pricepoint.com" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="••••••••" required>
-            </div>
-            <button type="submit">🔐 Login</button>
-        </form>
-        <div class="demo-users">
-            <strong>Demo Accounts:</strong><br>
-            pos@pricepoint.com / electronics2026 (POS User)<br>
-            admin@pricepoint.com / electronics2026 (Admin)
-        </div>
-        <div class="footer">PricePoint POS v1.0</div>
-    </div>
-</body>
-</html>
-            """)
-        return "✅ Templates created! <a href='/login'>Go to Login</a>"
-    except Exception as e:
-        return f"Error: {e}"
+        orders = load_orders()
+        products = load_products()
+        bundles = load_bundles()
+        return jsonify({
+            'orders_count': len(orders),
+            'products_count': len(products),
+            'bundles_count': len(bundles),
+            'sample_order': orders[0] if orders else None,
+            'sample_product': products[0] if products else None,
+            'is_vercel': Config.IS_VERCEL,
+        })
+    except Exception as exc:
+        return jsonify({'error': str(exc)})
 
-# ============================================================
-# MAIN
-# ============================================================
+
+@app.route('/load-sample-data', methods=['GET', 'POST'])
+def load_sample_data():
+    try:
+        sample_products = [
+            {
+                'id': 'iphone_15',
+                'name': 'iPhone 15 Pro Max',
+                'price': 245000.0,
+                'cost_price': 180000.0,
+                'category': 'Phones',
+                'description': 'Latest Apple flagship with A17 Pro chip',
+                'image': 'https://images.unsplash.com/photo-1592286927505-1def25e4c479?w=500',
+                'stock': 15,
+                'rating': 4.9,
+                'reviews': 245,
+                'badge': 'Best Seller',
+            },
+            {
+                'id': 'macbook_pro',
+                'name': 'MacBook Pro 16"',
+                'price': 450000.0,
+                'cost_price': 350000.0,
+                'category': 'Laptops',
+                'description': 'Professional laptop with M3 Max chip',
+                'image': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500',
+                'stock': 8,
+                'rating': 4.8,
+                'reviews': 156,
+                'badge': 'New',
+            },
+            {
+                'id': 'airpods_pro',
+                'name': 'AirPods Pro 2',
+                'price': 35000.0,
+                'cost_price': 22000.0,
+                'category': 'Accessories',
+                'description': 'Premium wireless earbuds with ANC',
+                'image': 'https://images.unsplash.com/photo-1606841838e0-bf1baf2dc3e9?w=500',
+                'stock': 25,
+                'rating': 4.7,
+                'reviews': 389,
+                'badge': 'Trending',
+            },
+            {
+                'id': 'samsung_s24',
+                'name': 'Samsung Galaxy S24 Ultra',
+                'price': 225000.0,
+                'cost_price': 115000.0,
+                'category': 'Phones',
+                'description': 'Flagship Android phone with advanced camera',
+                'image': 'https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=500',
+                'stock': 23,
+                'rating': 4.6,
+                'reviews': 234,
+            },
+            {
+                'id': 'ipad_pro',
+                'name': 'iPad Pro 12.9"',
+                'price': 185000.0,
+                'cost_price': 140000.0,
+                'category': 'Tablets',
+                'description': 'Powerful tablet with M2 chip',
+                'image': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500',
+                'stock': 12,
+                'rating': 4.7,
+                'reviews': 198,
+                'badge': 'New',
+            },
+            {
+                'id': 'hp_spectre',
+                'name': 'HP Spectre x360',
+                'price': 125000.0,
+                'cost_price': 90000.0,
+                'category': 'Laptops',
+                'description': 'Convertible premium laptop',
+                'image': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500',
+                'stock': 18,
+                'rating': 4.5,
+                'reviews': 112,
+            },
+            {
+                'id': 'watch_9',
+                'name': 'Apple Watch Series 9',
+                'price': 62000.0,
+                'cost_price': 45000.0,
+                'category': 'Wearables',
+                'description': 'Smartwatch with fitness tracking',
+                'image': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500',
+                'stock': 26,
+                'rating': 4.8,
+                'reviews': 173,
+            },
+            {
+                'id': 'usb_c_cable',
+                'name': 'USB-C Fast Charging Cable',
+                'price': 1200.0,
+                'cost_price': 700.0,
+                'category': 'Accessories',
+                'description': 'Fast charging cable',
+                'image': 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500',
+                'stock': 98,
+                'rating': 4.4,
+                'reviews': 67,
+            },
+            {
+                'id': 'dell_xps',
+                'name': 'Dell XPS 15',
+                'price': 165000.0,
+                'cost_price': 120000.0,
+                'category': 'Laptops',
+                'description': 'Thin and powerful productivity laptop',
+                'image': 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=500',
+                'stock': 4,
+                'rating': 4.6,
+                'reviews': 99,
+            },
+            {
+                'id': 'power_bank',
+                'name': 'Anker 20000mAh Power Bank',
+                'price': 8500.0,
+                'cost_price': 5000.0,
+                'category': 'Accessories',
+                'description': 'Portable charger for travel',
+                'image': 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=500',
+                'stock': 57,
+                'rating': 4.7,
+                'reviews': 88,
+            },
+            {
+                'id': 'buds_2',
+                'name': 'Samsung Galaxy Buds 2',
+                'price': 18000.0,
+                'cost_price': 12000.0,
+                'category': 'Audio',
+                'description': 'Noise-cancelling earbuds',
+                'image': 'https://images.unsplash.com/photo-1606225457115-9b0de873c5e1?w=500',
+                'stock': 45,
+                'rating': 4.5,
+                'reviews': 74,
+            },
+        ]
+
+        import requests
+        added = 0
+        errors = []
+        for product in sample_products:
+            try:
+                response = requests.post(
+                    f"{Config.SUPABASE_URL}/rest/v1/products",
+                    headers=Config.SUPABASE_HEADERS,
+                    json=product,
+                    timeout=5,
+                )
+                if response.status_code in [200, 201]:
+                    added += 1
+                else:
+                    errors.append(f"{product['name']}: {response.status_code}")
+            except Exception as exc:
+                errors.append(f"{product['name']}: {str(exc)}")
+        
+        if added > 0:
+            sync_products_from_supabase()
+
+        return jsonify({'success': True, 'added': added, 'total': len(sample_products), 'errors': errors, 'message': f'Loaded {added}/{len(sample_products)} sample products'})
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
 
 if __name__ == '__main__':
     print('\n' + '=' * 60)
-    print('📱 PRICE POINT POS')
+    print('📱 PRICE POINT - Premium Electronics Shop')
     print('=' * 60)
-    print(f'📊 Products: {len(load_products())}')
-    print(f'📊 Customers: {len(load_customers())}')
+    print(f"🌍 Environment: {'Vercel' if Config.IS_VERCEL else 'Local'}")
+    print(f"\n📊 Products: {len(load_products())}")
+    print(f"📊 Orders: {len(load_orders())}")
     print('=' * 60)
-    print('\n🚀 Starting...')
+    print('\n🚀 Starting server...')
     print('📍 http://localhost:5000')
-    print('🔑 pos@pricepoint.com / electronics2026')
+    print('🔑 Login: admin@pricepoint.com / electronics2026')
+    print('👥 Users: admin, manager, pos, user (all with same password)')
     print('=' * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=not Config.IS_VERCEL, host='0.0.0.0', port=5000)
