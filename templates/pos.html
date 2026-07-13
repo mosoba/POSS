@@ -3595,5 +3595,111 @@
             setTimeout(checkUnsyncedOrdersOnLoad, 2000);
         });
     </script>
+    <!-- ============================================================
+     REGISTER SERVICE WORKER - CORRECT PATH FOR VERCEL
+     ============================================================ -->
+<script>
+    // ============================================================
+    // REGISTER SERVICE WORKER
+    // ============================================================
+    if ('serviceWorker' in navigator) {
+        // Vercel serves static files from root
+        // Your sw.js is at /static/sw.js but served as /sw.js
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => {
+                console.log('✅ Service Worker registered from /sw.js');
+                console.log('   Scope:', reg.scope);
+                console.log('   Active:', reg.active ? 'Yes' : 'No');
+                
+                // Check for updates
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    console.log('🔄 New service worker installing...');
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('🔄 New version available! Refresh to install.');
+                            if (typeof showToast === 'function') {
+                                showToast('🔄 Update available! Refresh to install.', 'info');
+                            }
+                        }
+                    });
+                });
+            })
+            .catch(err => {
+                console.log('❌ Service Worker registration failed:', err);
+            });
+        
+        // Handle messages from service worker
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'SYNC_ORDERS') {
+                console.log('🔄 Background sync triggered');
+                if (typeof performAutoSync === 'function') {
+                    performAutoSync();
+                }
+            }
+        });
+    }
+    
+    // ============================================================
+    // CACHE CURRENT PAGE FOR OFFLINE USE
+    // ============================================================
+    function cacheCurrentPage() {
+        try {
+            const html = document.documentElement.outerHTML;
+            localStorage.setItem('pos-cached-page', html);
+            console.log('📦 Page cached for offline use');
+        } catch(e) {
+            console.warn('⚠️ Could not cache page:', e);
+        }
+    }
+    
+    // Cache on load
+    document.addEventListener('DOMContentLoaded', cacheCurrentPage);
+    
+    // ============================================================
+    // CHECK OFFLINE STATUS
+    // ============================================================
+    function checkOfflineStatus() {
+        if (!navigator.onLine) {
+            console.log('📡 You are OFFLINE - Using cached data');
+            const badge = document.getElementById('onlineBadge');
+            if (badge) {
+                badge.textContent = '● OFFLINE';
+                badge.className = 'badge offline';
+                badge.style.background = '#f59e0b';
+                badge.style.color = '#0f172a';
+            }
+        }
+    }
+    
+    // Check on load
+    checkOfflineStatus();
+    
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+        console.log('🟢 Back online!');
+        const badge = document.getElementById('onlineBadge');
+        if (badge) {
+            badge.textContent = '● LIVE';
+            badge.className = 'badge';
+            badge.style.background = '#059669';
+            badge.style.color = '#0f172a';
+        }
+        if (typeof performAutoSync === 'function') {
+            setTimeout(performAutoSync, 1000);
+        }
+    });
+    
+    window.addEventListener('offline', () => {
+        console.log('🔴 Offline!');
+        const badge = document.getElementById('onlineBadge');
+        if (badge) {
+            badge.textContent = '● OFFLINE';
+            badge.className = 'badge offline';
+            badge.style.background = '#f59e0b';
+            badge.style.color = '#0f172a';
+        }
+    });
+</script>
 </body>
 </html>
