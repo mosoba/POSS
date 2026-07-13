@@ -5,22 +5,20 @@
 const CACHE_NAME = 'pricepoint-v7';
 const OFFLINE_URL = '/offline.html';
 
-// ===== CACHE ROOT ICONS =====
+// ===== CACHE STATIC ICONS =====
 const urlsToCache = [
     '/offline.html',
     '/manifest.json',
-    // Root icons
-    '/icon-72.png',
-    '/icon-96.png',
-    '/icon-128.png',
-    '/icon-144.png',
-    '/icon-152.png',
-    '/icon-192.png',
-    '/icon-384.png',
-    '/icon-512.png',
-    '/favicon.ico',
-    '/favicon.svg',
-    '/apple-touch-icon.png'
+    // Static icons (CORRECT PATH)
+    '/static/icons/icon-72.png',
+    '/static/icons/icon-96.png',
+    '/static/icons/icon-128.png',
+    '/static/icons/icon-144.png',
+    '/static/icons/icon-152.png',
+    '/static/icons/icon-192.png',
+    '/static/icons/icon-384.png',
+    '/static/icons/icon-512.png',
+    '/favicon.ico'
 ];
 
 // ============================================================
