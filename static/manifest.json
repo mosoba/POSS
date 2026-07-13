@@ -1,55 +1,52 @@
 {
   "name": "PricePoint POS",
   "short_name": "PricePoint",
-  "description": "Point of Sale System - Offline Ready",
-  "start_url": "/pos",
+  "description": "Point of Sale System",
+  "start_url": "/admin",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#059669",
   "scope": "/",
-  "id": "pricepoint-pos-v1",
-  "categories": ["business", "productivity", "utilities"],
-  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/static/icons/icon-72.png",
+      "src": "https://placehold.co/72x72/059669/white?text=PP",
       "sizes": "72x72",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-96.png",
+      "src": "https://placehold.co/96x96/059669/white?text=PP",
       "sizes": "96x96",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-128.png",
+      "src": "https://placehold.co/128x128/059669/white?text=PP",
       "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-144.png",
+      "src": "https://placehold.co/144x144/059669/white?text=PP",
       "sizes": "144x144",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-152.png",
+      "src": "https://placehold.co/152x152/059669/white?text=PP",
       "sizes": "152x152",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-192.png",
+      "src": "https://placehold.co/192x192/059669/white?text=PP",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/static/icons/icon-384.png",
+      "src": "https://placehold.co/384x384/059669/white?text=PP",
       "sizes": "384x384",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-512.png",
+      "src": "https://placehold.co/512x512/059669/white?text=PP",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
