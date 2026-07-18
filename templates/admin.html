@@ -361,12 +361,11 @@
 </div>
 
 <!-- ============================================================
-     ADD PRODUCT SECTION - COMPACT MOBILE
+     ADD PRODUCT SECTION - WITH FILE UPLOAD & MULTIPLE IMAGES
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
         <form id="productForm" onsubmit="saveProduct(event)">
-            <!-- Mobile Optimized Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Product ID</label>
@@ -422,17 +421,47 @@
                 </div>
             </div>
 
-            <!-- Image Row - Mobile Optimized -->
+            <!-- ===== MULTIPLE IMAGES WITH FILE UPLOAD ===== -->
             <div class="mt-2 sm:mt-3">
-                <label class="form-label text-[8px] sm:text-[10px]">Image</label>
-                <div class="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
-                    <input type="url" id="prodImage" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1" placeholder="https://images.unsplash.com/photo-..." />
-                   <button type="button" class="btn-outline text-[8px] sm:text-[10px] px-2 sm:px-3 py-1 sm:py-1.5" onclick="document.getElementById('fileInput').click()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); transition: all 0.3s ease;">
-    <i class="fas fa-upload"></i> Upload
-</button>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(this)" />
+                <label class="form-label text-[8px] sm:text-[10px] block mb-1.5">Product Images (up to 5 images)</label>
+                
+                <!-- File Upload Button -->
+                <div class="flex flex-wrap items-center gap-3 mb-3">
+                    <button type="button" onclick="document.getElementById('fileInput').click()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition">
+                        <i class="fas fa-upload"></i> Upload Images
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none" 
+                           onchange="handleFileUpload(this.files)" />
+                    <span class="text-xs text-gray-400">or paste URLs below</span>
+                    <span class="text-xs text-gray-400 ml-auto" id="imageCountDisplay">0 / 5 images</span>
                 </div>
-                <img id="imagePreview" class="upload-preview mt-1 sm:mt-2" alt="Preview" />
+                
+                <!-- Drag & Drop Area -->
+                <div id="dropArea" class="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-3 text-center hover:border-blue-500 transition cursor-pointer"
+                     onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-1"></i>
+                    <p class="text-xs text-gray-500">Drag & drop images here or click to upload</p>
+                </div>
+                
+                <!-- Image URL Inputs Container -->
+                <div id="imageInputsContainer" class="space-y-1.5">
+                    <div class="flex items-center gap-2 image-input-row">
+                        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
+                        <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 hidden remove-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="addImageInput()" class="text-xs text-blue-600 hover:text-blue-700 mt-1.5 font-medium">
+                    <i class="fas fa-plus-circle"></i> Add Another URL
+                </button>
+                
+                <!-- Image Preview Gallery -->
+                <div id="imagePreviewGallery" class="flex gap-2 mt-3 flex-wrap">
+                    <p class="text-xs text-gray-400">No images added yet</p>
+                </div>
             </div>
 
             <!-- Description & Specs -->
@@ -587,7 +616,6 @@
     </div>
 </div>
 
-
 <!-- ============================================================
      POS SECTION - LAUNCHER
      ============================================================ -->
@@ -607,7 +635,7 @@
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - OFFLINE ORDER SUPPORT + CHARTS + AJAX PAGINATION
+     SCRIPTS - UPDATED WITH FILE UPLOAD & MULTIPLE IMAGE SUPPORT
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -641,120 +669,306 @@ function isOnline() {
 }
 
 // ============================================================
-// VIEW ORDER
+// FILE UPLOAD HANDLER
 // ============================================================
-function viewOrder(orderId) {
-    console.log('👁️ Viewing order:', orderId);
+function handleFileUpload(files) {
+    const maxImages = 5;
+    const currentUrls = document.querySelectorAll('#imageInputsContainer .image-url');
+    const currentCount = currentUrls.length;
     
-    const modal = document.getElementById('orderModal');
-    const details = document.getElementById('orderDetails');
-    
-    if (!modal || !details) {
-        showToast('❌ Modal not found', 'error');
+    const remaining = maxImages - currentCount;
+    if (remaining <= 0) {
+        showToast('⚠️ Maximum 5 images allowed', 'warning');
         return;
     }
     
-    details.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i><p class="text-gray-400 mt-2">Loading order...</p></div>';
-    modal.classList.remove('hidden');
-    
-    fetch('/admin/api/order/' + orderId + '?t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderOrderDetails(data.order);
-            } else {
-                details.innerHTML = `<div class="text-center py-8 text-red-500">❌ ${data.error || 'Order not found'}</div>`;
+    let added = 0;
+    for (let i = 0; i < Math.min(files.length, remaining); i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const inputs = document.querySelectorAll('#imageInputsContainer .image-url');
+            let filled = false;
+            inputs.forEach(input => {
+                if (!input.value.trim() && !filled) {
+                    input.value = e.target.result;
+                    filled = true;
+                    updateImagePreview();
+                    updateImageCount();
+                }
+            });
+            
+            if (!filled) {
+                addImageInput();
+                const newInputs = document.querySelectorAll('#imageInputsContainer .image-url');
+                newInputs[newInputs.length - 1].value = e.target.result;
+                updateImagePreview();
+                updateImageCount();
             }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            details.innerHTML = '<div class="text-center py-8 text-red-500">❌ Error loading order</div>';
-        });
-}
-
-function renderOrderDetails(order) {
-    const details = document.getElementById('orderDetails');
-    
-    let itemsHtml = '';
-    if (order.items && order.items.length > 0) {
-        order.items.forEach(item => {
-            const itemTotal = (item.price || 0) * (item.quantity || 1);
-            itemsHtml += `
-                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                    <div>
-                        <p class="text-sm font-medium text-[#0f172a]">${item.name || 'Product'}</p>
-                        <p class="text-xs text-gray-400">Qty: ${item.quantity || 1} × KSh ${(item.price || 0).toLocaleString()}</p>
-                    </div>
-                    <span class="font-semibold text-sm">KSh ${itemTotal.toLocaleString()}</span>
-                </div>
-            `;
-        });
+            
+            added++;
+            if (added === Math.min(files.length, remaining) || currentCount >= maxImages) {
+                showToast(`✅ ${added} image(s) uploaded!`, 'success');
+            }
+        };
+        reader.readAsDataURL(file);
     }
-    
-    const statusColors = {
-        'pending': 'badge-warning',
-        'confirmed': 'badge-info',
-        'shipped': 'badge-purple',
-        'delivered': 'badge-success'
-    };
-    
-    details.innerHTML = `
-        <div class="space-y-3">
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <div>
-                    <p class="text-xs text-gray-400">Order ID</p>
-                    <p class="font-mono font-bold text-sm">${order.order_id || 'N/A'}</p>
-                </div>
-                <span class="badge ${statusColors[order.status] || 'badge-warning'}">${order.status || 'Pending'}</span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
-                    <p class="text-xs text-gray-400">Source</p>
-                    <p class="font-semibold text-sm capitalize">${order.source || 'web'}</p>
-                </div>
-                <div class="p-2 bg-green-50 rounded-lg">
-                    <p class="text-xs text-gray-400">Total</p>
-                    <p class="font-semibold text-sm text-green-600">KSh ${(order.total || 0).toLocaleString()}</p>
-                </div>
-            </div>
-            
-            <div class="p-3 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-400">Customer</p>
-                <p class="font-semibold text-sm">${order.customer_name || 'Walk-in Customer'}</p>
-                ${order.customer_email ? `<p class="text-xs text-gray-400">${order.customer_email}</p>` : ''}
-                ${order.customer_phone ? `<p class="text-xs text-gray-400">${order.customer_phone}</p>` : ''}
-            </div>
-            
-            <div>
-                <p class="text-xs text-gray-400 mb-2">Items (${order.items ? order.items.length : 0})</p>
-                ${itemsHtml || '<p class="text-sm text-gray-400">No items</p>'}
-            </div>
-            
-            <div class="pt-3 border-t border-gray-100">
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-500">Subtotal</span>
-                    <span>KSh ${(order.subtotal || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-500">Shipping</span>
-                    <span>KSh ${(order.shipping || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-                    <span>Total</span>
-                    <span class="text-green-600">KSh ${(order.total || 0).toLocaleString()}</span>
-                </div>
-            </div>
-            
-            <div class="text-xs text-gray-400 text-center pt-2">
-                ${order.created_at ? 'Created: ' + new Date(order.created_at).toLocaleString() : ''}
-            </div>
-        </div>
-    `;
 }
 
 // ============================================================
-// EDIT PRODUCT
+// EDIT FILE UPLOAD HANDLER
+// ============================================================
+function handleEditFileUpload(files) {
+    const maxImages = 5;
+    const currentUrls = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
+    const currentCount = currentUrls.length;
+    
+    const remaining = maxImages - currentCount;
+    if (remaining <= 0) {
+        showToast('⚠️ Maximum 5 images allowed', 'warning');
+        return;
+    }
+    
+    let added = 0;
+    for (let i = 0; i < Math.min(files.length, remaining); i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const inputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
+            let filled = false;
+            inputs.forEach(input => {
+                if (!input.value.trim() && !filled) {
+                    input.value = e.target.result;
+                    filled = true;
+                    updateEditImagePreview();
+                }
+            });
+            
+            if (!filled) {
+                addEditImageInput();
+                const newInputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
+                newInputs[newInputs.length - 1].value = e.target.result;
+                updateEditImagePreview();
+            }
+            
+            added++;
+            if (added === Math.min(files.length, remaining) || currentCount >= maxImages) {
+                showToast(`✅ ${added} image(s) uploaded!`, 'success');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// ============================================================
+// DRAG & DROP SUPPORT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const dropArea = document.getElementById('dropArea');
+    if (dropArea) {
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#2563eb';
+            this.style.background = '#eff6ff';
+        });
+        
+        dropArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.background = '';
+        });
+        
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.background = '';
+            if (e.dataTransfer.files.length) {
+                handleFileUpload(e.dataTransfer.files);
+            }
+        });
+    }
+});
+
+// ============================================================
+// MULTIPLE IMAGE MANAGEMENT - ADD PRODUCT
+// ============================================================
+let imageCount = 1;
+
+function addImageInput() {
+    const maxImages = 5;
+    const currentInputs = document.querySelectorAll('#imageInputsContainer .image-url');
+    if (currentInputs.length >= maxImages) {
+        showToast('⚠️ Maximum 5 images allowed', 'warning');
+        return;
+    }
+    
+    imageCount++;
+    const container = document.getElementById('imageInputsContainer');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 image-input-row';
+    row.innerHTML = `
+        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
+        <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(row);
+    updateRemoveButtons();
+    updateImagePreview();
+    updateImageCount();
+}
+
+function removeImageInput(btn) {
+    const row = btn.closest('.image-input-row');
+    row.remove();
+    imageCount--;
+    updateRemoveButtons();
+    updateImagePreview();
+    updateImageCount();
+}
+
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('#imageInputsContainer .image-input-row');
+    const removeBtns = document.querySelectorAll('#imageInputsContainer .remove-btn');
+    removeBtns.forEach((btn, i) => {
+        btn.classList.toggle('hidden', rows.length <= 1);
+    });
+}
+
+function updateImagePreview() {
+    const urls = document.querySelectorAll('#imageInputsContainer .image-url');
+    const previewContainer = document.getElementById('imagePreviewGallery');
+    previewContainer.innerHTML = '';
+    
+    let hasImages = false;
+    urls.forEach(input => {
+        const url = input.value.trim();
+        if (url) {
+            hasImages = true;
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'w-16 h-16 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition';
+            img.onerror = function() { this.style.display = 'none'; };
+            previewContainer.appendChild(img);
+        }
+    });
+    
+    if (!hasImages) {
+        previewContainer.innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
+    }
+}
+
+function updateImageCount() {
+    const urls = document.querySelectorAll('#imageInputsContainer .image-url');
+    let count = 0;
+    urls.forEach(input => {
+        if (input.value.trim()) count++;
+    });
+    const display = document.getElementById('imageCountDisplay');
+    if (display) {
+        display.textContent = `${count} / 5 images`;
+        display.style.color = count >= 5 ? '#ef4444' : '#94a3b8';
+    }
+}
+
+// Listen to image URL changes for preview
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('image-url')) {
+        updateImagePreview();
+        updateImageCount();
+    }
+});
+
+// ============================================================
+// SAVE PRODUCT - WITH MULTIPLE IMAGES
+// ============================================================
+function saveProduct(event) {
+    event.preventDefault();
+    
+    if (!isOnline()) {
+        showToast('📡 You are offline. Please connect to the internet to save.', 'warning');
+        return;
+    }
+    
+    const imageInputs = document.querySelectorAll('#imageInputsContainer .image-url');
+    const images = [];
+    imageInputs.forEach(input => {
+        const url = input.value.trim();
+        if (url) images.push(url);
+    });
+    
+    if (images.length === 0) {
+        showToast('⚠️ Please add at least one product image', 'warning');
+        return;
+    }
+    
+    const data = {
+        id: document.getElementById('prodId').value.trim(),
+        name: document.getElementById('prodName').value.trim(),
+        category: document.getElementById('prodCategory').value,
+        price: parseFloat(document.getElementById('prodPrice').value) || 0,
+        cost_price: parseFloat(document.getElementById('prodCost').value) || 0,
+        original_price: parseFloat(document.getElementById('prodOriginal').value) || null,
+        stock: parseInt(document.getElementById('prodStock').value) || 0,
+        rating: parseFloat(document.getElementById('prodRating').value) || 4.5,
+        badge: document.getElementById('prodBadge').value,
+        images: images,
+        description: document.getElementById('prodDesc').value.trim(),
+        specs: document.getElementById('prodSpecs').value.split(',').map(s => s.trim()).filter(s => s)
+    };
+    
+    const btn = document.getElementById('saveBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+    
+    fetch('/admin/api/product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast('✅ Product saved with ' + images.length + ' images!', 'success');
+            document.getElementById('productForm').reset();
+            document.getElementById('imagePreviewGallery').innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
+            document.getElementById('imageInputsContainer').innerHTML = `
+                <div class="flex items-center gap-2 image-input-row">
+                    <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
+                    <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn hidden">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            imageCount = 1;
+            updateImageCount();
+            setTimeout(() => showSection('products'), 1000);
+        } else {
+            showToast('❌ ' + (result.message || 'Failed to save'), 'error');
+        }
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        showToast('❌ Error saving product', 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+// ============================================================
+// EDIT PRODUCT MODAL - ADD THIS TO YOUR HTML
+// ============================================================
+// The edit modal HTML is added above in the content section
+
+// ============================================================
+// EDIT PRODUCT - WITH MULTIPLE IMAGES
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -788,9 +1002,28 @@ function editProduct(productId) {
                 document.getElementById('editProdStock').value = product.stock || 0;
                 document.getElementById('editProdRating').value = product.rating || 4.5;
                 document.getElementById('editProdBadge').value = product.badge || '';
-                document.getElementById('editProdImage').value = product.image || '';
                 document.getElementById('editProdDesc').value = product.description || '';
                 document.getElementById('editProdSpecs').value = (product.specs || []).join(', ');
+                
+                // Handle multiple images for edit
+                const images = product.images || [product.image || ''];
+                const editImageContainer = document.getElementById('editImageInputsContainer');
+                if (editImageContainer) {
+                    editImageContainer.innerHTML = '';
+                    images.forEach((img, index) => {
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center gap-2 image-input-row';
+                        row.innerHTML = `
+                            <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 edit-image-url" value="${img}" placeholder="https://images.unsplash.com/photo-..." />
+                            <button type="button" onclick="removeEditImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 ${images.length <= 1 ? 'hidden' : ''} remove-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        editImageContainer.appendChild(row);
+                    });
+                    updateEditImagePreview();
+                }
+                
                 showToast('✅ Product loaded', 'success');
             } else {
                 showToast('❌ ' + (data.error || 'Product not found'), 'error');
@@ -805,13 +1038,25 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// SAVE EDITED PRODUCT
+// SAVE EDITED PRODUCT - WITH MULTIPLE IMAGES
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
     
     if (!isOnline()) {
         showToast('📡 You are offline. Please connect to the internet to save changes.', 'warning');
+        return;
+    }
+    
+    const imageInputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
+    const images = [];
+    imageInputs.forEach(input => {
+        const url = input.value.trim();
+        if (url) images.push(url);
+    });
+    
+    if (images.length === 0) {
+        showToast('⚠️ Please add at least one product image', 'warning');
         return;
     }
     
@@ -825,7 +1070,7 @@ function saveEditedProduct(event) {
         stock: parseInt(document.getElementById('editProdStock').value) || 0,
         rating: parseFloat(document.getElementById('editProdRating').value) || 4.5,
         badge: document.getElementById('editProdBadge').value,
-        image: document.getElementById('editProdImage').value.trim(),
+        images: images,
         description: document.getElementById('editProdDesc').value.trim(),
         specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s)
     };
@@ -843,7 +1088,7 @@ function saveEditedProduct(event) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            showToast('✅ ' + result.message, 'success');
+            showToast('✅ ' + result.message + ' (' + images.length + ' images)', 'success');
             document.getElementById('editProductModal').classList.add('hidden');
             setTimeout(() => location.reload(), 1000);
         } else {
@@ -859,6 +1104,64 @@ function saveEditedProduct(event) {
         btn.disabled = false;
     });
 }
+
+// ============================================================
+// EDIT MODAL - MULTIPLE IMAGE FUNCTIONS
+// ============================================================
+function addEditImageInput() {
+    const container = document.getElementById('editImageInputsContainer');
+    if (!container) return;
+    const rows = container.querySelectorAll('.image-input-row');
+    if (rows.length >= 5) {
+        showToast('⚠️ Maximum 5 images allowed', 'warning');
+        return;
+    }
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 image-input-row';
+    row.innerHTML = `
+        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 edit-image-url" placeholder="https://images.unsplash.com/photo-..." />
+        <button type="button" onclick="removeEditImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(row);
+    updateEditImagePreview();
+}
+
+function removeEditImageInput(btn) {
+    const row = btn.closest('.image-input-row');
+    row.remove();
+    updateEditImagePreview();
+}
+
+function updateEditImagePreview() {
+    const container = document.getElementById('editImagePreviewGallery');
+    if (!container) return;
+    const urls = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
+    container.innerHTML = '';
+    let hasImages = false;
+    urls.forEach(input => {
+        const url = input.value.trim();
+        if (url) {
+            hasImages = true;
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'w-16 h-16 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition';
+            img.onerror = function() { this.style.display = 'none'; };
+            container.appendChild(img);
+        }
+    });
+    if (!hasImages) {
+        container.innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
+    }
+}
+
+// Listen to edit image URL changes
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('edit-image-url') && e.target.closest('#editImageInputsContainer')) {
+        updateEditImagePreview();
+    }
+});
 
 // ============================================================
 // DELETE PRODUCT
@@ -1512,16 +1815,17 @@ function handleResize() {
 }
 
 // ============================================================
-// LOAD OFFLINE ORDERS FOR DASHBOARD - FINAL FIX (Version 2)
+// LOAD OFFLINE ORDERS FOR DASHBOARD - FIXED
 // ============================================================
 async function loadOfflineOrdersForDashboard() {
     try {
         console.log('📁 Checking for offline orders...');
         
-        // Open database with version 2
+        // First, ensure database exists and has orders store
         const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open('PricePointDB', 2);
+            const request = indexedDB.open('PricePointDB', 1);
             
+            // This runs when database is created or version changes
             request.onupgradeneeded = function(e) {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains('orders')) {
@@ -1542,10 +1846,29 @@ async function loadOfflineOrdersForDashboard() {
         
         // Check if orders store exists
         if (!db.objectStoreNames.contains('orders')) {
-            console.log('⚠️ Orders store not found');
+            console.log('⚠️ Orders store not found, creating...');
             db.close();
-            showSyncBar(0);
-            return [];
+            // Reopen with upgrade needed
+            const upgradeRequest = indexedDB.open('PricePointDB', 2);
+            upgradeRequest.onupgradeneeded = function(e) {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('orders')) {
+                    db.createObjectStore('orders', { keyPath: 'order_id' });
+                    console.log('✅ Orders store created on upgrade');
+                }
+            };
+            upgradeRequest.onsuccess = function(e) {
+                const db = e.target.result;
+                db.close();
+                // Retry after store creation
+                setTimeout(loadOfflineOrdersForDashboard, 500);
+                return;
+            };
+            upgradeRequest.onerror = function() {
+                console.log('❌ Failed to create orders store');
+                showSyncBar(0);
+            };
+            return;
         }
         
         // Get orders from IndexedDB
@@ -1571,6 +1894,7 @@ async function loadOfflineOrdersForDashboard() {
         if (!orders || orders.length === 0) {
             console.log('📭 No offline orders found');
             showSyncBar(0);
+            db.close();
             return [];
         }
         
@@ -1666,15 +1990,15 @@ function updateDashboardStats(offlineOrders) {
 }
 
 // ============================================================
-// SYNC OFFLINE ORDERS FROM DASHBOARD - FINAL FIX (Version 2)
+// SYNC OFFLINE ORDERS FROM DASHBOARD - FIXED
 // ============================================================
 async function syncOfflineOrdersFromDashboard() {
     console.log('🔄 Syncing offline orders...');
     
     try {
-        // Open database with version 2
+        // Open database with upgrade needed
         const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open('PricePointDB', 2);
+            const request = indexedDB.open('PricePointDB', 1);
             
             request.onupgradeneeded = function(e) {
                 const db = e.target.result;
@@ -1748,7 +2072,7 @@ async function syncOfflineOrdersFromDashboard() {
             showToast(`✅ ${result.synced} orders synced to cloud!`, 'success');
             
             const writeDb = await new Promise((resolve) => {
-                const r = indexedDB.open('PricePointDB', 2);
+                const r = indexedDB.open('PricePointDB', 1);
                 r.onsuccess = function(e) { resolve(e.target.result); };
             });
             const tx = writeDb.transaction(['orders'], 'readwrite');
@@ -1774,7 +2098,6 @@ async function syncOfflineOrdersFromDashboard() {
         }
     }
 }
-
 // ============================================================
 // ONLINE/OFFLINE HANDLING
 // ============================================================
@@ -1808,6 +2131,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateLiveTime, 30000);
 });
 
-console.log('✅ Admin dashboard fully loaded with AJAX pagination');
+console.log('✅ Admin dashboard fully loaded with AJAX pagination, FILE UPLOAD, and MULTIPLE IMAGE SUPPORT!');
 </script>
 {% endblock %}
