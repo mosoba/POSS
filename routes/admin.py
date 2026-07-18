@@ -178,7 +178,7 @@ def admin_logout():
 
 
 # ============================================================
-# ADMIN DASHBOARD
+# ADMIN DASHBOARD - FIXED WITH ALL VARIABLES
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -441,40 +441,67 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
+        # ============================================================
+        # ✅ FIX: Pass ALL variables the template expects
+        # ============================================================
         return render_template('admin.html',
+            # Products
             products=paginated_products,
             all_products=all_products,
             total_products=total_products,
             product_page=products_page,
             total_product_pages=total_product_pages,
+            per_page=per_page,
+            # Orders
             orders=paginated_orders,
             recent_orders=recent_orders,
             total_orders=total_orders,
             orders_page=orders_page,
             total_order_pages=total_order_pages,
+            # Customers
             customers=paginated_customers,
             total_customers=total_customers,
             customers_page=customers_page,
             total_customer_pages=total_customer_pages,
-            per_page=per_page,
-            bundles=bundles,
+            # Stats & Analytics
             stats=stats,
-            pos_count=pos_count,
             analytics=analytics,
-            DB_CONNECTED=True
+            pos_count=pos_count,
+            bundles=bundles,
+            DB_CONNECTED=True,
+            # Additional variables the template might use
+            total_products_count=total_products,
+            total_orders_count=total_orders,
+            total_customers_count=total_customers
         )
 
     except Exception as exc:
         print(f'Admin dashboard error: {exc}')
         traceback.print_exc()
         flash('Error loading admin dashboard', 'danger')
+        
+        # ============================================================
+        # ✅ FIX: Return ALL variables with defaults
+        # ============================================================
         return render_template('admin.html',
             products=[],
-            bundles=[],
+            all_products=[],
+            total_products=0,
+            product_page=1,
+            total_product_pages=1,
+            per_page=10,
             orders=[],
+            recent_orders=[],
+            total_orders=0,
+            orders_page=1,
+            total_order_pages=1,
             customers=[],
+            total_customers=0,
+            customers_page=1,
+            total_customer_pages=1,
+            bundles=[],
             pos_count=0,
-            analytics={},
+            analytics={'monthly_data': {}, 'category_sales': {}, 'product_sales': {}},
             stats={
                 'total_products': 0,
                 'total_bundles': 0,
@@ -499,8 +526,12 @@ def admin_dashboard():
                 'month_growth_pct': 0,
                 'db_mode': 'offline',
             },
-            DB_CONNECTED=False
+            DB_CONNECTED=False,
+            total_products_count=0,
+            total_orders_count=0,
+            total_customers_count=0
         )
+
 
 # ============================================================
 # POS ROUTE
@@ -555,7 +586,7 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE - ONLINE (WORKS PERFECTLY)
+# POS ORDER ROUTE - ONLINE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -751,7 +782,7 @@ def admin_pos_place_order():
 
 
 # ============================================================
-# SYNC QUEUED ORDERS - FIXED WITH STOCK DEDUCTION/RESTOCK
+# SYNC QUEUED ORDERS
 # ============================================================
 
 @admin_bp.route('/admin/api/sync-queue', methods=['POST'])
@@ -802,9 +833,6 @@ def api_sync_queue():
             try:
                 order_id = order.get('order_id', f'OFF-{uuid.uuid4().hex[:8].upper()}')
                 
-                # ============================================================
-                # CHECK IF THIS IS A RETURN
-                # ============================================================
                 is_return = order.get('is_return', False)
                 return_type = "RETURN" if is_return else "ORDER"
                 
@@ -822,9 +850,7 @@ def api_sync_queue():
                     synced += 1
                     continue
 
-                # ============================================================
-                # BUILD ORDER DATA
-                # ============================================================
+                # Build order data
                 order_data = {
                     'order_id': order_id,
                     'items': order.get('items', []),
@@ -850,9 +876,6 @@ def api_sync_queue():
                     'staff_name': order.get('staff_name', order.get('user_name', 'Unknown User'))
                 }
 
-                # ============================================================
-                # ADD RETURN-SPECIFIC FIELDS
-                # ============================================================
                 if is_return:
                     order_data['is_return'] = True
                     order_data['return_reason'] = order.get('return_reason', 'Customer return')
@@ -861,7 +884,6 @@ def api_sync_queue():
                     if order_data['total'] > 0:
                         order_data['total'] = -order_data['total']
 
-                # Ensure items is a list and has required fields
                 if not isinstance(order_data['items'], list):
                     order_data['items'] = []
 
@@ -879,13 +901,9 @@ def api_sync_queue():
                     if 'total' not in item:
                         item['total'] = float(item.get('price', 0)) * float(item.get('quantity', 1))
 
-                # ============================================================
-                # STOCK ADJUSTMENT - THE CRITICAL FIX!
-                # ============================================================
+                # Stock adjustment
                 if is_return:
-                    # ============================================================
-                    # RETURN: RESTOCK ITEMS (add stock back)
-                    # ============================================================
+                    # RETURN: RESTOCK ITEMS
                     print(f"📦 RESTOCKING ITEMS FOR RETURN: {order_id}")
                     
                     for item in order_data['items']:
@@ -897,7 +915,6 @@ def api_sync_queue():
                             continue
 
                         try:
-                            # Get current product from Supabase
                             stock_response = requests.get(
                                 f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
                                 headers=Config.SUPABASE_HEADERS,
@@ -909,11 +926,10 @@ def api_sync_queue():
                                 if stock_products and len(stock_products) > 0:
                                     product = stock_products[0]
                                     current_stock = product.get('stock', 0)
-                                    new_stock = current_stock + quantity  # ADD stock back for returns
+                                    new_stock = current_stock + quantity
                                     
                                     print(f"📦 RESTOCK: {product.get('name')}: {current_stock} → {new_stock} (+{quantity})")
                                     
-                                    # Update stock in Supabase
                                     update_response = requests.patch(
                                         f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
                                         headers=Config.SUPABASE_HEADERS,
@@ -929,11 +945,6 @@ def api_sync_queue():
                                             'product': product.get('name'),
                                             'error': f'HTTP {update_response.status_code}'
                                         })
-                                else:
-                                    print(f"⚠️ Product not found for restock: {product_id}")
-                            else:
-                                print(f"❌ Failed to fetch product for restock: {product_id} - {stock_response.status_code}")
-                                
                         except Exception as e:
                             print(f"❌ Restock error during return sync for {product_id}: {e}")
                             stock_errors.append({
@@ -941,9 +952,7 @@ def api_sync_queue():
                                 'error': str(e)
                             })
                 else:
-                    # ============================================================
                     # ORDER: DEDUCT STOCK
-                    # ============================================================
                     print(f"📦 DEDUCTING STOCK FOR SYNCED ORDER: {order_id}")
                     
                     for item in order_data['items']:
@@ -955,7 +964,6 @@ def api_sync_queue():
                             continue
 
                         try:
-                            # Get current product from Supabase
                             stock_response = requests.get(
                                 f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
                                 headers=Config.SUPABASE_HEADERS,
@@ -967,11 +975,10 @@ def api_sync_queue():
                                 if stock_products and len(stock_products) > 0:
                                     product = stock_products[0]
                                     current_stock = product.get('stock', 0)
-                                    new_stock = max(0, current_stock - quantity)  # DEDUCT stock for orders
+                                    new_stock = max(0, current_stock - quantity)
                                     
                                     print(f"📦 DEDUCT: {product.get('name')}: {current_stock} → {new_stock}")
                                     
-                                    # Update stock in Supabase
                                     update_response = requests.patch(
                                         f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
                                         headers=Config.SUPABASE_HEADERS,
@@ -987,11 +994,6 @@ def api_sync_queue():
                                             'product': product.get('name'),
                                             'error': f'HTTP {update_response.status_code}'
                                         })
-                                else:
-                                    print(f"⚠️ Product not found for stock deduction: {product_id}")
-                            else:
-                                print(f"❌ Failed to fetch product for stock deduction: {product_id} - {stock_response.status_code}")
-                                
                         except Exception as e:
                             print(f"❌ Stock deduction error during sync for {product_id}: {e}")
                             stock_errors.append({
@@ -999,9 +1001,7 @@ def api_sync_queue():
                                 'error': str(e)
                             })
 
-                # ============================================================
-                # SAVE ORDER TO SUPABASE
-                # ============================================================
+                # Save order to Supabase
                 response = requests.post(
                     f"{Config.SUPABASE_URL}/rest/v1/orders",
                     headers=Config.SUPABASE_HEADERS,
@@ -1022,13 +1022,11 @@ def api_sync_queue():
                 print(f"❌ Sync error for {order.get('order_id', 'unknown')}: {e}")
                 traceback.print_exc()
 
-        # Clear caches after successful sync
         if synced > 0:
             import utils.data
             utils.data.orders_cache = []
-            utils.data.products_cache = []  # CRITICAL: Clear products cache to reflect stock updates
+            utils.data.products_cache = []
 
-        # Log summary
         print(f"📊 Sync summary: {synced} synced, {failed} failed")
         if stock_errors:
             print(f"⚠️ Stock errors: {len(stock_errors)}")
@@ -1050,7 +1048,7 @@ def api_sync_queue():
 
 
 # ============================================================
-# PROCESS RETURN - ONLINE (WORKS PERFECTLY)
+# PROCESS RETURN
 # ============================================================
 
 @admin_bp.route('/admin/api/process-return', methods=['POST'])
@@ -1255,39 +1253,6 @@ def api_sync_order():
         print(f'❌ Sync order error: {e}')
         traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)}), 500
-
-
-# ============================================================
-# UNSYNCED ORDERS COUNT
-# ============================================================
-
-@admin_bp.route('/admin/api/unsynced-count', methods=['GET'])
-def api_unsynced_count():
-    try:
-        return jsonify({
-            'success': True,
-            'count': 0,
-            'orders': [],
-            'message': 'Check IndexedDB for unsynced orders'
-        })
-    except Exception as e:
-        print(f"❌ Unsynced count error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# GET OFFLINE ORDERS
-# ============================================================
-
-@admin_bp.route('/admin/api/offline-orders', methods=['GET'])
-def api_offline_orders():
-    try:
-        return jsonify({
-            'success': True,
-            'message': 'Send offline orders via POST to /admin/api/sync-queue'
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================
