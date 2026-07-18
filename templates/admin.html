@@ -12,7 +12,7 @@
 <meta http-equiv="Expires" content="0">
 
 <!-- ============================================================
-     EMERGENCY: LOAD ALL STATS FROM API
+     LOAD ALL STATS FROM API
      ============================================================ -->
 <script>
 // ============================================================
@@ -26,61 +26,67 @@ function formatNumber(value) {
 }
 
 // ============================================================
-// FORCE LOAD ALL STATS FROM API
+// LOAD ALL STATS FROM API
 // ============================================================
 function loadAllStats() {
     console.log('🔄 Loading all stats from API...');
     
-    // Show loading state
+    // Show loading
     var loadingDiv = document.createElement('div');
     loadingDiv.id = 'statsLoading';
     loadingDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#2563eb;color:white;padding:10px;text-align:center;font-weight:600;';
     loadingDiv.textContent = '🔄 Loading dashboard data...';
     document.body.prepend(loadingDiv);
     
-    // Load analytics
-    fetch('/admin/api/analytics?t=' + Date.now())
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        console.log('📊 Analytics loaded:', data);
+    // Load everything
+    Promise.all([
+        fetch('/admin/api/analytics?t=' + Date.now()).then(function(r) { return r.json(); }),
+        fetch('/admin/api/products?limit=100&t=' + Date.now()).then(function(r) { return r.json(); }),
+        fetch('/admin/api/orders?limit=10&t=' + Date.now()).then(function(r) { return r.json(); })
+    ])
+    .then(function(results) {
+        var analytics = results[0];
+        var productsData = results[1];
+        var ordersData = results[2];
         
-        // Load products
-        return fetch('/admin/api/products?limit=100&t=' + Date.now())
-        .then(function(r) { return r.json(); })
-        .then(function(productsData) {
-            return { analytics: data, products: productsData };
-        });
-    })
-    .then(function(result) {
-        var data = result.analytics;
-        var products = result.products;
+        console.log('📊 Analytics:', analytics);
+        console.log('📦 Products:', productsData);
+        console.log('📋 Orders:', ordersData);
         
         // Get product count
         var productCount = 0;
-        if (products && products.success && products.products) {
-            productCount = products.products.length;
-        } else if (products && products.products) {
-            productCount = products.products.length;
+        if (productsData && productsData.success && productsData.products) {
+            productCount = productsData.products.length;
+        } else if (productsData && productsData.products) {
+            productCount = productsData.products.length;
+        }
+        
+        // Get orders count
+        var ordersCount = 0;
+        if (ordersData && ordersData.success && ordersData.orders) {
+            ordersCount = ordersData.orders.length;
+        } else if (ordersData && ordersData.orders) {
+            ordersCount = ordersData.orders.length;
         }
         
         // Create stats object
         window.stats = {
             total_products: productCount || 0,
-            total_orders: data.total_orders || 0,
-            total_revenue: data.total_revenue || 0,
-            today_revenue: data.today_revenue || 0,
-            today_orders: data.today_orders || 0,
+            total_orders: analytics.total_orders || 0,
+            total_revenue: analytics.total_revenue || 0,
+            today_revenue: analytics.today_revenue || 0,
+            today_orders: analytics.today_orders || 0,
             total_customers: 0,
             low_stock: 0,
             pending_orders: 0,
-            month_revenue: data.total_revenue || 0,
-            month_orders: data.total_orders || 0,
+            month_revenue: analytics.total_revenue || 0,
+            month_orders: analytics.total_orders || 0,
             total_bundles: 0,
             total_cart_items: 0,
             pos_orders: 0,
             web_orders: 0,
             total_cost: 0,
-            total_profit: data.total_revenue || 0,
+            total_profit: analytics.total_revenue || 0,
             total_items_sold: 0,
             yesterday_revenue: 0,
             last_month_revenue: 0,
@@ -91,14 +97,29 @@ function loadAllStats() {
         
         console.log('✅ Stats created:', window.stats);
         
-        // Update all elements
+        // Update page
         updateAllStats();
         
-        // Remove loading message
+        // Load monthly data for analytics section
+        if (analytics.monthly_data) {
+            renderMonthlyTable(analytics.monthly_data);
+        }
+        
+        // Load product sales for top products
+        if (analytics.product_sales) {
+            renderProductTable(analytics.product_sales);
+        }
+        
+        // Load recent orders
+        if (ordersData && ordersData.orders) {
+            renderRecentOrders(ordersData.orders);
+        }
+        
+        // Remove loading
         var loading = document.getElementById('statsLoading');
         if (loading) loading.remove();
         
-        console.log('✅ Dashboard updated with stats from API');
+        console.log('✅ Dashboard fully updated!');
     })
     .catch(function(err) {
         console.error('❌ Error loading stats:', err);
@@ -187,7 +208,109 @@ function updateAllStats() {
 }
 
 // ============================================================
-// TEST FUNCTION - Run in console to check stats
+// RENDER MONTHLY TABLE
+// ============================================================
+function renderMonthlyTable(monthlyData) {
+    var table = document.getElementById('monthlyTable');
+    if (!table) return;
+    
+    var months = Object.keys(monthlyData).sort();
+    if (months.length === 0) {
+        table.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">No monthly data available</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    months.forEach(function(month) {
+        var m = monthlyData[month];
+        html += '<tr>' +
+            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
+            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + formatNumber(m.revenue || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + formatNumber(m.cost || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + formatNumber(m.profit || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm font-bold ' + ((m.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600') + '">' + (m.margin || 0).toFixed(1) + '%</td>' +
+        '</tr>';
+    });
+    table.innerHTML = html;
+}
+
+// ============================================================
+// RENDER PRODUCT TABLE
+// ============================================================
+function renderProductTable(productSales) {
+    var table = document.getElementById('productTable');
+    if (!table) return;
+    
+    var products = Object.keys(productSales);
+    if (products.length === 0) {
+        table.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">No product data available</td></tr>';
+        return;
+    }
+    
+    var html = '';
+    products.slice(0, 10).forEach(function(product) {
+        var p = productSales[product];
+        html += '<tr>' +
+            '<td class="text-xs sm:text-sm font-medium truncate max-w-[100px]">' + product + '</td>' +
+            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm text-green-600">KSh ' + formatNumber(p.revenue || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + formatNumber(p.cost || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + formatNumber(p.profit || 0) + '</td>' +
+            '<td class="text-right text-xs sm:text-sm font-bold ' + ((p.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600') + '">' + (p.margin || 0).toFixed(1) + '%</td>' +
+        '</tr>';
+    });
+    table.innerHTML = html;
+}
+
+// ============================================================
+// RENDER RECENT ORDERS
+// ============================================================
+function renderRecentOrders(orders) {
+    var container = document.querySelector('.glass-card .space-y-2');
+    if (!container) return;
+    
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-6 sm:py-8 text-gray-400">
+                <i class="fas fa-inbox text-2xl sm:text-3xl block mb-2"></i>
+                <p class="text-sm">No orders yet. Your store is ready to sell!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    var html = '';
+    orders.slice(0, 3).forEach(function(order) {
+        var statusClass = order.status === 'pending' ? 'badge-warning' : 
+                          order.status === 'confirmed' ? 'badge-info' : 
+                          order.status === 'shipped' ? 'badge-purple' : 
+                          order.status === 'delivered' ? 'badge-success' : 'badge-warning';
+        
+        html += `
+            <div class="flex items-center justify-between p-2 sm:p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                        <i class="fas fa-receipt text-[10px] sm:text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs sm:text-sm font-semibold text-[#0f172a] truncate">#${order.order_id || order.id || 'N/A'}</p>
+                        <p class="text-[10px] sm:text-xs text-gray-400 truncate">${order.customer_name || order.customer?.name || 'Customer'}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <span class="font-semibold text-xs sm:text-sm">KSh ${formatNumber(order.total || 0)}</span>
+                    <span class="badge text-[8px] sm:text-[10px] ${statusClass}">${order.status || 'Pending'}</span>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// ============================================================
+// TEST FUNCTION - Run in console
 // ============================================================
 function testStats() {
     console.log('📊 STATS TEST:');
@@ -374,33 +497,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <h3 class="font-bold text-[#0f172a] text-sm sm:text-base"><i class="fas fa-clock text-blue-500 mr-1.5 sm:mr-2"></i>Recent Activity</h3>
             <span class="text-[10px] sm:text-xs text-gray-400">Last 3 orders</span>
         </div>
-        <div class="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
-            {% if recent_orders and recent_orders|length > 0 %}
-                {% for order in recent_orders %}
-                <div class="flex items-center justify-between p-2 sm:p-3 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200 group">
-                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform flex-shrink-0">
-                            <i class="fas fa-receipt text-[10px] sm:text-sm"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs sm:text-sm font-semibold text-[#0f172a] truncate">#{{ order.order_id or order.id }}</p>
-                            <p class="text-[10px] sm:text-xs text-gray-400 truncate">{{ order.customer.name if order.customer and order.customer.name else order.customer_name or 'Customer' }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <span class="font-semibold text-xs sm:text-sm">KSh {{ order.total|default(0)|int|format_number }}</span>
-                        <span class="badge text-[8px] sm:text-[10px] {% if order.status == 'pending' %}badge-warning{% elif order.status == 'confirmed' %}badge-info{% elif order.status == 'shipped' %}badge-purple{% elif order.status == 'delivered' %}badge-success{% else %}badge-warning{% endif %}">
-                            {{ order.status or 'Pending' }}
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="text-center py-6 sm:py-8 text-gray-400">
-                    <i class="fas fa-inbox text-2xl sm:text-3xl block mb-2"></i>
-                    <p class="text-sm">No orders yet. Your store is ready to sell!</p>
-                </div>
-            {% endif %}
+        <div class="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto" id="recentOrdersContainer">
+            <div class="text-center py-6 sm:py-8 text-gray-400">
+                <i class="fas fa-spinner fa-spin text-2xl block mb-2"></i>
+                <p class="text-sm">Loading orders...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -788,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - REST OF THE FUNCTIONS
+     SCRIPTS - REST OF FUNCTIONS
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -812,13 +913,6 @@ function showToast(message, type) {
         toast.style.transform = 'translateX(100%)';
         setTimeout(function() { toast.remove(); }, 300);
     }, 4000);
-}
-
-// ============================================================
-// CHECK ONLINE STATUS
-// ============================================================
-function isOnline() {
-    return navigator.onLine;
 }
 
 // ============================================================
@@ -1492,7 +1586,7 @@ function dismissSyncBar() {
 }
 
 // ============================================================
-// LOAD ANALYTICS DATA
+// LOAD ANALYTICS DATA (for charts)
 // ============================================================
 function loadAnalyticsData() {
     console.log('📊 Loading analytics data...');
@@ -1557,7 +1651,6 @@ function loadAnalyticsData() {
 // ============================================================
 // CHART INITIALIZATION
 // ============================================================
-// Check if charts already exist before declaring
 if (typeof revenueChart === 'undefined') {
     var revenueChart = null;
 }
@@ -1768,14 +1861,30 @@ function handleFileUpload(input) {
 }
 
 // ============================================================
-// ONLINE/OFFLINE HANDLING
+// TEST FUNCTION - Run in console
+// ============================================================
+function testStats() {
+    console.log('📊 STATS TEST:');
+    console.log('  Stats defined?', typeof stats !== 'undefined');
+    if (typeof stats !== 'undefined') {
+        console.log('  Total Orders:', stats.total_orders);
+        console.log('  Today Revenue:', stats.today_revenue);
+        console.log('  Total Products:', stats.total_products);
+        console.log('  Total Revenue:', stats.total_revenue);
+    } else if (typeof window.stats !== 'undefined') {
+        console.log('  Window Stats:', window.stats);
+    } else {
+        console.log('  ❌ No stats found');
+    }
+}
+
+// ============================================================
+// INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Admin dashboard loading...');
-    
-    // Load analytics data for charts
-    loadAnalyticsData();
-    setTimeout(waitForChartJS, 500);
+    setTimeout(loadAllStats, 500);
+    setTimeout(waitForChartJS, 800);
     
     window.addEventListener('online', function() {
         console.log('📡 Back online - checking for offline orders...');
