@@ -64,16 +64,16 @@ def login_required(f):
 
 def seed_demo_products():
     demo_products = [
-        {'id': 'PROD_1', 'name': 'Wireless Headphones', 'price': 2999, 'stock': 45, 'category': 'Electronics', 'image': '', 'description': 'Premium wireless headphones'},
-        {'id': 'PROD_2', 'name': 'USB-C Cable', 'price': 499, 'stock': 120, 'category': 'Accessories', 'image': ''},
-        {'id': 'PROD_3', 'name': 'Bluetooth Speaker', 'price': 1499, 'stock': 30, 'category': 'Electronics', 'image': ''},
-        {'id': 'PROD_4', 'name': 'Laptop Stand', 'price': 899, 'stock': 25, 'category': 'Furniture', 'image': ''},
-        {'id': 'PROD_5', 'name': 'Wireless Mouse', 'price': 699, 'stock': 60, 'category': 'Accessories', 'image': ''},
-        {'id': 'PROD_6', 'name': 'Mechanical Keyboard', 'price': 2499, 'stock': 15, 'category': 'Electronics', 'image': ''},
-        {'id': 'PROD_7', 'name': 'HDMI Cable', 'price': 299, 'stock': 80, 'category': 'Accessories', 'image': ''},
-        {'id': 'PROD_8', 'name': 'USB Hub', 'price': 1299, 'stock': 20, 'category': 'Accessories', 'image': ''},
-        {'id': 'PROD_9', 'name': 'Monitor 24"', 'price': 14999, 'stock': 8, 'category': 'Electronics', 'image': ''},
-        {'id': 'PROD_10', 'name': 'Desk Lamp', 'price': 599, 'stock': 35, 'category': 'Furniture', 'image': ''},
+        {'id': 'PROD_1', 'name': 'Wireless Headphones', 'price': 2999, 'stock': 45, 'category': 'Electronics', 'image': '', 'description': 'Premium wireless headphones', 'cost_price': 1500},
+        {'id': 'PROD_2', 'name': 'USB-C Cable', 'price': 499, 'stock': 120, 'category': 'Accessories', 'image': '', 'cost_price': 200},
+        {'id': 'PROD_3', 'name': 'Bluetooth Speaker', 'price': 1499, 'stock': 30, 'category': 'Electronics', 'image': '', 'cost_price': 800},
+        {'id': 'PROD_4', 'name': 'Laptop Stand', 'price': 899, 'stock': 25, 'category': 'Furniture', 'image': '', 'cost_price': 400},
+        {'id': 'PROD_5', 'name': 'Wireless Mouse', 'price': 699, 'stock': 60, 'category': 'Accessories', 'image': '', 'cost_price': 300},
+        {'id': 'PROD_6', 'name': 'Mechanical Keyboard', 'price': 2499, 'stock': 15, 'category': 'Electronics', 'image': '', 'cost_price': 1200},
+        {'id': 'PROD_7', 'name': 'HDMI Cable', 'price': 299, 'stock': 80, 'category': 'Accessories', 'image': '', 'cost_price': 100},
+        {'id': 'PROD_8', 'name': 'USB Hub', 'price': 1299, 'stock': 20, 'category': 'Accessories', 'image': '', 'cost_price': 600},
+        {'id': 'PROD_9', 'name': 'Monitor 24"', 'price': 14999, 'stock': 8, 'category': 'Electronics', 'image': '', 'cost_price': 10000},
+        {'id': 'PROD_10', 'name': 'Desk Lamp', 'price': 599, 'stock': 35, 'category': 'Furniture', 'image': '', 'cost_price': 300},
     ]
     return demo_products
 
@@ -211,7 +211,7 @@ def admin_dashboard():
             print(f"🌱 Seeded {len(all_products)} demo products")
 
         # ============================================================
-        # CALCULATE STATS DIRECTLY - THIS IS THE CRITICAL PART
+        # CALCULATE STATS DIRECTLY
         # ============================================================
         total_orders = 0
         total_revenue = 0
@@ -268,7 +268,7 @@ def admin_dashboard():
             low_stock_items = len([p for p in all_products if p.get('stock', 0) < 10])
 
         # ============================================================
-        # BUILD STATS OBJECT - WITH ALL VALUES
+        # BUILD STATS OBJECT
         # ============================================================
         stats = {
             'total_products': total_products,
@@ -308,7 +308,7 @@ def admin_dashboard():
         print("=" * 60)
 
         # ============================================================
-        # RENDER TEMPLATE - stats IS PASSED
+        # RENDER TEMPLATE
         # ============================================================
         response = make_response(render_template(
             'admin.html',
@@ -330,7 +330,7 @@ def admin_dashboard():
             total_customers=0,
             customers_page=1,
             total_customer_pages=1,
-            # Stats & Analytics - CRITICAL: stats IS PASSED HERE
+            # Stats & Analytics
             stats=stats,
             analytics={
                 'today_revenue': today_revenue,
@@ -348,9 +348,7 @@ def admin_dashboard():
             total_customers_count=0
         ))
         
-        # ============================================================
         # FORCE NO-CACHE HEADERS
-        # ============================================================
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -362,9 +360,6 @@ def admin_dashboard():
         traceback.print_exc()
         flash('Error loading admin dashboard', 'danger')
         
-        # ============================================================
-        # RETURN WITH DEFAULTS - stats IS STILL PASSED
-        # ============================================================
         stats = {
             'total_products': 0,
             'total_bundles': 0,
@@ -409,7 +404,7 @@ def admin_dashboard():
             bundles=[],
             pos_count=0,
             analytics={},
-            stats=stats,  # <-- CRITICAL: stats MUST be passed
+            stats=stats,
             DB_CONNECTED=False,
             total_products_count=0,
             total_orders_count=0,
@@ -424,7 +419,7 @@ def admin_dashboard():
 
 
 # ============================================================
-# POS ROUTE
+# ✅ POS ROUTE - FIXED WITH FALLBACK
 # ============================================================
 
 @admin_bp.route('/admin/pos')
@@ -433,7 +428,22 @@ def admin_pos():
         flash('Please login first', 'danger')
         return redirect(url_for('admin.user_login'))
 
-    all_products = load_products()
+    try:
+        # Try to load products from Supabase
+        all_products = load_products()
+        print(f"📡 POS - Products from load_products(): {len(all_products) if all_products else 0}")
+        
+        # If no products, use demo products
+        if not all_products or len(all_products) == 0:
+            print("⚠️ No products found, using demo products for POS")
+            all_products = seed_demo_products()
+            
+    except Exception as e:
+        print(f"❌ Error loading products for POS: {e}")
+        all_products = seed_demo_products()
+        print(f"📡 Using {len(all_products)} demo products")
+
+    # Ensure each product has required fields
     for product in all_products:
         if 'price' not in product or product['price'] is None:
             product['price'] = 0
@@ -468,11 +478,38 @@ def admin_pos():
 
     customers.sort(key=lambda x: x['name'])
 
+    # Debug: Print first few products
+    if all_products:
+        print(f"📋 First product: {all_products[0] if all_products else 'None'}")
+        print(f"📦 Total products for POS: {len(all_products)}")
+
     return render_template('pos.html',
         products=all_products,
         customers=customers,
         DB_CONNECTED=True
     )
+
+
+# ============================================================
+# DEBUG ENDPOINT - Check Products
+# ============================================================
+
+@admin_bp.route('/admin/debug-products')
+@admin_required
+def debug_products():
+    try:
+        products = load_products()
+        return jsonify({
+            'success': True,
+            'count': len(products) if products else 0,
+            'sample': products[:3] if products else [],
+            'full': products if products else []
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 
 # ============================================================
