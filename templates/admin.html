@@ -610,10 +610,20 @@
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - UPDATED WITH FILE UPLOAD & MULTIPLE IMAGE SUPPORT
+     SCRIPTS
      ============================================================ -->
 {% block scripts %}
 <script>
+// ============================================================
+// FORMAT NUMBER - HELPER FUNCTION
+// ============================================================
+function formatNumber(value) {
+    if (value === undefined || value === null) return '0';
+    const num = Number(value);
+    if (isNaN(num)) return '0';
+    return num.toLocaleString();
+}
+
 // ============================================================
 // TOAST NOTIFICATION
 // ============================================================
@@ -757,16 +767,6 @@ function renderOrderDetails(order) {
 }
 
 // ============================================================
-// FORMAT NUMBER - HELPER FUNCTION
-// ============================================================
-function formatNumber(value) {
-    if (value === undefined || value === null) return '0';
-    const num = Number(value);
-    if (isNaN(num)) return '0';
-    return num.toLocaleString();
-}
-
-// ============================================================
 // EDIT PRODUCT
 // ============================================================
 function editProduct(productId) {
@@ -904,6 +904,37 @@ function deleteProduct(productId) {
     .catch(err => {
         console.error('Error:', err);
         showToast('❌ Error deleting product. Please try again.', 'error');
+    });
+}
+
+// ============================================================
+// UPDATE ORDER STATUS
+// ============================================================
+function updateOrderStatus(orderId, newStatus) {
+    if (!isOnline()) {
+        showToast('📡 You are offline. Please connect to the internet to update order status.', 'warning');
+        return;
+    }
+    
+    console.log('📦 Updating order status:', orderId, '→', newStatus);
+    
+    fetch('/admin/orders/' + orderId + '/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('✅ Order status updated to ' + newStatus, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('❌ ' + (data.message || 'Failed to update status'), 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        showToast('❌ Error updating status', 'error');
     });
 }
 
@@ -1525,6 +1556,23 @@ function handleResize() {
 }
 
 // ============================================================
+// FILE UPLOAD HANDLER
+// ============================================================
+function handleFileUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('prodImage').value = e.target.result;
+        document.getElementById('imagePreview').src = e.target.result;
+        document.getElementById('imagePreview').style.display = 'block';
+        showToast('✅ Image uploaded!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ============================================================
 // ONLINE/OFFLINE HANDLING
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -1555,6 +1603,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateLiveTime, 30000);
 });
 
-console.log('✅ Admin dashboard fully loaded with AJAX pagination, FILE UPLOAD, and MULTIPLE IMAGE SUPPORT!');
+console.log('✅ Admin dashboard fully loaded!');
 </script>
 {% endblock %}
