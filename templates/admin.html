@@ -12,12 +12,24 @@
 <meta http-equiv="Expires" content="0">
 
 <!-- ============================================================
-     EMERGENCY: LOAD STATS FROM API IF NOT DEFINED (NO REFRESH)
+     EMERGENCY: LOAD ALL STATS FROM API
      ============================================================ -->
 <script>
-// Check if stats is defined
-if (typeof stats === 'undefined') {
-    console.log('⚠️ Stats not defined - loading from API...');
+// ============================================================
+// FORMAT NUMBER - HELPER FUNCTION
+// ============================================================
+function formatNumber(value) {
+    if (value === undefined || value === null) return '0';
+    var num = Number(value);
+    if (isNaN(num)) return '0';
+    return num.toLocaleString();
+}
+
+// ============================================================
+// FORCE LOAD ALL STATS FROM API
+// ============================================================
+function loadAllStats() {
+    console.log('🔄 Loading all stats from API...');
     
     // Show loading state
     var loadingDiv = document.createElement('div');
@@ -26,14 +38,34 @@ if (typeof stats === 'undefined') {
     loadingDiv.textContent = '🔄 Loading dashboard data...';
     document.body.prepend(loadingDiv);
     
+    // Load analytics
     fetch('/admin/api/analytics?t=' + Date.now())
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        console.log('✅ Stats loaded from API:', data);
+        console.log('📊 Analytics loaded:', data);
+        
+        // Load products
+        return fetch('/admin/api/products?limit=100&t=' + Date.now())
+        .then(function(r) { return r.json(); })
+        .then(function(productsData) {
+            return { analytics: data, products: productsData };
+        });
+    })
+    .then(function(result) {
+        var data = result.analytics;
+        var products = result.products;
+        
+        // Get product count
+        var productCount = 0;
+        if (products && products.success && products.products) {
+            productCount = products.products.length;
+        } else if (products && products.products) {
+            productCount = products.products.length;
+        }
         
         // Create stats object
         window.stats = {
-            total_products: data.total_products || 0,
+            total_products: productCount || 0,
             total_orders: data.total_orders || 0,
             total_revenue: data.total_revenue || 0,
             today_revenue: data.today_revenue || 0,
@@ -57,13 +89,16 @@ if (typeof stats === 'undefined') {
             db_mode: 'online'
         };
         
+        console.log('✅ Stats created:', window.stats);
+        
+        // Update all elements
+        updateAllStats();
+        
         // Remove loading message
         var loading = document.getElementById('statsLoading');
         if (loading) loading.remove();
         
-        // Update the page without reloading
-        updatePageStats();
-        console.log('✅ Page updated with stats from API');
+        console.log('✅ Dashboard updated with stats from API');
     })
     .catch(function(err) {
         console.error('❌ Error loading stats:', err);
@@ -75,31 +110,85 @@ if (typeof stats === 'undefined') {
     });
 }
 
-// Function to update page stats without reload
-function updatePageStats() {
-    // Update all the stats elements
-    var elements = {
-        dashTotalOrders: document.getElementById('dashTotalOrders'),
-        dashTodayRevenue: document.getElementById('dashTodayRevenue'),
-        dashTotalProducts: document.getElementById('dashTotalProducts'),
-        dashMonthRevenue: document.getElementById('dashMonthRevenue'),
-        liveRevenue: document.getElementById('liveRevenue'),
-        liveOrders: document.getElementById('liveOrders'),
-        totalRevenue: document.getElementById('totalRevenue'),
-        totalOrders: document.getElementById('totalOrders')
+// ============================================================
+// UPDATE ALL STATS ON PAGE
+// ============================================================
+function updateAllStats() {
+    var s = window.stats || {};
+    
+    // Map of element IDs to values
+    var updates = {
+        'dashTotalOrders': s.total_orders || 0,
+        'dashTodayRevenue': 'KSh ' + formatNumber(s.today_revenue || 0),
+        'dashTotalProducts': s.total_products || 0,
+        'dashMonthRevenue': 'KSh ' + formatNumber(s.month_revenue || 0),
+        'dashYesterdayRevenue': 'KSh ' + formatNumber(s.yesterday_revenue || 0),
+        'dashLastMonthRevenue': 'KSh ' + formatNumber(s.last_month_revenue || 0),
+        'dashLowStock': s.low_stock || 0,
+        'dashTotalBundles': s.total_bundles || 0,
+        'dashPendingOrders': s.pending_orders || 0,
+        'liveRevenue': 'KSh ' + formatNumber(s.today_revenue || 0),
+        'liveOrders': s.today_orders || 0,
+        'liveCustomers': s.total_customers || 0,
+        'totalRevenue': 'KSh ' + formatNumber(s.total_revenue || 0),
+        'totalCost': 'KSh ' + formatNumber(s.total_cost || 0),
+        'totalProfit': 'KSh ' + formatNumber(s.total_profit || 0),
+        'totalOrders': s.total_orders || 0,
+        'totalProducts': s.total_products || 0
     };
     
-    if (elements.dashTotalOrders) elements.dashTotalOrders.textContent = window.stats.total_orders || 0;
-    if (elements.dashTodayRevenue) elements.dashTodayRevenue.textContent = 'KSh ' + formatNumber(window.stats.today_revenue || 0);
-    if (elements.dashTotalProducts) elements.dashTotalProducts.textContent = window.stats.total_products || 0;
-    if (elements.dashMonthRevenue) elements.dashMonthRevenue.textContent = 'KSh ' + formatNumber(window.stats.month_revenue || 0);
-    if (elements.liveRevenue) elements.liveRevenue.textContent = 'KSh ' + formatNumber(window.stats.today_revenue || 0);
-    if (elements.liveOrders) elements.liveOrders.textContent = window.stats.today_orders || 0;
-    if (elements.totalRevenue) elements.totalRevenue.textContent = 'KSh ' + formatNumber(window.stats.total_revenue || 0);
-    if (elements.totalOrders) elements.totalOrders.textContent = window.stats.total_orders || 0;
+    // Apply updates
+    Object.keys(updates).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.textContent = updates[id];
+        }
+    });
+    
+    // Update growth badges
+    var todayGrowth = document.getElementById('todayGrowthBadge');
+    if (todayGrowth) {
+        if (s.today_growth_pct > 0) {
+            todayGrowth.innerHTML = '<i class="fas fa-arrow-up mr-1"></i>' + s.today_growth_pct + '%';
+        } else if (s.today_growth_pct < 0) {
+            todayGrowth.innerHTML = '<i class="fas fa-arrow-down mr-1"></i>' + Math.abs(s.today_growth_pct) + '%';
+        } else {
+            todayGrowth.innerHTML = '<i class="fas fa-minus mr-1"></i>0%';
+        }
+    }
+    
+    var monthGrowth = document.getElementById('monthGrowthBadge');
+    if (monthGrowth) {
+        if (s.month_growth_pct > 0) {
+            monthGrowth.innerHTML = '<i class="fas fa-arrow-up mr-1"></i>' + s.month_growth_pct + '%';
+        } else if (s.month_growth_pct < 0) {
+            monthGrowth.innerHTML = '<i class="fas fa-arrow-down mr-1"></i>' + Math.abs(s.month_growth_pct) + '%';
+        } else {
+            monthGrowth.innerHTML = '<i class="fas fa-minus mr-1"></i>0%';
+        }
+    }
+    
+    // Update profit margin
+    var profitMargin = document.getElementById('profitMargin');
+    if (profitMargin && s.total_revenue > 0) {
+        var margin = ((s.total_profit || 0) / s.total_revenue) * 100;
+        profitMargin.textContent = margin.toFixed(1) + '%';
+    }
+    
+    // Update revRevenue and revProfit
+    var revRevenue = document.getElementById('revRevenue');
+    if (revRevenue) {
+        revRevenue.textContent = 'KSh ' + formatNumber(s.total_revenue || 0);
+    }
+    var revProfit = document.getElementById('revProfit');
+    if (revProfit) {
+        revProfit.textContent = 'KSh ' + formatNumber(s.total_profit || 0);
+    }
 }
 
-// Test function - run in console to check stats
+// ============================================================
+// TEST FUNCTION - Run in console to check stats
+// ============================================================
 function testStats() {
     console.log('📊 STATS TEST:');
     console.log('  Stats defined?', typeof stats !== 'undefined');
@@ -114,6 +203,12 @@ function testStats() {
         console.log('  ❌ No stats found');
     }
 }
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Admin dashboard loading...');
+    setTimeout(loadAllStats, 500);
+});
 </script>
 
 <!-- ============================================================
@@ -183,15 +278,15 @@ function testStats() {
                 </span>
                 <span class="text-gray-300 hidden sm:inline">|</span>
                 <span class="text-xs sm:text-sm text-gray-600">
-                    <span class="font-bold text-green-600" id="liveRevenue">KSh {{ stats.today_revenue|default(0)|int|format_number }}</span> revenue today
+                    <span class="font-bold text-green-600" id="liveRevenue">KSh 0</span> revenue today
                 </span>
                 <span class="text-gray-300 hidden sm:inline">|</span>
                 <span class="text-xs sm:text-sm text-gray-600">
-                    <span class="font-bold text-amber-600" id="liveOrders">{{ stats.today_orders|default(0) }}</span> orders today
+                    <span class="font-bold text-amber-600" id="liveOrders">0</span> orders today
                 </span>
                 <span class="text-gray-300 hidden sm:inline">|</span>
                 <span class="text-xs sm:text-sm text-gray-600">
-                    <span class="font-bold text-purple-600" id="liveCustomers">{{ stats.total_customers|default(0) }}</span> customers
+                    <span class="font-bold text-purple-600" id="liveCustomers">0</span> customers
                 </span>
             </div>
             <span class="text-[10px] sm:text-xs text-gray-400 flex items-center gap-1.5">
@@ -209,37 +304,21 @@ function testStats() {
         <div class="stat-card p-3 sm:p-4">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
                 <div class="icon bg-blue-50 text-blue-600 w-8 h-8 sm:w-10 sm:h-10"><i class="fas fa-calendar-day text-sm sm:text-base"></i></div>
-                <span id="todayGrowthBadge" class="change text-[10px] sm:text-xs">
-                    {% if stats.today_growth_pct|default(0) > 0 %}
-                        <i class="fas fa-arrow-up mr-1"></i>{{ stats.today_growth_pct|default(0) }}%
-                    {% elif stats.today_growth_pct|default(0) < 0 %}
-                        <i class="fas fa-arrow-down mr-1"></i>{{ stats.today_growth_pct|abs|default(0) }}%
-                    {% else %}
-                        <i class="fas fa-minus mr-1"></i>0%
-                    {% endif %}
-                </span>
+                <span id="todayGrowthBadge" class="change text-[10px] sm:text-xs">0%</span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">Today's Revenue</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashTodayRevenue">KSh {{ stats.today_revenue|default(0)|int|format_number }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Vs yesterday: KSh <span id="dashYesterdayRevenue">{{ stats.yesterday_revenue|default(0)|int|format_number }}</span></p>
+            <p class="value text-base sm:text-xl font-bold" id="dashTodayRevenue">KSh 0</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Vs yesterday: KSh <span id="dashYesterdayRevenue">0</span></p>
         </div>
 
         <div class="stat-card p-3 sm:p-4">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
                 <div class="icon bg-emerald-50 text-emerald-600 w-8 h-8 sm:w-10 sm:h-10"><i class="fas fa-calendar-alt text-sm sm:text-base"></i></div>
-                <span id="monthGrowthBadge" class="change text-[10px] sm:text-xs">
-                    {% if stats.month_growth_pct|default(0) > 0 %}
-                        <i class="fas fa-arrow-up mr-1"></i>{{ stats.month_growth_pct|default(0) }}%
-                    {% elif stats.month_growth_pct|default(0) < 0 %}
-                        <i class="fas fa-arrow-down mr-1"></i>{{ stats.month_growth_pct|abs|default(0) }}%
-                    {% else %}
-                        <i class="fas fa-minus mr-1"></i>0%
-                    {% endif %}
-                </span>
+                <span id="monthGrowthBadge" class="change text-[10px] sm:text-xs">0%</span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">This Month</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashMonthRevenue">KSh {{ stats.month_revenue|default(0)|int|format_number }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Last month: KSh <span id="dashLastMonthRevenue">{{ stats.last_month_revenue|default(0)|int|format_number }}</span></p>
+            <p class="value text-base sm:text-xl font-bold" id="dashMonthRevenue">KSh 0</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Last month: KSh <span id="dashLastMonthRevenue">0</span></p>
         </div>
 
         <div class="stat-card p-3 sm:p-4">
@@ -248,18 +327,18 @@ function testStats() {
                 <span class="text-[8px] sm:text-[10px] font-semibold bg-purple-100 text-purple-700 px-1.5 sm:px-2 py-0.5 rounded-full">Inventory</span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">Total Products</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashTotalProducts">{{ stats.total_products|default(0) }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Bundles: <span id="dashTotalBundles">{{ stats.total_bundles|default(0) }}</span></p>
+            <p class="value text-base sm:text-xl font-bold" id="dashTotalProducts">0</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Bundles: <span id="dashTotalBundles">0</span></p>
         </div>
 
         <div class="stat-card p-3 sm:p-4">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
                 <div class="icon bg-amber-50 text-amber-600 w-8 h-8 sm:w-10 sm:h-10"><i class="fas fa-shopping-bag text-sm sm:text-base"></i></div>
-                <span class="text-[8px] sm:text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 sm:px-2 py-0.5 rounded-full">{{ stats.pending_orders|default(0) }} pending</span>
+                <span class="text-[8px] sm:text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 sm:px-2 py-0.5 rounded-full" id="dashPendingOrders">0 pending</span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">Total Orders</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashTotalOrders">{{ stats.total_orders|default(0) }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Low Stock: <span id="dashLowStock">{{ stats.low_stock|default(0) }}</span> items</p>
+            <p class="value text-base sm:text-xl font-bold" id="dashTotalOrders">0</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Low Stock: <span id="dashLowStock">0</span> items</p>
         </div>
     </div>
 
@@ -332,25 +411,19 @@ function testStats() {
 <div id="analytics-section" class="section hidden">
     <!-- Summary Stats - Mobile Optimized -->
     <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-6">
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center"><i class="fas fa-coin text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Revenue</p></div><p class="text-sm sm:text-xl font-extrabold text-green-600" id="totalRevenue">KSh {{ stats.total_revenue|default(0)|int|format_number }}</p></div>
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center"><i class="fas fa-shopping-bag text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Cost</p></div><p class="text-sm sm:text-xl font-extrabold text-blue-600" id="totalCost">KSh {{ stats.total_cost|default(0)|int|format_number }}</p></div>
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center"><i class="fas fa-chart-line text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Profit</p></div><p class="text-sm sm:text-xl font-extrabold text-purple-600" id="totalProfit">KSh {{ stats.total_profit|default(0)|int|format_number }}</p></div>
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center"><i class="fas fa-shopping-cart text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Orders</p></div><p class="text-sm sm:text-xl font-extrabold text-amber-600" id="totalOrders">{{ stats.total_orders|default(0) }}</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center"><i class="fas fa-coin text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Revenue</p></div><p class="text-sm sm:text-xl font-extrabold text-green-600" id="totalRevenue">KSh 0</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center"><i class="fas fa-shopping-bag text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Cost</p></div><p class="text-sm sm:text-xl font-extrabold text-blue-600" id="totalCost">KSh 0</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center"><i class="fas fa-chart-line text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Profit</p></div><p class="text-sm sm:text-xl font-extrabold text-purple-600" id="totalProfit">KSh 0</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center"><i class="fas fa-shopping-cart text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Orders</p></div><p class="text-sm sm:text-xl font-extrabold text-amber-600" id="totalOrders">0</p></div>
     </div>
 
     <!-- Profit Overview - Mobile Optimized -->
     <div class="glass-card p-3 sm:p-4 mb-3 sm:mb-6">
         <h3 class="font-bold text-[#0f172a] text-xs sm:text-base mb-2 sm:mb-3"><i class="fas fa-chart-line text-blue-500 mr-1 sm:mr-2"></i> Profit Overview</h3>
         <div class="grid grid-cols-3 gap-2 sm:gap-4">
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Revenue</p><p class="text-sm sm:text-lg font-extrabold text-green-600" id="revRevenue">KSh {{ stats.total_revenue|default(0)|int|format_number }}</p></div>
-            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Profit</p><p class="text-sm sm:text-lg font-extrabold text-purple-600" id="revProfit">KSh {{ stats.total_profit|default(0)|int|format_number }}</p></div>
-            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Margin</p><p class="text-sm sm:text-lg font-extrabold text-blue-600" id="profitMargin">
-                {% if stats.total_revenue|default(0) > 0 %}
-                    {{ ((stats.total_profit|default(0) / stats.total_revenue|default(1)) * 100)|round(1) }}%
-                {% else %}
-                    0%
-                {% endif %}
-            </p></div>
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Revenue</p><p class="text-sm sm:text-lg font-extrabold text-green-600" id="revRevenue">KSh 0</p></div>
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Profit</p><p class="text-sm sm:text-lg font-extrabold text-purple-600" id="revProfit">KSh 0</p></div>
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Margin</p><p class="text-sm sm:text-lg font-extrabold text-blue-600" id="profitMargin">0%</p></div>
         </div>
     </div>
 
@@ -715,20 +788,10 @@ function testStats() {
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS
+     SCRIPTS - REST OF THE FUNCTIONS
      ============================================================ -->
 {% block scripts %}
 <script>
-// ============================================================
-// FORMAT NUMBER - HELPER FUNCTION
-// ============================================================
-function formatNumber(value) {
-    if (value === undefined || value === null) return '0';
-    var num = Number(value);
-    if (isNaN(num)) return '0';
-    return num.toLocaleString();
-}
-
 // ============================================================
 // TOAST NOTIFICATION
 // ============================================================
@@ -1429,24 +1492,6 @@ function dismissSyncBar() {
 }
 
 // ============================================================
-// TEST FUNCTION - Run in console to check stats
-// ============================================================
-function testStats() {
-    console.log('📊 STATS TEST:');
-    console.log('  Stats defined?', typeof stats !== 'undefined');
-    if (typeof stats !== 'undefined') {
-        console.log('  Total Orders:', stats.total_orders);
-        console.log('  Today Revenue:', stats.today_revenue);
-        console.log('  Total Products:', stats.total_products);
-        console.log('  Total Revenue:', stats.total_revenue);
-    } else if (typeof window.stats !== 'undefined') {
-        console.log('  Window Stats:', window.stats);
-    } else {
-        console.log('  ❌ No stats found');
-    }
-}
-
-// ============================================================
 // LOAD ANALYTICS DATA
 // ============================================================
 function loadAnalyticsData() {
@@ -1728,6 +1773,7 @@ function handleFileUpload(input) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Admin dashboard loading...');
     
+    // Load analytics data for charts
     loadAnalyticsData();
     setTimeout(waitForChartJS, 500);
     
