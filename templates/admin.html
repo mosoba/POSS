@@ -20,11 +20,15 @@ if (typeof stats === 'undefined') {
     console.log('⚠️ Stats not defined - loading from API...');
     
     // Show loading state
-    document.body.innerHTML += '<div id="statsLoading" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2563eb;color:white;padding:10px;text-align:center;font-weight:600;">🔄 Loading dashboard data...</div>';
+    var loadingDiv = document.createElement('div');
+    loadingDiv.id = 'statsLoading';
+    loadingDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#2563eb;color:white;padding:10px;text-align:center;font-weight:600;';
+    loadingDiv.textContent = '🔄 Loading dashboard data...';
+    document.body.prepend(loadingDiv);
     
     fetch('/admin/api/analytics?t=' + Date.now())
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
         console.log('✅ Stats loaded from API:', data);
         
         // Create stats object
@@ -54,15 +58,15 @@ if (typeof stats === 'undefined') {
         };
         
         // Remove loading message
-        const loading = document.getElementById('statsLoading');
+        var loading = document.getElementById('statsLoading');
         if (loading) loading.remove();
         
         // Reload the page to apply stats
         location.reload();
     })
-    .catch(err => {
+    .catch(function(err) {
         console.error('❌ Error loading stats:', err);
-        const loading = document.getElementById('statsLoading');
+        var loading = document.getElementById('statsLoading');
         if (loading) {
             loading.style.background = '#dc2626';
             loading.textContent = '⚠️ Could not load stats. Please refresh.';
@@ -670,7 +674,7 @@ if (typeof stats === 'undefined') {
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS
+     SCRIPTS - FIXED: No duplicate chart variables
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -696,13 +700,13 @@ function showToast(message, type) {
     };
     
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 z-50 ${colors[type] || 'bg-blue-500'} text-white px-4 py-3 rounded-lg shadow-lg max-w-sm text-sm transition-all duration-300 transform translate-x-0`;
+    toast.className = 'fixed top-4 right-4 z-50 ' + (colors[type] || 'bg-blue-500') + ' text-white px-4 py-3 rounded-lg shadow-lg max-w-sm text-sm transition-all duration-300 transform translate-x-0';
     toast.textContent = message;
     document.body.appendChild(toast);
     
-    setTimeout(() => {
+    setTimeout(function() {
         toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(function() { toast.remove(); }, 300);
     }, 4000);
 }
 
@@ -719,8 +723,8 @@ function isOnline() {
 function viewOrder(orderId) {
     console.log('👁️ Viewing order:', orderId);
     
-    const modal = document.getElementById('orderModal');
-    const details = document.getElementById('orderDetails');
+    var modal = document.getElementById('orderModal');
+    var details = document.getElementById('orderDetails');
     
     if (!modal || !details) {
         showToast('❌ Modal not found', 'error');
@@ -731,27 +735,27 @@ function viewOrder(orderId) {
     modal.classList.remove('hidden');
     
     fetch('/admin/api/order/' + orderId + '?t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             if (data.success) {
                 renderOrderDetails(data.order);
             } else {
-                details.innerHTML = `<div class="text-center py-8 text-red-500">❌ ${data.error || 'Order not found'}</div>`;
+                details.innerHTML = '<div class="text-center py-8 text-red-500">❌ ' + (data.error || 'Order not found') + '</div>';
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error:', err);
             details.innerHTML = '<div class="text-center py-8 text-red-500">❌ Error loading order</div>';
         });
 }
 
 function renderOrderDetails(order) {
-    const details = document.getElementById('orderDetails');
+    var details = document.getElementById('orderDetails');
     
-    let itemsHtml = '';
+    var itemsHtml = '';
     if (order.items && order.items.length > 0) {
-        order.items.forEach(item => {
-            const itemTotal = (item.price || 0) * (item.quantity || 1);
+        order.items.forEach(function(item) {
+            var itemTotal = (item.price || 0) * (item.quantity || 1);
             itemsHtml += `
                 <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div>
@@ -764,7 +768,7 @@ function renderOrderDetails(order) {
         });
     }
     
-    const statusColors = {
+    var statusColors = {
         'pending': 'badge-warning',
         'confirmed': 'badge-info',
         'shipped': 'badge-purple',
@@ -795,8 +799,8 @@ function renderOrderDetails(order) {
             <div class="p-3 bg-gray-50 rounded-lg">
                 <p class="text-xs text-gray-400">Customer</p>
                 <p class="font-semibold text-sm">${order.customer_name || 'Walk-in Customer'}</p>
-                ${order.customer_email ? `<p class="text-xs text-gray-400">${order.customer_email}</p>` : ''}
-                ${order.customer_phone ? `<p class="text-xs text-gray-400">${order.customer_phone}</p>` : ''}
+                ${order.customer_email ? '<p class="text-xs text-gray-400">' + order.customer_email + '</p>' : ''}
+                ${order.customer_phone ? '<p class="text-xs text-gray-400">' + order.customer_phone + '</p>' : ''}
             </div>
             
             <div>
@@ -837,7 +841,7 @@ function editProduct(productId) {
     
     console.log('✏️ Editing product:', productId);
     
-    const modal = document.getElementById('editProductModal');
+    var modal = document.getElementById('editProductModal');
     if (!modal) {
         showToast('❌ Edit modal not found', 'error');
         return;
@@ -847,10 +851,10 @@ function editProduct(productId) {
     modal.classList.remove('hidden');
     
     fetch('/admin/api/product/' + productId + '?t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             if (data.success) {
-                const product = data.product;
+                var product = data.product;
                 document.getElementById('editProdId').value = product.id;
                 document.getElementById('editProdIdDisplay').value = product.id;
                 document.getElementById('editProdName').value = product.name || '';
@@ -870,7 +874,7 @@ function editProduct(productId) {
                 modal.classList.add('hidden');
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error:', err);
             showToast('❌ Error loading product', 'error');
             modal.classList.add('hidden');
@@ -888,8 +892,8 @@ function saveEditedProduct(event) {
         return;
     }
     
-    const productId = document.getElementById('editProdId').value;
-    const data = {
+    var productId = document.getElementById('editProdId').value;
+    var data = {
         name: document.getElementById('editProdName').value.trim(),
         category: document.getElementById('editProdCategory').value,
         price: parseFloat(document.getElementById('editProdPrice').value) || 0,
@@ -900,11 +904,11 @@ function saveEditedProduct(event) {
         badge: document.getElementById('editProdBadge').value,
         image: document.getElementById('editProdImage').value.trim(),
         description: document.getElementById('editProdDesc').value.trim(),
-        specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s)
+        specs: document.getElementById('editProdSpecs').value.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; })
     };
     
-    const btn = document.querySelector('#editProductModal .btn-gradient');
-    const originalText = btn.innerHTML;
+    var btn = document.querySelector('#editProductModal .btn-gradient');
+    var originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     btn.disabled = true;
     
@@ -913,19 +917,19 @@ function saveEditedProduct(event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(result => {
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
         if (result.success) {
             showToast('✅ ' + result.message, 'success');
             document.getElementById('editProductModal').classList.add('hidden');
-            setTimeout(() => location.reload(), 1000);
+            setTimeout(function() { location.reload(); }, 1000);
         } else {
             showToast('❌ ' + (result.message || 'Failed to update'), 'error');
         }
         btn.innerHTML = originalText;
         btn.disabled = false;
     })
-    .catch(err => {
+    .catch(function(err) {
         console.error('Error:', err);
         showToast('❌ Error saving product', 'error');
         btn.innerHTML = originalText;
@@ -952,16 +956,16 @@ function deleteProduct(productId) {
     fetch('/admin/api/product/' + productId, {
         method: 'DELETE'
     })
-    .then(response => response.json())
-    .then(result => {
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
         if (result.success) {
             showToast('✅ ' + result.message, 'success');
-            setTimeout(() => location.reload(), 1000);
+            setTimeout(function() { location.reload(); }, 1000);
         } else {
             showToast('❌ ' + (result.message || 'Failed to delete'), 'error');
         }
     })
-    .catch(err => {
+    .catch(function(err) {
         console.error('Error:', err);
         showToast('❌ Error deleting product. Please try again.', 'error');
     });
@@ -983,16 +987,16 @@ function updateOrderStatus(orderId, newStatus) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
         if (data.success) {
             showToast('✅ Order status updated to ' + newStatus, 'success');
-            setTimeout(() => location.reload(), 1000);
+            setTimeout(function() { location.reload(); }, 1000);
         } else {
             showToast('❌ ' + (data.message || 'Failed to update status'), 'error');
         }
     })
-    .catch(err => {
+    .catch(function(err) {
         console.error('Error:', err);
         showToast('❌ Error updating status', 'error');
     });
@@ -1004,7 +1008,7 @@ function updateOrderStatus(orderId, newStatus) {
 function loadProductsPage(page) {
     console.log('📄 Loading products page:', page);
     
-    const tbody = document.getElementById('productsTableBody');
+    var tbody = document.getElementById('productsTableBody');
     tbody.innerHTML = `
         <tr><td colspan="8" class="text-center py-8">
             <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
@@ -1012,14 +1016,14 @@ function loadProductsPage(page) {
         </td></tr>
     `;
     
-    const url = new URL(window.location);
+    var url = new URL(window.location);
     url.searchParams.set('products_page', page);
     url.searchParams.set('section', 'products');
     window.history.pushState({}, '', url);
     
     fetch('/admin/api/products?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             if (data.success) {
                 renderProductsTable(data.products);
                 updateProductsPagination(data);
@@ -1027,29 +1031,29 @@ function loadProductsPage(page) {
                 showToast('❌ Failed to load products', 'error');
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error loading products:', err);
             showToast('❌ Error loading products', 'error');
         });
 }
 
 function renderProductsTable(products) {
-    const tbody = document.getElementById('productsTableBody');
+    var tbody = document.getElementById('productsTableBody');
     if (!products || products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">No products found</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">No products found</td></tr>';
         return;
     }
     
-    let html = '';
-    products.forEach(product => {
-        const stockClass = product.stock < 10 ? 'danger' : product.stock < 30 ? 'warning' : 'success';
-        const profit = (product.price || 0) - (product.cost_price || 0);
+    var html = '';
+    products.forEach(function(product) {
+        var stockClass = product.stock < 10 ? 'danger' : product.stock < 30 ? 'warning' : 'success';
+        var profit = (product.price || 0) - (product.cost_price || 0);
         html += `
         <tr class="product-row" data-name="${product.name}" data-category="${product.category}" data-id="${product.id}">
             <td>
                 <div class="flex items-center gap-2 sm:gap-3">
                     <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100">
-                        ${product.image ? `<img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-box text-gray-300 text-base sm:text-xl\\'></i>'">` : '<i class="fas fa-box text-gray-300 text-base sm:text-xl"></i>'}
+                        ${product.image ? '<img src="' + product.image + '" alt="' + product.name + '" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML=\'<i class=\\'fas fa-box text-gray-300 text-base sm:text-xl\\'></i>\'">' : '<i class="fas fa-box text-gray-300 text-base sm:text-xl"></i>'}
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs sm:text-sm font-semibold text-[#0f172a] truncate max-w-[80px] sm:max-w-none">${product.name}</p>
@@ -1064,7 +1068,7 @@ function renderProductsTable(products) {
                 KSh ${formatNumber(Math.abs(profit))}
             </td>
             <td class="text-center"><span class="badge badge-${stockClass} text-[8px] sm:text-[10px]">${product.stock || 0}</span></td>
-            <td class="text-center hidden sm:table-cell">${product.badge ? `<span class="badge badge-purple text-[8px] sm:text-[10px]">${product.badge}</span>` : '<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>'}</td>
+            <td class="text-center hidden sm:table-cell">${product.badge ? '<span class="badge badge-purple text-[8px] sm:text-[10px]">' + product.badge + '</span>' : '<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>'}</td>
             <td>
                 <div class="flex gap-0.5 sm:gap-1 justify-center">
                     <button class="btn-outline text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1" onclick="editProduct('${product.id}')"><i class="fas fa-pen text-[8px] sm:text-[10px]"></i></button>
@@ -1078,10 +1082,10 @@ function renderProductsTable(products) {
 }
 
 function updateProductsPagination(data) {
-    const container = document.getElementById('productsPaginationLinks');
-    const startEl = document.getElementById('productsStart');
-    const endEl = document.getElementById('productsEnd');
-    const totalEl = document.getElementById('productsTotal');
+    var container = document.getElementById('productsPaginationLinks');
+    var startEl = document.getElementById('productsStart');
+    var endEl = document.getElementById('productsEnd');
+    var totalEl = document.getElementById('productsTotal');
     
     if (!container) return;
     
@@ -1089,19 +1093,19 @@ function updateProductsPagination(data) {
     if (endEl) endEl.textContent = data.end || data.total;
     if (totalEl) totalEl.textContent = data.total;
     
-    let html = '';
+    var html = '';
     if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(' + (data.page - 1) + ')"><i class="fas fa-chevron-left"></i></a>';
     }
-    for (let p = 1; p <= data.total_pages; p++) {
+    for (var p = 1; p <= data.total_pages; p++) {
         if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+            html += '<span class="page-link active text-[10px] sm:text-xs">' + p + '</span>';
         } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${p})">${p}</a>`;
+            html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(' + p + ')">' + p + '</a>';
         }
     }
     if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(' + (data.page + 1) + ')"><i class="fas fa-chevron-right"></i></a>';
     }
     container.innerHTML = html;
 }
@@ -1112,7 +1116,7 @@ function updateProductsPagination(data) {
 function loadOrdersPage(page) {
     console.log('📄 Loading orders page:', page);
     
-    const tbody = document.getElementById('ordersTableBody');
+    var tbody = document.getElementById('ordersTableBody');
     tbody.innerHTML = `
         <tr><td colspan="6" class="text-center py-8">
             <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
@@ -1120,14 +1124,14 @@ function loadOrdersPage(page) {
         </td></tr>
     `;
     
-    const url = new URL(window.location);
+    var url = new URL(window.location);
     url.searchParams.set('orders_page', page);
     url.searchParams.set('section', 'orders');
     window.history.pushState({}, '', url);
     
     fetch('/admin/api/orders?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             if (data.success) {
                 renderOrdersTable(data.orders);
                 updateOrdersPagination(data);
@@ -1135,28 +1139,28 @@ function loadOrdersPage(page) {
                 showToast('❌ Failed to load orders', 'error');
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error loading orders:', err);
             showToast('❌ Error loading orders', 'error');
         });
 }
 
 function renderOrdersTable(orders) {
-    const tbody = document.getElementById('ordersTableBody');
+    var tbody = document.getElementById('ordersTableBody');
     if (!orders || orders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">No orders found</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No orders found</td></tr>';
         return;
     }
     
-    let html = '';
-    orders.forEach(order => {
-        const statusColors = {
+    var html = '';
+    orders.forEach(function(order) {
+        var statusColors = {
             'pending': 'border-yellow-300 text-yellow-700 bg-yellow-50',
             'confirmed': 'border-blue-300 text-blue-700 bg-blue-50',
             'shipped': 'border-purple-300 text-purple-700 bg-purple-50',
             'delivered': 'border-green-300 text-green-700 bg-green-50'
         };
-        const statusClass = statusColors[order.status] || 'border-gray-300 text-gray-700 bg-gray-50';
+        var statusClass = statusColors[order.status] || 'border-gray-300 text-gray-700 bg-gray-50';
         
         html += `
         <tr>
@@ -1187,10 +1191,10 @@ function renderOrdersTable(orders) {
 }
 
 function updateOrdersPagination(data) {
-    const container = document.getElementById('ordersPaginationLinks');
-    const startEl = document.getElementById('ordersStart');
-    const endEl = document.getElementById('ordersEnd');
-    const totalEl = document.getElementById('ordersTotal');
+    var container = document.getElementById('ordersPaginationLinks');
+    var startEl = document.getElementById('ordersStart');
+    var endEl = document.getElementById('ordersEnd');
+    var totalEl = document.getElementById('ordersTotal');
     
     if (!container) return;
     
@@ -1198,19 +1202,19 @@ function updateOrdersPagination(data) {
     if (endEl) endEl.textContent = data.end || data.total;
     if (totalEl) totalEl.textContent = data.total;
     
-    let html = '';
+    var html = '';
     if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(' + (data.page - 1) + ')"><i class="fas fa-chevron-left"></i></a>';
     }
-    for (let p = 1; p <= data.total_pages; p++) {
+    for (var p = 1; p <= data.total_pages; p++) {
         if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+            html += '<span class="page-link active text-[10px] sm:text-xs">' + p + '</span>';
         } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${p})">${p}</a>`;
+            html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(' + p + ')">' + p + '</a>';
         }
     }
     if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(' + (data.page + 1) + ')"><i class="fas fa-chevron-right"></i></a>';
     }
     container.innerHTML = html;
 }
@@ -1221,7 +1225,7 @@ function updateOrdersPagination(data) {
 function loadCustomersPage(page) {
     console.log('📄 Loading customers page:', page);
     
-    const tbody = document.getElementById('customersTableBody');
+    var tbody = document.getElementById('customersTableBody');
     tbody.innerHTML = `
         <tr><td colspan="5" class="text-center py-8">
             <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
@@ -1229,14 +1233,14 @@ function loadCustomersPage(page) {
         </td></tr>
     `;
     
-    const url = new URL(window.location);
+    var url = new URL(window.location);
     url.searchParams.set('customers_page', page);
     url.searchParams.set('section', 'customers');
     window.history.pushState({}, '', url);
     
     fetch('/admin/api/customers?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             if (data.success) {
                 renderCustomersTable(data.customers);
                 updateCustomersPagination(data);
@@ -1244,21 +1248,21 @@ function loadCustomersPage(page) {
                 showToast('❌ Failed to load customers', 'error');
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error loading customers:', err);
             showToast('❌ Error loading customers', 'error');
         });
 }
 
 function renderCustomersTable(customers) {
-    const tbody = document.getElementById('customersTableBody');
+    var tbody = document.getElementById('customersTableBody');
     if (!customers || customers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">No customers found</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">No customers found</td></tr>';
         return;
     }
     
-    let html = '';
-    customers.forEach(customer => {
+    var html = '';
+    customers.forEach(function(customer) {
         html += `
         <tr>
             <td class="font-semibold text-[#0f172a] text-xs sm:text-sm">${customer.name}</td>
@@ -1273,10 +1277,10 @@ function renderCustomersTable(customers) {
 }
 
 function updateCustomersPagination(data) {
-    const container = document.getElementById('customersPaginationLinks');
-    const startEl = document.getElementById('customersStart');
-    const endEl = document.getElementById('customersEnd');
-    const totalEl = document.getElementById('customersTotal');
+    var container = document.getElementById('customersPaginationLinks');
+    var startEl = document.getElementById('customersStart');
+    var endEl = document.getElementById('customersEnd');
+    var totalEl = document.getElementById('customersTotal');
     
     if (!container) return;
     
@@ -1284,19 +1288,19 @@ function updateCustomersPagination(data) {
     if (endEl) endEl.textContent = data.end || data.total;
     if (totalEl) totalEl.textContent = data.total;
     
-    let html = '';
+    var html = '';
     if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(' + (data.page - 1) + ')"><i class="fas fa-chevron-left"></i></a>';
     }
-    for (let p = 1; p <= data.total_pages; p++) {
+    for (var p = 1; p <= data.total_pages; p++) {
         if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+            html += '<span class="page-link active text-[10px] sm:text-xs">' + p + '</span>';
         } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${p})">${p}</a>`;
+            html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(' + p + ')">' + p + '</a>';
         }
     }
     if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+        html += '<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(' + (data.page + 1) + ')"><i class="fas fa-chevron-right"></i></a>';
     }
     container.innerHTML = html;
 }
@@ -1305,31 +1309,31 @@ function updateCustomersPagination(data) {
 // SHOW SECTION WITH URL UPDATE
 // ============================================================
 function showSection(sectionName) {
-    const url = new URL(window.location);
+    var url = new URL(window.location);
     url.searchParams.set('section', sectionName);
     window.history.pushState({}, '', url);
     
-    const sections = document.querySelectorAll('.section');
+    var sections = document.querySelectorAll('.section');
     sections.forEach(function(section) {
         section.classList.add('hidden');
     });
 
-    const targetSection = document.getElementById(sectionName + '-section');
+    var targetSection = document.getElementById(sectionName + '-section');
     if (targetSection) {
         targetSection.classList.remove('hidden');
     }
 
-    const navItems = document.querySelectorAll('.sidebar .nav-item');
+    var navItems = document.querySelectorAll('.sidebar .nav-item');
     navItems.forEach(function(item) {
         item.classList.remove('active');
-        const onclick = item.getAttribute('onclick');
+        var onclick = item.getAttribute('onclick');
         if (onclick && onclick.includes("showSection('" + sectionName + "')")) {
             item.classList.add('active');
         }
     });
 
-    const pageTitle = document.getElementById('pageTitle');
-    const titles = {
+    var pageTitle = document.getElementById('pageTitle');
+    var titles = {
         'dashboard': 'Dashboard',
         'orders': 'Orders',
         'products': 'Products',
@@ -1351,8 +1355,8 @@ function showSection(sectionName) {
 // AUTO-SHOW SECTION ON PAGE LOAD
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
+    var urlParams = new URLSearchParams(window.location.search);
+    var section = urlParams.get('section');
     if (section) {
         showSection(section);
     }
@@ -1362,10 +1366,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // SYNC BAR FUNCTIONS
 // ============================================================
 function showSyncBar(count, orders) {
-    const bar = document.getElementById('syncStatusBar');
-    const countEl = document.getElementById('offlineOrderCount');
-    const detailsEl = document.getElementById('offlineOrderDetails');
-    const badgeEl = document.getElementById('offlineBadge');
+    var bar = document.getElementById('syncStatusBar');
+    var countEl = document.getElementById('offlineOrderCount');
+    var detailsEl = document.getElementById('offlineOrderDetails');
+    var badgeEl = document.getElementById('offlineBadge');
     
     if (count > 0) {
         bar.classList.remove('hidden');
@@ -1390,71 +1394,85 @@ function loadAnalyticsData() {
     console.log('📊 Loading analytics data...');
     
     fetch('/admin/api/analytics?t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
             console.log('✅ Analytics data loaded:', data);
             
-            const monthlyTable = document.getElementById('monthlyTable');
+            var monthlyTable = document.getElementById('monthlyTable');
             if (monthlyTable && data.monthly_data) {
-                const months = Object.keys(data.monthly_data).sort();
+                var months = Object.keys(data.monthly_data).sort();
                 if (months.length > 0) {
-                    let html = '';
-                    months.forEach(month => {
-                        const m = data.monthly_data[month];
-                        html += `<tr>
-                            <td class="text-xs sm:text-sm font-semibold">${month}</td>
-                            <td class="text-right text-xs sm:text-sm">${m.orders || 0}</td>
-                            <td class="text-right text-xs sm:text-sm">${m.items || 0}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ${formatNumber(m.revenue || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${formatNumber(m.cost || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${formatNumber(m.profit || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm font-bold ${(m.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600'}">${(m.margin || 0).toFixed(1)}%</td>
-                        </tr>`;
+                    var html = '';
+                    months.forEach(function(month) {
+                        var m = data.monthly_data[month];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + formatNumber(m.revenue || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + formatNumber(m.cost || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + formatNumber(m.profit || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-bold ' + ((m.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600') + '">' + (m.margin || 0).toFixed(1) + '%</td>' +
+                        '</tr>';
                     });
                     monthlyTable.innerHTML = html;
                 } else {
-                    monthlyTable.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-400">No monthly data available</td></tr>`;
+                    monthlyTable.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">No monthly data available</td></tr>';
                 }
             }
             
-            const productTable = document.getElementById('productTable');
+            var productTable = document.getElementById('productTable');
             if (productTable && data.product_sales) {
-                const products = Object.keys(data.product_sales);
+                var products = Object.keys(data.product_sales);
                 if (products.length > 0) {
-                    let html = '';
-                    products.slice(0, 10).forEach(product => {
-                        const p = data.product_sales[product];
-                        html += `<tr>
-                            <td class="text-xs sm:text-sm font-medium truncate max-w-[100px]">${product}</td>
-                            <td class="text-right text-xs sm:text-sm">${p.quantity || 0}</td>
-                            <td class="text-right text-xs sm:text-sm text-green-600">KSh ${formatNumber(p.revenue || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${formatNumber(p.cost || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${formatNumber(p.profit || 0)}</td>
-                            <td class="text-right text-xs sm:text-sm font-bold ${(p.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600'}">${(p.margin || 0).toFixed(1)}%</td>
-                        </tr>`;
+                    var html = '';
+                    products.slice(0, 10).forEach(function(product) {
+                        var p = data.product_sales[product];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-medium truncate max-w-[100px]">' + product + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-green-600">KSh ' + formatNumber(p.revenue || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + formatNumber(p.cost || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + formatNumber(p.profit || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-bold ' + ((p.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600') + '">' + (p.margin || 0).toFixed(1) + '%</td>' +
+                        '</tr>';
                     });
                     productTable.innerHTML = html;
                 } else {
-                    productTable.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400">No product data available</td></tr>`;
+                    productTable.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">No product data available</td></tr>';
                 }
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('❌ Error loading analytics:', err);
-            document.getElementById('monthlyTable').innerHTML = `<tr><td colspan="7" class="text-center py-6 text-red-400">Error loading data</td></tr>`;
-            document.getElementById('productTable').innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-400">Error loading data</td></tr>`;
+            document.getElementById('monthlyTable').innerHTML = '<tr><td colspan="7" class="text-center py-6 text-red-400">Error loading data</td></tr>';
+            document.getElementById('productTable').innerHTML = '<tr><td colspan="6" class="text-center py-6 text-red-400">Error loading data</td></tr>';
         });
 }
 
 // ============================================================
-// CHART INITIALIZATION
+// CHART INITIALIZATION - FIXED (No duplicate declarations)
 // ============================================================
-let revenueChart = null;
-let categoryChart = null;
+// Check if charts already exist before declaring
+if (typeof revenueChart === 'undefined') {
+    var revenueChart = null;
+}
+if (typeof categoryChart === 'undefined') {
+    var categoryChart = null;
+}
 
 function waitForChartJS() {
     if (typeof Chart !== 'undefined') {
         console.log('✅ Chart.js loaded, initializing charts...');
+        // Destroy existing charts if any
+        if (revenueChart) {
+            try { revenueChart.destroy(); } catch(e) {}
+            revenueChart = null;
+        }
+        if (categoryChart) {
+            try { categoryChart.destroy(); } catch(e) {}
+            categoryChart = null;
+        }
         setTimeout(initCharts, 300);
     } else {
         console.log('⏳ Waiting for Chart.js...');
@@ -1463,17 +1481,21 @@ function waitForChartJS() {
 }
 
 function initCharts() {
-    const revenueCtx = document.getElementById('revenueChart');
+    var revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
-        if (revenueChart) revenueChart.destroy();
+        // Destroy existing chart if any
+        if (revenueChart) {
+            try { revenueChart.destroy(); } catch(e) {}
+            revenueChart = null;
+        }
         
-        let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        let data = [0, 0, 0, 0, 0, 0];
+        var labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        var data = [0, 0, 0, 0, 0, 0];
         
         try {
-            const monthlyData = {{ analytics.monthly_data | tojson | safe if analytics and analytics.monthly_data else '{}' }};
+            var monthlyData = {{ analytics.monthly_data | tojson | safe if analytics and analytics.monthly_data else '{}' }};
             if (monthlyData && Object.keys(monthlyData).length > 0) {
-                const months = Object.keys(monthlyData).sort();
+                var months = Object.keys(monthlyData).sort();
                 labels = months;
                 data = months.map(function(month) {
                     return monthlyData[month].revenue || 0;
@@ -1483,72 +1505,79 @@ function initCharts() {
             console.warn('Using fallback data for revenue chart');
         }
         
-        revenueChart = new Chart(revenueCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Revenue (KSh)',
-                    data: data,
-                    backgroundColor: [
-                        'rgba(5, 150, 105, 0.85)',
-                        'rgba(5, 150, 105, 0.7)',
-                        'rgba(5, 150, 105, 0.55)',
-                        'rgba(5, 150, 105, 0.4)',
-                        'rgba(5, 150, 105, 0.3)',
-                        'rgba(5, 150, 105, 0.2)'
-                    ],
-                    borderColor: 'rgba(5, 150, 105, 1)',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    barPercentage: 0.6,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'KSh ' + formatNumber(context.parsed.y);
+        try {
+            revenueChart = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (KSh)',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(5, 150, 105, 0.85)',
+                            'rgba(5, 150, 105, 0.7)',
+                            'rgba(5, 150, 105, 0.55)',
+                            'rgba(5, 150, 105, 0.4)',
+                            'rgba(5, 150, 105, 0.3)',
+                            'rgba(5, 150, 105, 0.2)'
+                        ],
+                        borderColor: 'rgba(5, 150, 105, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barPercentage: 0.6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'KSh ' + formatNumber(context.parsed.y);
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: {
-                            callback: function(value) {
-                                if (value >= 1000000) return 'KSh ' + (value / 1000000).toFixed(1) + 'M';
-                                if (value >= 1000) return 'KSh ' + (value / 1000).toFixed(0) + 'k';
-                                return 'KSh ' + value;
-                            },
-                            maxTicksLimit: 6,
-                            font: { size: 9 }
-                        }
                     },
-                    x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) return 'KSh ' + (value / 1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return 'KSh ' + (value / 1000).toFixed(0) + 'k';
+                                    return 'KSh ' + value;
+                                },
+                                maxTicksLimit: 6,
+                                font: { size: 9 }
+                            }
+                        },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    }
                 }
-            }
-        });
-        console.log('✅ Revenue chart initialized');
+            });
+            console.log('✅ Revenue chart initialized');
+        } catch(e) {
+            console.warn('⚠️ Failed to initialize revenue chart:', e);
+        }
     }
 
-    const categoryCtx = document.getElementById('categoryChart');
+    var categoryCtx = document.getElementById('categoryChart');
     if (categoryCtx) {
-        if (categoryChart) categoryChart.destroy();
+        if (categoryChart) {
+            try { categoryChart.destroy(); } catch(e) {}
+            categoryChart = null;
+        }
         
-        let labels = ['Electronics', 'Phones', 'Accessories', 'Laptops', 'Other'];
-        let values = [25, 35, 20, 15, 5];
+        var labels = ['Electronics', 'Phones', 'Accessories', 'Laptops', 'Other'];
+        var values = [25, 35, 20, 15, 5];
         
         try {
-            const categorySales = {{ analytics.category_sales | tojson | safe if analytics and analytics.category_sales else '{}' }};
+            var categorySales = {{ analytics.category_sales | tojson | safe if analytics and analytics.category_sales else '{}' }};
             if (categorySales && Object.keys(categorySales).length > 0) {
-                const sorted = Object.entries(categorySales).sort(function(a, b) {
+                var sorted = Object.entries(categorySales).sort(function(a, b) {
                     return b[1].revenue - a[1].revenue;
                 }).slice(0, 5);
                 labels = sorted.map(function(item) { return item[0]; });
@@ -1558,52 +1587,56 @@ function initCharts() {
             console.warn('Using fallback data for category chart');
         }
         
-        categoryChart = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: [
-                        'rgba(99, 102, 241, 0.85)',
-                        'rgba(5, 150, 105, 0.85)',
-                        'rgba(251, 191, 36, 0.85)',
-                        'rgba(239, 68, 68, 0.85)',
-                        'rgba(168, 85, 247, 0.85)'
-                    ],
-                    borderWidth: 2,
-                    borderColor: 'white',
-                    hoverOffset: 12,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '50%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 12,
-                            usePointStyle: true,
-                            pointStyleWidth: 12,
-                            font: { size: 10, weight: '500' },
-                            boxWidth: 12
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                let percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                return context.label + ': ' + percentage + '% (KSh ' + formatNumber(context.parsed) + ')';
+        try {
+            categoryChart = new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.85)',
+                            'rgba(5, 150, 105, 0.85)',
+                            'rgba(251, 191, 36, 0.85)',
+                            'rgba(239, 68, 68, 0.85)',
+                            'rgba(168, 85, 247, 0.85)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: 'white',
+                        hoverOffset: 12,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '50%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 12,
+                                usePointStyle: true,
+                                pointStyleWidth: 12,
+                                font: { size: 10, weight: '500' },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                    var percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + percentage + '% (KSh ' + formatNumber(context.parsed) + ')';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-        console.log('✅ Category chart initialized');
+            });
+            console.log('✅ Category chart initialized');
+        } catch(e) {
+            console.warn('⚠️ Failed to initialize category chart:', e);
+        }
     }
 }
 
@@ -1619,10 +1652,10 @@ function handleResize() {
 // FILE UPLOAD HANDLER
 // ============================================================
 function handleFileUpload(input) {
-    const file = input.files[0];
+    var file = input.files[0];
     if (!file) return;
     
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = function(e) {
         document.getElementById('prodImage').value = e.target.result;
         document.getElementById('imagePreview').src = e.target.result;
@@ -1646,7 +1679,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('🔄 Back online! Syncing orders...', 'info');
     });
     
-    let resizeTimer;
+    var resizeTimer;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
@@ -1656,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function updateLiveTime() {
-        const now = new Date();
+        var now = new Date();
         document.getElementById('liveTime').textContent = now.toLocaleTimeString();
     }
     updateLiveTime();
