@@ -12,7 +12,7 @@
 <meta http-equiv="Expires" content="0">
 
 <!-- ============================================================
-     EMERGENCY: LOAD STATS FROM API IF NOT DEFINED
+     EMERGENCY: LOAD STATS FROM API IF NOT DEFINED (NO REFRESH)
      ============================================================ -->
 <script>
 // Check if stats is defined
@@ -61,8 +61,9 @@ if (typeof stats === 'undefined') {
         var loading = document.getElementById('statsLoading');
         if (loading) loading.remove();
         
-        // Reload the page to apply stats
-        location.reload();
+        // Update the page without reloading
+        updatePageStats();
+        console.log('✅ Page updated with stats from API');
     })
     .catch(function(err) {
         console.error('❌ Error loading stats:', err);
@@ -72,6 +73,46 @@ if (typeof stats === 'undefined') {
             loading.textContent = '⚠️ Could not load stats. Please refresh.';
         }
     });
+}
+
+// Function to update page stats without reload
+function updatePageStats() {
+    // Update all the stats elements
+    var elements = {
+        dashTotalOrders: document.getElementById('dashTotalOrders'),
+        dashTodayRevenue: document.getElementById('dashTodayRevenue'),
+        dashTotalProducts: document.getElementById('dashTotalProducts'),
+        dashMonthRevenue: document.getElementById('dashMonthRevenue'),
+        liveRevenue: document.getElementById('liveRevenue'),
+        liveOrders: document.getElementById('liveOrders'),
+        totalRevenue: document.getElementById('totalRevenue'),
+        totalOrders: document.getElementById('totalOrders')
+    };
+    
+    if (elements.dashTotalOrders) elements.dashTotalOrders.textContent = window.stats.total_orders || 0;
+    if (elements.dashTodayRevenue) elements.dashTodayRevenue.textContent = 'KSh ' + formatNumber(window.stats.today_revenue || 0);
+    if (elements.dashTotalProducts) elements.dashTotalProducts.textContent = window.stats.total_products || 0;
+    if (elements.dashMonthRevenue) elements.dashMonthRevenue.textContent = 'KSh ' + formatNumber(window.stats.month_revenue || 0);
+    if (elements.liveRevenue) elements.liveRevenue.textContent = 'KSh ' + formatNumber(window.stats.today_revenue || 0);
+    if (elements.liveOrders) elements.liveOrders.textContent = window.stats.today_orders || 0;
+    if (elements.totalRevenue) elements.totalRevenue.textContent = 'KSh ' + formatNumber(window.stats.total_revenue || 0);
+    if (elements.totalOrders) elements.totalOrders.textContent = window.stats.total_orders || 0;
+}
+
+// Test function - run in console to check stats
+function testStats() {
+    console.log('📊 STATS TEST:');
+    console.log('  Stats defined?', typeof stats !== 'undefined');
+    if (typeof stats !== 'undefined') {
+        console.log('  Total Orders:', stats.total_orders);
+        console.log('  Today Revenue:', stats.today_revenue);
+        console.log('  Total Products:', stats.total_products);
+        console.log('  Total Revenue:', stats.total_revenue);
+    } else if (typeof window.stats !== 'undefined') {
+        console.log('  Window Stats:', window.stats);
+    } else {
+        console.log('  ❌ No stats found');
+    }
 }
 </script>
 
@@ -674,7 +715,7 @@ if (typeof stats === 'undefined') {
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - FIXED: No duplicate chart variables
+     SCRIPTS
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -683,7 +724,7 @@ if (typeof stats === 'undefined') {
 // ============================================================
 function formatNumber(value) {
     if (value === undefined || value === null) return '0';
-    const num = Number(value);
+    var num = Number(value);
     if (isNaN(num)) return '0';
     return num.toLocaleString();
 }
@@ -692,14 +733,14 @@ function formatNumber(value) {
 // TOAST NOTIFICATION
 // ============================================================
 function showToast(message, type) {
-    const colors = {
+    var colors = {
         success: 'bg-green-500',
         error: 'bg-red-500',
         warning: 'bg-amber-500',
         info: 'bg-blue-500'
     };
     
-    const toast = document.createElement('div');
+    var toast = document.createElement('div');
     toast.className = 'fixed top-4 right-4 z-50 ' + (colors[type] || 'bg-blue-500') + ' text-white px-4 py-3 rounded-lg shadow-lg max-w-sm text-sm transition-all duration-300 transform translate-x-0';
     toast.textContent = message;
     document.body.appendChild(toast);
@@ -1388,6 +1429,24 @@ function dismissSyncBar() {
 }
 
 // ============================================================
+// TEST FUNCTION - Run in console to check stats
+// ============================================================
+function testStats() {
+    console.log('📊 STATS TEST:');
+    console.log('  Stats defined?', typeof stats !== 'undefined');
+    if (typeof stats !== 'undefined') {
+        console.log('  Total Orders:', stats.total_orders);
+        console.log('  Today Revenue:', stats.today_revenue);
+        console.log('  Total Products:', stats.total_products);
+        console.log('  Total Revenue:', stats.total_revenue);
+    } else if (typeof window.stats !== 'undefined') {
+        console.log('  Window Stats:', window.stats);
+    } else {
+        console.log('  ❌ No stats found');
+    }
+}
+
+// ============================================================
 // LOAD ANALYTICS DATA
 // ============================================================
 function loadAnalyticsData() {
@@ -1451,7 +1510,7 @@ function loadAnalyticsData() {
 }
 
 // ============================================================
-// CHART INITIALIZATION - FIXED (No duplicate declarations)
+// CHART INITIALIZATION
 // ============================================================
 // Check if charts already exist before declaring
 if (typeof revenueChart === 'undefined') {
@@ -1464,7 +1523,6 @@ if (typeof categoryChart === 'undefined') {
 function waitForChartJS() {
     if (typeof Chart !== 'undefined') {
         console.log('✅ Chart.js loaded, initializing charts...');
-        // Destroy existing charts if any
         if (revenueChart) {
             try { revenueChart.destroy(); } catch(e) {}
             revenueChart = null;
@@ -1483,7 +1541,6 @@ function waitForChartJS() {
 function initCharts() {
     var revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
-        // Destroy existing chart if any
         if (revenueChart) {
             try { revenueChart.destroy(); } catch(e) {}
             revenueChart = null;
@@ -1697,5 +1754,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Admin dashboard fully loaded!');
+console.log('🔍 Run testStats() in console to check data');
 </script>
 {% endblock %}
