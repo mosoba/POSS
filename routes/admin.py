@@ -178,7 +178,7 @@ def admin_logout():
 
 
 # ============================================================
-# ✅ ADMIN DASHBOARD - SIMPLIFIED AND WORKING
+# ✅ ADMIN DASHBOARD - COMPLETE FIXED VERSION
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -197,13 +197,13 @@ def admin_dashboard():
         print("=" * 60)
 
         # ============================================================
-        # LOAD DATA FROM SUPABASE
+        # LOAD DATA
         # ============================================================
-        all_products = load_products()
-        all_orders = load_orders()
+        all_products = load_products() or []
+        all_orders = load_orders() or []
         
-        print(f"📡 Products loaded: {len(all_products) if all_products else 0}")
-        print(f"📡 Orders loaded: {len(all_orders) if all_orders else 0}")
+        print(f"📡 Products loaded: {len(all_products)}")
+        print(f"📡 Orders loaded: {len(all_orders)}")
 
         # If no products, seed demo products
         if not all_products:
@@ -268,7 +268,7 @@ def admin_dashboard():
             low_stock_items = len([p for p in all_products if p.get('stock', 0) < 10])
 
         # ============================================================
-        # BUILD STATS OBJECT
+        # BUILD STATS OBJECT - WITH ALL VALUES
         # ============================================================
         stats = {
             'total_products': total_products,
@@ -296,7 +296,7 @@ def admin_dashboard():
         }
 
         # ============================================================
-        # LOG THE STATS
+        # LOG THE STATS FOR DEBUGGING
         # ============================================================
         print("=" * 60)
         print("📊 ADMIN STATS CALCULATED:")
@@ -308,9 +308,10 @@ def admin_dashboard():
         print("=" * 60)
 
         # ============================================================
-        # RENDER TEMPLATE WITH ALL VARIABLES
+        # RENDER TEMPLATE WITH ALL VARIABLES - stats IS PASSED!
         # ============================================================
-        return render_template('admin.html',
+        return render_template(
+            'admin.html',
             # Products
             products=all_products[:20] if all_products else [],
             all_products=all_products or [],
@@ -329,7 +330,7 @@ def admin_dashboard():
             total_customers=0,
             customers_page=1,
             total_customer_pages=1,
-            # Stats & Analytics
+            # Stats & Analytics - CRITICAL: stats IS PASSED HERE
             stats=stats,
             analytics={
                 'today_revenue': today_revenue,
@@ -352,7 +353,9 @@ def admin_dashboard():
         traceback.print_exc()
         flash('Error loading admin dashboard', 'danger')
         
-        # Return with defaults
+        # ============================================================
+        # RETURN WITH DEFAULTS - stats IS STILL PASSED
+        # ============================================================
         return render_template('admin.html',
             products=[],
             all_products=[],
@@ -372,7 +375,7 @@ def admin_dashboard():
             bundles=[],
             pos_count=0,
             analytics={},
-            stats={
+            stats={  # <-- CRITICAL: stats MUST be passed even in error case
                 'total_products': 0,
                 'total_bundles': 0,
                 'total_cart_items': 0,
@@ -456,7 +459,7 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE - ONLINE
+# POS ORDER ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -702,14 +705,14 @@ def admin_api_analytics():
                     pass
         
         return jsonify({
+            'success': True,
             'total_revenue': total_revenue,
             'total_orders': total_orders,
             'today_revenue': today_revenue,
-            'today_orders': today_orders,
-            'success': True
+            'today_orders': today_orders
         })
     except Exception as e:
-        return jsonify({'error': str(e), 'success': False}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @admin_bp.route('/admin/api/sales-stats', methods=['GET'])
@@ -797,10 +800,6 @@ def api_sales_stats():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
-# ============================================================
-# SYNC QUEUED ORDERS
-# ============================================================
 
 @admin_bp.route('/admin/api/sync-queue', methods=['POST'])
 def api_sync_queue():
@@ -994,7 +993,121 @@ def api_sync_order():
 
 
 # ============================================================
-# OTHER ADMIN ROUTES
+# PROCESS RETURN
+# ============================================================
+
+@admin_bp.route('/admin/api/process-return', methods=['POST'])
+def api_process_return():
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        items_to_return = data.get('items', [])
+        refund_total = data.get('refund_total', 0)
+        customer_name = data.get('customer_name', 'Customer')
+        reason = data.get('reason', 'Customer return')
+
+        if not items_to_return:
+            return jsonify({'success': False, 'message': 'No items to return'}), 400
+
+        return_items = []
+        for item in items_to_return:
+            item_price = float(item.get('price', 0))
+            item_qty = int(item.get('quantity', 1))
+            return_items.append({
+                'product_id': str(item.get('id', '')),
+                'name': item.get('name', 'Product'),
+                'price': item_price,
+                'quantity': item_qty,
+                'total': item_price * item_qty,
+                'type': 'return'
+            })
+
+        return_order_id = data.get('return_order_id', f'RET-{uuid.uuid4().hex[:8].upper()}')
+
+        return_order_data = {
+            'order_id': return_order_id,
+            'items': return_items,
+            'subtotal': refund_total,
+            'shipping': 0,
+            'total': -refund_total,
+            'status': 'returned',
+            'source': 'pos',
+            'created_at': datetime.utcnow().isoformat(),
+            'customer': {
+                'name': customer_name,
+                'email': 'return@example.com',
+                'phone': 'N/A',
+                'address': 'Return'
+            },
+            'customer_name': customer_name,
+            'customer_email': 'return@example.com',
+            'customer_phone': 'N/A',
+            'customer_address': 'Return',
+            'return_reason': reason,
+            'return_amount': refund_total,
+            'is_return': True
+        }
+
+        # Restock products
+        for item in items_to_return:
+            product_id = str(item.get('id', ''))
+            quantity = int(item.get('quantity', 1))
+            if product_id:
+                try:
+                    products = load_products()
+                    for p in products:
+                        if str(p.get('id')) == product_id:
+                            current_stock = int(p.get('stock', 0))
+                            new_stock = current_stock + quantity
+                            requests.patch(
+                                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+                                headers=Config.SUPABASE_HEADERS,
+                                json={'stock': new_stock},
+                                timeout=10
+                            )
+                            break
+                except Exception as e:
+                    print(f"⚠️ Error restocking product {product_id}: {e}")
+
+        response = requests.post(
+            f"{Config.SUPABASE_URL}/rest/v1/orders",
+            headers=Config.SUPABASE_HEADERS,
+            json=return_order_data,
+            timeout=10,
+        )
+
+        if response.status_code in [200, 201]:
+            import utils.data
+            utils.data.orders_cache = []
+            utils.data.products_cache = []
+
+            return jsonify({
+                'success': True,
+                'order_id': return_order_id,
+                'message': f'Return processed! Refund: KSh {refund_total:,.2f}',
+                'refund_total': refund_total,
+                'revenue_deducted': refund_total
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to process return: {response.status_code}'
+            }), 500
+
+    except Exception as e:
+        print(f'❌ Return error: {e}')
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ============================================================
+# ADMIN ROUTES
 # ============================================================
 
 @admin_bp.route('/admin/upload-image', methods=['POST'])
@@ -1229,6 +1342,75 @@ def api_orders_paginated():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/api/customers', methods=['GET'])
+def api_customers():
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/customers",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10,
+        )
+
+        if response.status_code == 200:
+            customers_from_db = response.json()
+            if customers_from_db:
+                result = []
+                for c in customers_from_db:
+                    result.append({
+                        'name': c.get('name', ''),
+                        'email': c.get('email', 'N/A'),
+                        'phone': c.get('phone', 'N/A'),
+                        'orders': 0,
+                        'total_spent': 0
+                    })
+                return jsonify(result)
+
+        orders = load_orders()
+        customer_dict = {}
+
+        for order in orders:
+            name = None
+
+            if order.get('customer_name'):
+                name = order.get('customer_name')
+
+            if not name:
+                customer = order.get('customer', {})
+                if isinstance(customer, dict):
+                    name = customer.get('name')
+                elif isinstance(customer, str):
+                    try:
+                        customer_obj = json.loads(customer)
+                        name = customer_obj.get('name')
+                    except:
+                        pass
+
+            if not name or name in ['Walk-in Customer', 'Web Customer', 'Customer', '']:
+                continue
+
+            email = order.get('customer_email', 'N/A')
+            phone = order.get('customer_phone', 'N/A')
+
+            if name not in customer_dict:
+                customer_dict[name] = {
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'orders': 0,
+                    'total_spent': 0
+                }
+            customer_dict[name]['orders'] += 1
+            customer_dict[name]['total_spent'] += order.get('total', 0)
+
+        return jsonify(list(customer_dict.values()))
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 # ============================================================
