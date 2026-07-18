@@ -5,11 +5,15 @@
 {% block content %}
 
 <!-- ============================================================
-     DASHBOARD SECTION - MOBILE OPTIMIZED
+     FORCE NO CACHE
      ============================================================ -->
-     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+
+<!-- ============================================================
+     DASHBOARD SECTION - MOBILE OPTIMIZED
+     ============================================================ -->
 <div id="dashboard-section" class="section">
     
     <!-- ============================================================
@@ -74,7 +78,7 @@
                 </span>
                 <span class="text-gray-300 hidden sm:inline">|</span>
                 <span class="text-xs sm:text-sm text-gray-600">
-                    <span class="font-bold text-green-600" id="liveRevenue">KSh {{ "%.0f"|format(stats.today_revenue|default(0)) }}</span> revenue today
+                    <span class="font-bold text-green-600" id="liveRevenue">KSh {{ stats.today_revenue|default(0)|int|format_number }}</span> revenue today
                 </span>
                 <span class="text-gray-300 hidden sm:inline">|</span>
                 <span class="text-xs sm:text-sm text-gray-600">
@@ -111,8 +115,8 @@
                 </span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">Today's Revenue</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashTodayRevenue">KSh {{ "%.0f"|format(stats.today_revenue|default(0)) }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Vs yesterday: KSh <span id="dashYesterdayRevenue">{{ "%.0f"|format(stats.yesterday_revenue|default(0)) }}</span></p>
+            <p class="value text-base sm:text-xl font-bold" id="dashTodayRevenue">KSh {{ stats.today_revenue|default(0)|int|format_number }}</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Vs yesterday: KSh <span id="dashYesterdayRevenue">{{ stats.yesterday_revenue|default(0)|int|format_number }}</span></p>
         </div>
 
         <div class="stat-card p-3 sm:p-4">
@@ -129,8 +133,8 @@
                 </span>
             </div>
             <p class="label text-[9px] sm:text-[10px]">This Month</p>
-            <p class="value text-base sm:text-xl font-bold" id="dashMonthRevenue">KSh {{ "%.0f"|format(stats.month_revenue|default(0)) }}</p>
-            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Last month: KSh <span id="dashLastMonthRevenue">{{ "%.0f"|format(stats.last_month_revenue|default(0)) }}</span></p>
+            <p class="value text-base sm:text-xl font-bold" id="dashMonthRevenue">KSh {{ stats.month_revenue|default(0)|int|format_number }}</p>
+            <p class="text-[8px] sm:text-[10px] text-gray-400 mt-0.5">Last month: KSh <span id="dashLastMonthRevenue">{{ stats.last_month_revenue|default(0)|int|format_number }}</span></p>
         </div>
 
         <div class="stat-card p-3 sm:p-4">
@@ -200,7 +204,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <span class="font-semibold text-xs sm:text-sm">KSh {{ "%.0f"|format(order.total|default(0)) }}</span>
+                        <span class="font-semibold text-xs sm:text-sm">KSh {{ order.total|default(0)|int|format_number }}</span>
                         <span class="badge text-[8px] sm:text-[10px] {% if order.status == 'pending' %}badge-warning{% elif order.status == 'confirmed' %}badge-info{% elif order.status == 'shipped' %}badge-purple{% elif order.status == 'delivered' %}badge-success{% else %}badge-warning{% endif %}">
                             {{ order.status or 'Pending' }}
                         </span>
@@ -223,9 +227,9 @@
 <div id="analytics-section" class="section hidden">
     <!-- Summary Stats - Mobile Optimized -->
     <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-6">
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center"><i class="fas fa-coin text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Revenue</p></div><p class="text-sm sm:text-xl font-extrabold text-green-600" id="totalRevenue">KSh {{ "%.0f"|format(stats.total_revenue|default(0)) }}</p></div>
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center"><i class="fas fa-shopping-bag text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Cost</p></div><p class="text-sm sm:text-xl font-extrabold text-blue-600" id="totalCost">KSh {{ "%.0f"|format(stats.total_cost|default(0)) }}</p></div>
-        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center"><i class="fas fa-chart-line text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Profit</p></div><p class="text-sm sm:text-xl font-extrabold text-purple-600" id="totalProfit">KSh {{ "%.0f"|format(stats.total_profit|default(0)) }}</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center"><i class="fas fa-coin text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Revenue</p></div><p class="text-sm sm:text-xl font-extrabold text-green-600" id="totalRevenue">KSh {{ stats.total_revenue|default(0)|int|format_number }}</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center"><i class="fas fa-shopping-bag text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Cost</p></div><p class="text-sm sm:text-xl font-extrabold text-blue-600" id="totalCost">KSh {{ stats.total_cost|default(0)|int|format_number }}</p></div>
+        <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center"><i class="fas fa-chart-line text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Profit</p></div><p class="text-sm sm:text-xl font-extrabold text-purple-600" id="totalProfit">KSh {{ stats.total_profit|default(0)|int|format_number }}</p></div>
         <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center"><i class="fas fa-shopping-cart text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Orders</p></div><p class="text-sm sm:text-xl font-extrabold text-amber-600" id="totalOrders">{{ stats.total_orders|default(0) }}</p></div>
     </div>
 
@@ -233,8 +237,8 @@
     <div class="glass-card p-3 sm:p-4 mb-3 sm:mb-6">
         <h3 class="font-bold text-[#0f172a] text-xs sm:text-base mb-2 sm:mb-3"><i class="fas fa-chart-line text-blue-500 mr-1 sm:mr-2"></i> Profit Overview</h3>
         <div class="grid grid-cols-3 gap-2 sm:gap-4">
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Revenue</p><p class="text-sm sm:text-lg font-extrabold text-green-600" id="revRevenue">KSh {{ "%.0f"|format(stats.total_revenue|default(0)) }}</p></div>
-            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Profit</p><p class="text-sm sm:text-lg font-extrabold text-purple-600" id="revProfit">KSh {{ "%.0f"|format(stats.total_profit|default(0)) }}</p></div>
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Revenue</p><p class="text-sm sm:text-lg font-extrabold text-green-600" id="revRevenue">KSh {{ stats.total_revenue|default(0)|int|format_number }}</p></div>
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Profit</p><p class="text-sm sm:text-lg font-extrabold text-purple-600" id="revProfit">KSh {{ stats.total_profit|default(0)|int|format_number }}</p></div>
             <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 sm:p-4 rounded-xl border text-center"><p class="text-[8px] sm:text-[10px] text-gray-500">Margin</p><p class="text-sm sm:text-lg font-extrabold text-blue-600" id="profitMargin">
                 {% if stats.total_revenue|default(0) > 0 %}
                     {{ ((stats.total_profit|default(0) / stats.total_revenue|default(1)) * 100)|round(1) }}%
@@ -312,10 +316,10 @@
                                 </div>
                             </td>
                             <td class="hidden sm:table-cell"><span class="badge badge-info text-[8px] sm:text-[10px]">{{ product.category or 'Uncategorized' }}</span></td>
-                            <td class="text-right font-semibold text-xs sm:text-sm">KSh {{ "%.0f"|format(product.price|default(0)) }}</td>
-                            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh {{ "%.0f"|format(product.cost_price|default(0)) }}</td>
+                            <td class="text-right font-semibold text-xs sm:text-sm">KSh {{ product.price|default(0)|int|format_number }}</td>
+                            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh {{ product.cost_price|default(0)|int|format_number }}</td>
                             <td class="text-right hidden lg:table-cell {% if ((product.price|default(0)) - (product.cost_price|default(0))) > 0 %}text-green-600{% else %}text-red-600{% endif %} font-bold text-xs sm:text-sm">
-                                KSh {{ "%.0f"|format(((product.price|default(0)) - (product.cost_price|default(0)))|abs) }}
+                                KSh {{ ((product.price|default(0)) - (product.cost_price|default(0)))|abs|int|format_number }}
                             </td>
                             <td class="text-center">{% if product.stock|default(0) < 10 %}<span class="badge badge-danger text-[8px] sm:text-[10px]">{{ product.stock }}</span>{% elif product.stock|default(0) < 30 %}<span class="badge badge-warning text-[8px] sm:text-[10px]">{{ product.stock }}</span>{% else %}<span class="badge badge-success text-[8px] sm:text-[10px]">{{ product.stock }}</span>{% endif %}</td>
                             <td class="text-center hidden sm:table-cell">{% if product.badge %}<span class="badge badge-purple text-[8px] sm:text-[10px]">{{ product.badge }}</span>{% else %}<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>{% endif %}</td>
@@ -361,11 +365,12 @@
 </div>
 
 <!-- ============================================================
-     ADD PRODUCT SECTION - WITH FILE UPLOAD & MULTIPLE IMAGES
+     ADD PRODUCT SECTION - COMPACT MOBILE
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
         <form id="productForm" onsubmit="saveProduct(event)">
+            <!-- Mobile Optimized Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Product ID</label>
@@ -421,47 +426,17 @@
                 </div>
             </div>
 
-            <!-- ===== MULTIPLE IMAGES WITH FILE UPLOAD ===== -->
+            <!-- Image Row - Mobile Optimized -->
             <div class="mt-2 sm:mt-3">
-                <label class="form-label text-[8px] sm:text-[10px] block mb-1.5">Product Images (up to 5 images)</label>
-                
-                <!-- File Upload Button -->
-                <div class="flex flex-wrap items-center gap-3 mb-3">
-                    <button type="button" onclick="document.getElementById('fileInput').click()" 
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition">
-                        <i class="fas fa-upload"></i> Upload Images
+                <label class="form-label text-[8px] sm:text-[10px]">Image</label>
+                <div class="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
+                    <input type="url" id="prodImage" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1" placeholder="https://images.unsplash.com/photo-..." />
+                    <button type="button" class="btn-outline text-[8px] sm:text-[10px] px-2 sm:px-3 py-1 sm:py-1.5" onclick="document.getElementById('fileInput').click()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); transition: all 0.3s ease;">
+                        <i class="fas fa-upload"></i> Upload
                     </button>
-                    <input type="file" id="fileInput" accept="image/*" multiple style="display:none" 
-                           onchange="handleFileUpload(this.files)" />
-                    <span class="text-xs text-gray-400">or paste URLs below</span>
-                    <span class="text-xs text-gray-400 ml-auto" id="imageCountDisplay">0 / 5 images</span>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(this)" />
                 </div>
-                
-                <!-- Drag & Drop Area -->
-                <div id="dropArea" class="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-3 text-center hover:border-blue-500 transition cursor-pointer"
-                     onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-1"></i>
-                    <p class="text-xs text-gray-500">Drag & drop images here or click to upload</p>
-                </div>
-                
-                <!-- Image URL Inputs Container -->
-                <div id="imageInputsContainer" class="space-y-1.5">
-                    <div class="flex items-center gap-2 image-input-row">
-                        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
-                        <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 hidden remove-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <button type="button" onclick="addImageInput()" class="text-xs text-blue-600 hover:text-blue-700 mt-1.5 font-medium">
-                    <i class="fas fa-plus-circle"></i> Add Another URL
-                </button>
-                
-                <!-- Image Preview Gallery -->
-                <div id="imagePreviewGallery" class="flex gap-2 mt-3 flex-wrap">
-                    <p class="text-xs text-gray-400">No images added yet</p>
-                </div>
+                <img id="imagePreview" class="upload-preview mt-1 sm:mt-2" alt="Preview" />
             </div>
 
             <!-- Description & Specs -->
@@ -510,7 +485,7 @@
                                     <p class="text-[8px] sm:text-xs text-gray-400 truncate max-w-[100px]">{{ order.customer.email if order.customer and order.customer.email else order.customer_email or '' }}</p>
                                 </div>
                             </td>
-                            <td class="text-right font-bold text-xs sm:text-sm">KSh {{ "%.0f"|format(order.total|default(0)) }}</td>
+                            <td class="text-right font-bold text-xs sm:text-sm">KSh {{ order.total|default(0)|int|format_number }}</td>
                             <td class="text-center">
                                 <select onchange="updateOrderStatus('{{ order.order_id }}', this.value)" class="text-[8px] sm:text-[10px] font-bold border rounded-lg px-1 sm:px-2 py-0.5 sm:py-1 outline-none transition-all {% if order.status == 'pending' %}border-yellow-300 text-yellow-700 bg-yellow-50{% elif order.status == 'confirmed' %}border-blue-300 text-blue-700 bg-blue-50{% elif order.status == 'shipped' %}border-purple-300 text-purple-700 bg-purple-50{% elif order.status == 'delivered' %}border-green-300 text-green-700 bg-green-50{% endif %}">
                                     <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>⏳ Pending</option>
@@ -577,7 +552,7 @@
                                 <td class="text-gray-600 text-xs sm:text-sm hidden sm:table-cell truncate max-w-[120px]">{{ customer.email or 'N/A' }}</td>
                                 <td class="text-gray-600 text-xs sm:text-sm hidden md:table-cell">{{ customer.phone or 'N/A' }}</td>
                                 <td class="text-center"><span class="badge badge-info text-[8px] sm:text-[10px]">{{ customer.orders }}</span></td>
-                                <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh {{ "%.0f"|format(customer.total_spent|default(0)) }}</td>
+                                <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh {{ customer.total_spent|default(0)|int|format_number }}</td>
                             </tr>
                             {% endfor %}
                         {% else %}
@@ -669,306 +644,130 @@ function isOnline() {
 }
 
 // ============================================================
-// FILE UPLOAD HANDLER
+// VIEW ORDER
 // ============================================================
-function handleFileUpload(files) {
-    const maxImages = 5;
-    const currentUrls = document.querySelectorAll('#imageInputsContainer .image-url');
-    const currentCount = currentUrls.length;
+function viewOrder(orderId) {
+    console.log('👁️ Viewing order:', orderId);
     
-    const remaining = maxImages - currentCount;
-    if (remaining <= 0) {
-        showToast('⚠️ Maximum 5 images allowed', 'warning');
+    const modal = document.getElementById('orderModal');
+    const details = document.getElementById('orderDetails');
+    
+    if (!modal || !details) {
+        showToast('❌ Modal not found', 'error');
         return;
     }
     
-    let added = 0;
-    for (let i = 0; i < Math.min(files.length, remaining); i++) {
-        const file = files[i];
-        if (!file.type.startsWith('image/')) continue;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const inputs = document.querySelectorAll('#imageInputsContainer .image-url');
-            let filled = false;
-            inputs.forEach(input => {
-                if (!input.value.trim() && !filled) {
-                    input.value = e.target.result;
-                    filled = true;
-                    updateImagePreview();
-                    updateImageCount();
-                }
-            });
-            
-            if (!filled) {
-                addImageInput();
-                const newInputs = document.querySelectorAll('#imageInputsContainer .image-url');
-                newInputs[newInputs.length - 1].value = e.target.result;
-                updateImagePreview();
-                updateImageCount();
-            }
-            
-            added++;
-            if (added === Math.min(files.length, remaining) || currentCount >= maxImages) {
-                showToast(`✅ ${added} image(s) uploaded!`, 'success');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-// ============================================================
-// EDIT FILE UPLOAD HANDLER
-// ============================================================
-function handleEditFileUpload(files) {
-    const maxImages = 5;
-    const currentUrls = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
-    const currentCount = currentUrls.length;
+    details.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i><p class="text-gray-400 mt-2">Loading order...</p></div>';
+    modal.classList.remove('hidden');
     
-    const remaining = maxImages - currentCount;
-    if (remaining <= 0) {
-        showToast('⚠️ Maximum 5 images allowed', 'warning');
-        return;
-    }
-    
-    let added = 0;
-    for (let i = 0; i < Math.min(files.length, remaining); i++) {
-        const file = files[i];
-        if (!file.type.startsWith('image/')) continue;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const inputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
-            let filled = false;
-            inputs.forEach(input => {
-                if (!input.value.trim() && !filled) {
-                    input.value = e.target.result;
-                    filled = true;
-                    updateEditImagePreview();
-                }
-            });
-            
-            if (!filled) {
-                addEditImageInput();
-                const newInputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
-                newInputs[newInputs.length - 1].value = e.target.result;
-                updateEditImagePreview();
+    fetch('/admin/api/order/' + orderId + '?t=' + Date.now())
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderOrderDetails(data.order);
+            } else {
+                details.innerHTML = `<div class="text-center py-8 text-red-500">❌ ${data.error || 'Order not found'}</div>`;
             }
-            
-            added++;
-            if (added === Math.min(files.length, remaining) || currentCount >= maxImages) {
-                showToast(`✅ ${added} image(s) uploaded!`, 'success');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-// ============================================================
-// DRAG & DROP SUPPORT
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const dropArea = document.getElementById('dropArea');
-    if (dropArea) {
-        dropArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '#2563eb';
-            this.style.background = '#eff6ff';
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            details.innerHTML = '<div class="text-center py-8 text-red-500">❌ Error loading order</div>';
         });
-        
-        dropArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '';
-            this.style.background = '';
-        });
-        
-        dropArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '';
-            this.style.background = '';
-            if (e.dataTransfer.files.length) {
-                handleFileUpload(e.dataTransfer.files);
-            }
-        });
-    }
-});
-
-// ============================================================
-// MULTIPLE IMAGE MANAGEMENT - ADD PRODUCT
-// ============================================================
-let imageCount = 1;
-
-function addImageInput() {
-    const maxImages = 5;
-    const currentInputs = document.querySelectorAll('#imageInputsContainer .image-url');
-    if (currentInputs.length >= maxImages) {
-        showToast('⚠️ Maximum 5 images allowed', 'warning');
-        return;
-    }
-    
-    imageCount++;
-    const container = document.getElementById('imageInputsContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 image-input-row';
-    row.innerHTML = `
-        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
-        <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    container.appendChild(row);
-    updateRemoveButtons();
-    updateImagePreview();
-    updateImageCount();
 }
 
-function removeImageInput(btn) {
-    const row = btn.closest('.image-input-row');
-    row.remove();
-    imageCount--;
-    updateRemoveButtons();
-    updateImagePreview();
-    updateImageCount();
-}
-
-function updateRemoveButtons() {
-    const rows = document.querySelectorAll('#imageInputsContainer .image-input-row');
-    const removeBtns = document.querySelectorAll('#imageInputsContainer .remove-btn');
-    removeBtns.forEach((btn, i) => {
-        btn.classList.toggle('hidden', rows.length <= 1);
-    });
-}
-
-function updateImagePreview() {
-    const urls = document.querySelectorAll('#imageInputsContainer .image-url');
-    const previewContainer = document.getElementById('imagePreviewGallery');
-    previewContainer.innerHTML = '';
+function renderOrderDetails(order) {
+    const details = document.getElementById('orderDetails');
     
-    let hasImages = false;
-    urls.forEach(input => {
-        const url = input.value.trim();
-        if (url) {
-            hasImages = true;
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'w-16 h-16 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition';
-            img.onerror = function() { this.style.display = 'none'; };
-            previewContainer.appendChild(img);
-        }
-    });
-    
-    if (!hasImages) {
-        previewContainer.innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
-    }
-}
-
-function updateImageCount() {
-    const urls = document.querySelectorAll('#imageInputsContainer .image-url');
-    let count = 0;
-    urls.forEach(input => {
-        if (input.value.trim()) count++;
-    });
-    const display = document.getElementById('imageCountDisplay');
-    if (display) {
-        display.textContent = `${count} / 5 images`;
-        display.style.color = count >= 5 ? '#ef4444' : '#94a3b8';
-    }
-}
-
-// Listen to image URL changes for preview
-document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('image-url')) {
-        updateImagePreview();
-        updateImageCount();
-    }
-});
-
-// ============================================================
-// SAVE PRODUCT - WITH MULTIPLE IMAGES
-// ============================================================
-function saveProduct(event) {
-    event.preventDefault();
-    
-    if (!isOnline()) {
-        showToast('📡 You are offline. Please connect to the internet to save.', 'warning');
-        return;
-    }
-    
-    const imageInputs = document.querySelectorAll('#imageInputsContainer .image-url');
-    const images = [];
-    imageInputs.forEach(input => {
-        const url = input.value.trim();
-        if (url) images.push(url);
-    });
-    
-    if (images.length === 0) {
-        showToast('⚠️ Please add at least one product image', 'warning');
-        return;
-    }
-    
-    const data = {
-        id: document.getElementById('prodId').value.trim(),
-        name: document.getElementById('prodName').value.trim(),
-        category: document.getElementById('prodCategory').value,
-        price: parseFloat(document.getElementById('prodPrice').value) || 0,
-        cost_price: parseFloat(document.getElementById('prodCost').value) || 0,
-        original_price: parseFloat(document.getElementById('prodOriginal').value) || null,
-        stock: parseInt(document.getElementById('prodStock').value) || 0,
-        rating: parseFloat(document.getElementById('prodRating').value) || 4.5,
-        badge: document.getElementById('prodBadge').value,
-        images: images,
-        description: document.getElementById('prodDesc').value.trim(),
-        specs: document.getElementById('prodSpecs').value.split(',').map(s => s.trim()).filter(s => s)
-    };
-    
-    const btn = document.getElementById('saveBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    btn.disabled = true;
-    
-    fetch('/admin/api/product', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            showToast('✅ Product saved with ' + images.length + ' images!', 'success');
-            document.getElementById('productForm').reset();
-            document.getElementById('imagePreviewGallery').innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
-            document.getElementById('imageInputsContainer').innerHTML = `
-                <div class="flex items-center gap-2 image-input-row">
-                    <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 image-url" placeholder="https://images.unsplash.com/photo-..." />
-                    <button type="button" onclick="removeImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn hidden">
-                        <i class="fas fa-times"></i>
-                    </button>
+    let itemsHtml = '';
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+            const itemTotal = (item.price || 0) * (item.quantity || 1);
+            itemsHtml += `
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div>
+                        <p class="text-sm font-medium text-[#0f172a]">${item.name || 'Product'}</p>
+                        <p class="text-xs text-gray-400">Qty: ${item.quantity || 1} × KSh ${(item.price || 0).toLocaleString()}</p>
+                    </div>
+                    <span class="font-semibold text-sm">KSh ${itemTotal.toLocaleString()}</span>
                 </div>
             `;
-            imageCount = 1;
-            updateImageCount();
-            setTimeout(() => showSection('products'), 1000);
-        } else {
-            showToast('❌ ' + (result.message || 'Failed to save'), 'error');
-        }
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        showToast('❌ Error saving product', 'error');
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
+        });
+    }
+    
+    const statusColors = {
+        'pending': 'badge-warning',
+        'confirmed': 'badge-info',
+        'shipped': 'badge-purple',
+        'delivered': 'badge-success'
+    };
+    
+    details.innerHTML = `
+        <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div>
+                    <p class="text-xs text-gray-400">Order ID</p>
+                    <p class="font-mono font-bold text-sm">${order.order_id || 'N/A'}</p>
+                </div>
+                <span class="badge ${statusColors[order.status] || 'badge-warning'}">${order.status || 'Pending'}</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-2 bg-blue-50 rounded-lg">
+                    <p class="text-xs text-gray-400">Source</p>
+                    <p class="font-semibold text-sm capitalize">${order.source || 'web'}</p>
+                </div>
+                <div class="p-2 bg-green-50 rounded-lg">
+                    <p class="text-xs text-gray-400">Total</p>
+                    <p class="font-semibold text-sm text-green-600">KSh ${(order.total || 0).toLocaleString()}</p>
+                </div>
+            </div>
+            
+            <div class="p-3 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-400">Customer</p>
+                <p class="font-semibold text-sm">${order.customer_name || 'Walk-in Customer'}</p>
+                ${order.customer_email ? `<p class="text-xs text-gray-400">${order.customer_email}</p>` : ''}
+                ${order.customer_phone ? `<p class="text-xs text-gray-400">${order.customer_phone}</p>` : ''}
+            </div>
+            
+            <div>
+                <p class="text-xs text-gray-400 mb-2">Items (${order.items ? order.items.length : 0})</p>
+                ${itemsHtml || '<p class="text-sm text-gray-400">No items</p>'}
+            </div>
+            
+            <div class="pt-3 border-t border-gray-100">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Subtotal</span>
+                    <span>KSh ${(order.subtotal || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Shipping</span>
+                    <span>KSh ${(order.shipping || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
+                    <span>Total</span>
+                    <span class="text-green-600">KSh ${(order.total || 0).toLocaleString()}</span>
+                </div>
+            </div>
+            
+            <div class="text-xs text-gray-400 text-center pt-2">
+                ${order.created_at ? 'Created: ' + new Date(order.created_at).toLocaleString() : ''}
+            </div>
+        </div>
+    `;
 }
 
 // ============================================================
-// EDIT PRODUCT MODAL - ADD THIS TO YOUR HTML
+// FORMAT NUMBER - HELPER FUNCTION
 // ============================================================
-// The edit modal HTML is added above in the content section
+function formatNumber(value) {
+    if (value === undefined || value === null) return '0';
+    const num = Number(value);
+    if (isNaN(num)) return '0';
+    return num.toLocaleString();
+}
 
 // ============================================================
-// EDIT PRODUCT - WITH MULTIPLE IMAGES
+// EDIT PRODUCT
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -1002,28 +801,9 @@ function editProduct(productId) {
                 document.getElementById('editProdStock').value = product.stock || 0;
                 document.getElementById('editProdRating').value = product.rating || 4.5;
                 document.getElementById('editProdBadge').value = product.badge || '';
+                document.getElementById('editProdImage').value = product.image || '';
                 document.getElementById('editProdDesc').value = product.description || '';
                 document.getElementById('editProdSpecs').value = (product.specs || []).join(', ');
-                
-                // Handle multiple images for edit
-                const images = product.images || [product.image || ''];
-                const editImageContainer = document.getElementById('editImageInputsContainer');
-                if (editImageContainer) {
-                    editImageContainer.innerHTML = '';
-                    images.forEach((img, index) => {
-                        const row = document.createElement('div');
-                        row.className = 'flex items-center gap-2 image-input-row';
-                        row.innerHTML = `
-                            <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 edit-image-url" value="${img}" placeholder="https://images.unsplash.com/photo-..." />
-                            <button type="button" onclick="removeEditImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 ${images.length <= 1 ? 'hidden' : ''} remove-btn">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `;
-                        editImageContainer.appendChild(row);
-                    });
-                    updateEditImagePreview();
-                }
-                
                 showToast('✅ Product loaded', 'success');
             } else {
                 showToast('❌ ' + (data.error || 'Product not found'), 'error');
@@ -1038,25 +818,13 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// SAVE EDITED PRODUCT - WITH MULTIPLE IMAGES
+// SAVE EDITED PRODUCT
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
     
     if (!isOnline()) {
         showToast('📡 You are offline. Please connect to the internet to save changes.', 'warning');
-        return;
-    }
-    
-    const imageInputs = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
-    const images = [];
-    imageInputs.forEach(input => {
-        const url = input.value.trim();
-        if (url) images.push(url);
-    });
-    
-    if (images.length === 0) {
-        showToast('⚠️ Please add at least one product image', 'warning');
         return;
     }
     
@@ -1070,7 +838,7 @@ function saveEditedProduct(event) {
         stock: parseInt(document.getElementById('editProdStock').value) || 0,
         rating: parseFloat(document.getElementById('editProdRating').value) || 4.5,
         badge: document.getElementById('editProdBadge').value,
-        images: images,
+        image: document.getElementById('editProdImage').value.trim(),
         description: document.getElementById('editProdDesc').value.trim(),
         specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s)
     };
@@ -1088,7 +856,7 @@ function saveEditedProduct(event) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            showToast('✅ ' + result.message + ' (' + images.length + ' images)', 'success');
+            showToast('✅ ' + result.message, 'success');
             document.getElementById('editProductModal').classList.add('hidden');
             setTimeout(() => location.reload(), 1000);
         } else {
@@ -1104,64 +872,6 @@ function saveEditedProduct(event) {
         btn.disabled = false;
     });
 }
-
-// ============================================================
-// EDIT MODAL - MULTIPLE IMAGE FUNCTIONS
-// ============================================================
-function addEditImageInput() {
-    const container = document.getElementById('editImageInputsContainer');
-    if (!container) return;
-    const rows = container.querySelectorAll('.image-input-row');
-    if (rows.length >= 5) {
-        showToast('⚠️ Maximum 5 images allowed', 'warning');
-        return;
-    }
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 image-input-row';
-    row.innerHTML = `
-        <input type="url" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1 edit-image-url" placeholder="https://images.unsplash.com/photo-..." />
-        <button type="button" onclick="removeEditImageInput(this)" class="text-red-500 hover:text-red-700 text-sm px-2 remove-btn">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    container.appendChild(row);
-    updateEditImagePreview();
-}
-
-function removeEditImageInput(btn) {
-    const row = btn.closest('.image-input-row');
-    row.remove();
-    updateEditImagePreview();
-}
-
-function updateEditImagePreview() {
-    const container = document.getElementById('editImagePreviewGallery');
-    if (!container) return;
-    const urls = document.querySelectorAll('#editImageInputsContainer .edit-image-url');
-    container.innerHTML = '';
-    let hasImages = false;
-    urls.forEach(input => {
-        const url = input.value.trim();
-        if (url) {
-            hasImages = true;
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'w-16 h-16 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition';
-            img.onerror = function() { this.style.display = 'none'; };
-            container.appendChild(img);
-        }
-    });
-    if (!hasImages) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No images added yet</p>';
-    }
-}
-
-// Listen to edit image URL changes
-document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('edit-image-url') && e.target.closest('#editImageInputsContainer')) {
-        updateEditImagePreview();
-    }
-});
 
 // ============================================================
 // DELETE PRODUCT
@@ -1257,10 +967,10 @@ function renderProductsTable(products) {
                 </div>
             </td>
             <td class="hidden sm:table-cell"><span class="badge badge-info text-[8px] sm:text-[10px]">${product.category || 'Uncategorized'}</span></td>
-            <td class="text-right font-semibold text-xs sm:text-sm">KSh ${(product.price || 0).toLocaleString()}</td>
-            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh ${(product.cost_price || 0).toLocaleString()}</td>
+            <td class="text-right font-semibold text-xs sm:text-sm">KSh ${formatNumber(product.price || 0)}</td>
+            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh ${formatNumber(product.cost_price || 0)}</td>
             <td class="text-right hidden lg:table-cell ${profit > 0 ? 'text-green-600' : 'text-red-600'} font-bold text-xs sm:text-sm">
-                KSh ${Math.abs(profit).toLocaleString()}
+                KSh ${formatNumber(Math.abs(profit))}
             </td>
             <td class="text-center"><span class="badge badge-${stockClass} text-[8px] sm:text-[10px]">${product.stock || 0}</span></td>
             <td class="text-center hidden sm:table-cell">${product.badge ? `<span class="badge badge-purple text-[8px] sm:text-[10px]">${product.badge}</span>` : '<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>'}</td>
@@ -1366,7 +1076,7 @@ function renderOrdersTable(orders) {
                     <p class="text-[8px] sm:text-xs text-gray-400 truncate max-w-[100px]">${order.customer_email || order.customer?.email || ''}</p>
                 </div>
             </td>
-            <td class="text-right font-bold text-xs sm:text-sm">KSh ${(order.total || 0).toLocaleString()}</td>
+            <td class="text-right font-bold text-xs sm:text-sm">KSh ${formatNumber(order.total || 0)}</td>
             <td class="text-center">
                 <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="text-[8px] sm:text-[10px] font-bold border rounded-lg px-1 sm:px-2 py-0.5 sm:py-1 outline-none transition-all ${statusClass}">
                     <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
@@ -1464,7 +1174,7 @@ function renderCustomersTable(customers) {
             <td class="text-gray-600 text-xs sm:text-sm hidden sm:table-cell truncate max-w-[120px]">${customer.email || 'N/A'}</td>
             <td class="text-gray-600 text-xs sm:text-sm hidden md:table-cell">${customer.phone || 'N/A'}</td>
             <td class="text-center"><span class="badge badge-info text-[8px] sm:text-[10px]">${customer.orders || 0}</span></td>
-            <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh ${(customer.total_spent || 0).toLocaleString()}</td>
+            <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh ${formatNumber(customer.total_spent || 0)}</td>
         </tr>
         `;
     });
@@ -1604,9 +1314,9 @@ function loadAnalyticsData() {
                             <td class="text-xs sm:text-sm font-semibold">${month}</td>
                             <td class="text-right text-xs sm:text-sm">${m.orders || 0}</td>
                             <td class="text-right text-xs sm:text-sm">${m.items || 0}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ${(m.revenue || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${(m.cost || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${(m.profit || 0).toLocaleString()}</td>
+                            <td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ${formatNumber(m.revenue || 0)}</td>
+                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${formatNumber(m.cost || 0)}</td>
+                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${formatNumber(m.profit || 0)}</td>
                             <td class="text-right text-xs sm:text-sm font-bold ${(m.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600'}">${(m.margin || 0).toFixed(1)}%</td>
                         </tr>`;
                     });
@@ -1626,9 +1336,9 @@ function loadAnalyticsData() {
                         html += `<tr>
                             <td class="text-xs sm:text-sm font-medium truncate max-w-[100px]">${product}</td>
                             <td class="text-right text-xs sm:text-sm">${p.quantity || 0}</td>
-                            <td class="text-right text-xs sm:text-sm text-green-600">KSh ${(p.revenue || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${(p.cost || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${(p.profit || 0).toLocaleString()}</td>
+                            <td class="text-right text-xs sm:text-sm text-green-600">KSh ${formatNumber(p.revenue || 0)}</td>
+                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${formatNumber(p.cost || 0)}</td>
+                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${formatNumber(p.profit || 0)}</td>
                             <td class="text-right text-xs sm:text-sm font-bold ${(p.margin || 0) > 20 ? 'text-green-600' : 'text-amber-600'}">${(p.margin || 0).toFixed(1)}%</td>
                         </tr>`;
                     });
@@ -1711,7 +1421,7 @@ function initCharts() {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return 'KSh ' + context.parsed.y.toLocaleString();
+                                return 'KSh ' + formatNumber(context.parsed.y);
                             }
                         }
                     }
@@ -1795,7 +1505,7 @@ function initCharts() {
                             label: function(context) {
                                 let total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                                 let percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                return context.label + ': ' + percentage + '% (KSh ' + context.parsed.toLocaleString() + ')';
+                                return context.label + ': ' + percentage + '% (KSh ' + formatNumber(context.parsed) + ')';
                             }
                         }
                     }
@@ -1815,290 +1525,6 @@ function handleResize() {
 }
 
 // ============================================================
-// LOAD OFFLINE ORDERS FOR DASHBOARD - FIXED
-// ============================================================
-async function loadOfflineOrdersForDashboard() {
-    try {
-        console.log('📁 Checking for offline orders...');
-        
-        // First, ensure database exists and has orders store
-        const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open('PricePointDB', 1);
-            
-            // This runs when database is created or version changes
-            request.onupgradeneeded = function(e) {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('orders')) {
-                    db.createObjectStore('orders', { keyPath: 'order_id' });
-                    console.log('✅ Orders store created');
-                }
-            };
-            
-            request.onsuccess = function(e) {
-                resolve(e.target.result);
-            };
-            
-            request.onerror = function(e) {
-                console.log('❌ Database error:', e.target.error);
-                reject(e.target.error);
-            };
-        });
-        
-        // Check if orders store exists
-        if (!db.objectStoreNames.contains('orders')) {
-            console.log('⚠️ Orders store not found, creating...');
-            db.close();
-            // Reopen with upgrade needed
-            const upgradeRequest = indexedDB.open('PricePointDB', 2);
-            upgradeRequest.onupgradeneeded = function(e) {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('orders')) {
-                    db.createObjectStore('orders', { keyPath: 'order_id' });
-                    console.log('✅ Orders store created on upgrade');
-                }
-            };
-            upgradeRequest.onsuccess = function(e) {
-                const db = e.target.result;
-                db.close();
-                // Retry after store creation
-                setTimeout(loadOfflineOrdersForDashboard, 500);
-                return;
-            };
-            upgradeRequest.onerror = function() {
-                console.log('❌ Failed to create orders store');
-                showSyncBar(0);
-            };
-            return;
-        }
-        
-        // Get orders from IndexedDB
-        const orders = await new Promise((resolve) => {
-            try {
-                const tx = db.transaction(['orders'], 'readonly');
-                const store = tx.objectStore('orders');
-                store.getAll().onsuccess = function(e2) {
-                    resolve(e2.target.result || []);
-                    db.close();
-                };
-                store.getAll().onerror = function() {
-                    resolve([]);
-                    db.close();
-                };
-            } catch (error) {
-                console.log('⚠️ Error accessing orders store:', error);
-                resolve([]);
-                db.close();
-            }
-        });
-        
-        if (!orders || orders.length === 0) {
-            console.log('📭 No offline orders found');
-            showSyncBar(0);
-            db.close();
-            return [];
-        }
-        
-        const unsynced = orders.filter(o => o.synced === false);
-        console.log(`📁 Found ${unsynced.length} offline orders (${orders.length} total)`);
-        
-        if (unsynced.length > 0) {
-            showSyncBar(unsynced.length, unsynced);
-            
-            const response = await fetch('/admin/api/sync-queue', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orders: unsynced, dashboard: true })
-            });
-            const result = await response.json();
-            console.log('📊 Dashboard merge result:', result);
-            
-            if (result.success) {
-                console.log('✅ Offline orders sent to dashboard');
-                updateDashboardStats(unsynced);
-            }
-        } else {
-            showSyncBar(0);
-        }
-        
-        db.close();
-        return unsynced;
-    } catch (err) {
-        console.error('❌ Error loading offline orders:', err);
-        showSyncBar(0);
-        return [];
-    }
-}
-
-function updateDashboardStats(offlineOrders) {
-    if (!offlineOrders || offlineOrders.length === 0) return;
-    
-    console.log(`📊 Updating dashboard with ${offlineOrders.length} offline orders`);
-    
-    let totalRevenue = 0;
-    let totalOrders = 0;
-    let todayRevenue = 0;
-    let todayOrders = 0;
-    const today = new Date().toDateString();
-    
-    offlineOrders.forEach(order => {
-        if (order.status === 'cancelled') return;
-        totalRevenue += parseFloat(order.total) || 0;
-        totalOrders++;
-        
-        const orderDate = order.created_at ? new Date(order.created_at).toDateString() : '';
-        if (orderDate === today) {
-            todayRevenue += parseFloat(order.total) || 0;
-            todayOrders++;
-        }
-    });
-    
-    const totalOrdersEl = document.getElementById('dashTotalOrders');
-    const totalRevenueEl = document.getElementById('dashTodayRevenue');
-    const liveRevenueEl = document.getElementById('liveRevenue');
-    const liveOrdersEl = document.getElementById('liveOrders');
-    
-    const currentOrders = parseInt(totalOrdersEl?.textContent?.replace(/,/g, '') || 0);
-    const currentRevenue = parseFloat(totalRevenueEl?.textContent?.replace(/[^0-9.]/g, '') || 0);
-    
-    if (totalOrdersEl) {
-        totalOrdersEl.textContent = (currentOrders + totalOrders).toLocaleString();
-    }
-    if (totalRevenueEl) {
-        totalRevenueEl.textContent = 'KSh ' + (currentRevenue + totalRevenue).toLocaleString();
-    }
-    if (liveRevenueEl) {
-        const liveRevenue = parseFloat(liveRevenueEl.textContent?.replace(/[^0-9.]/g, '') || 0);
-        liveRevenueEl.textContent = 'KSh ' + (liveRevenue + todayRevenue).toLocaleString();
-    }
-    if (liveOrdersEl) {
-        const liveOrders = parseInt(liveOrdersEl.textContent || 0);
-        liveOrdersEl.textContent = liveOrders + todayOrders;
-    }
-    
-    const analyticsRevenue = document.getElementById('totalRevenue');
-    if (analyticsRevenue) {
-        const current = parseFloat(analyticsRevenue.textContent?.replace(/[^0-9.]/g, '') || 0);
-        analyticsRevenue.textContent = 'KSh ' + (current + totalRevenue).toLocaleString();
-    }
-    const analyticsOrders = document.getElementById('totalOrders');
-    if (analyticsOrders) {
-        const current = parseInt(analyticsOrders.textContent || 0);
-        analyticsOrders.textContent = (current + totalOrders);
-    }
-    
-    console.log(`✅ Dashboard updated: +${totalOrders} orders, +KSh ${totalRevenue.toLocaleString()}`);
-}
-
-// ============================================================
-// SYNC OFFLINE ORDERS FROM DASHBOARD - FIXED
-// ============================================================
-async function syncOfflineOrdersFromDashboard() {
-    console.log('🔄 Syncing offline orders...');
-    
-    try {
-        // Open database with upgrade needed
-        const db = await new Promise((resolve, reject) => {
-            const request = indexedDB.open('PricePointDB', 1);
-            
-            request.onupgradeneeded = function(e) {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('orders')) {
-                    db.createObjectStore('orders', { keyPath: 'order_id' });
-                    console.log('✅ Orders store created');
-                }
-            };
-            
-            request.onsuccess = function(e) {
-                resolve(e.target.result);
-            };
-            
-            request.onerror = function(e) {
-                reject(e.target.error);
-            };
-        });
-        
-        if (!db.objectStoreNames.contains('orders')) {
-            console.log('⚠️ No orders store, nothing to sync');
-            showToast('✅ No offline orders to sync', 'success');
-            showSyncBar(0);
-            db.close();
-            return;
-        }
-        
-        const orders = await new Promise((resolve) => {
-            try {
-                const tx = db.transaction(['orders'], 'readonly');
-                const store = tx.objectStore('orders');
-                store.getAll().onsuccess = function(e2) {
-                    resolve(e2.target.result || []);
-                    db.close();
-                };
-                store.getAll().onerror = function() {
-                    resolve([]);
-                    db.close();
-                };
-            } catch (error) {
-                resolve([]);
-                db.close();
-            }
-        });
-        
-        const unsynced = orders.filter(o => o.synced === false);
-        if (unsynced.length === 0) {
-            showToast('✅ No offline orders to sync', 'success');
-            showSyncBar(0);
-            return;
-        }
-        
-        const syncBtn = document.querySelector('#syncStatusBar .btn-gradient');
-        if (syncBtn) {
-            syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-            syncBtn.disabled = true;
-        }
-        
-        const response = await fetch('/admin/api/sync-queue', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orders: unsynced })
-        });
-        const result = await response.json();
-        
-        if (syncBtn) {
-            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync Now';
-            syncBtn.disabled = false;
-        }
-        
-        if (result.synced > 0) {
-            showToast(`✅ ${result.synced} orders synced to cloud!`, 'success');
-            
-            const writeDb = await new Promise((resolve) => {
-                const r = indexedDB.open('PricePointDB', 1);
-                r.onsuccess = function(e) { resolve(e.target.result); };
-            });
-            const tx = writeDb.transaction(['orders'], 'readwrite');
-            const store = tx.objectStore('orders');
-            unsynced.forEach(order => {
-                order.synced = true;
-                order.syncedAt = new Date().toISOString();
-                store.put(order);
-            });
-            showSyncBar(0);
-            setTimeout(() => location.reload(), 1500);
-            writeDb.close();
-        } else {
-            showToast(`⚠️ ${result.failed || 0} orders failed to sync`, 'warning');
-        }
-    } catch (err) {
-        console.error('❌ Sync error:', err);
-        showToast('❌ Error syncing orders: ' + err.message, 'error');
-        const syncBtn = document.querySelector('#syncStatusBar .btn-gradient');
-        if (syncBtn) {
-            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync Now';
-            syncBtn.disabled = false;
-        }
-    }
-}
-// ============================================================
 // ONLINE/OFFLINE HANDLING
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -2106,12 +1532,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadAnalyticsData();
     setTimeout(waitForChartJS, 500);
-    setTimeout(loadOfflineOrdersForDashboard, 2000);
     
     window.addEventListener('online', function() {
         console.log('📡 Back online - checking for offline orders...');
         showToast('🔄 Back online! Syncing orders...', 'info');
-        setTimeout(loadOfflineOrdersForDashboard, 2000);
     });
     
     let resizeTimer;
