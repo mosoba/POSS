@@ -12,6 +12,66 @@
 <meta http-equiv="Expires" content="0">
 
 <!-- ============================================================
+     EMERGENCY: LOAD STATS FROM API IF NOT DEFINED
+     ============================================================ -->
+<script>
+// Check if stats is defined
+if (typeof stats === 'undefined') {
+    console.log('⚠️ Stats not defined - loading from API...');
+    
+    // Show loading state
+    document.body.innerHTML += '<div id="statsLoading" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2563eb;color:white;padding:10px;text-align:center;font-weight:600;">🔄 Loading dashboard data...</div>';
+    
+    fetch('/admin/api/analytics?t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+        console.log('✅ Stats loaded from API:', data);
+        
+        // Create stats object
+        window.stats = {
+            total_products: data.total_products || 0,
+            total_orders: data.total_orders || 0,
+            total_revenue: data.total_revenue || 0,
+            today_revenue: data.today_revenue || 0,
+            today_orders: data.today_orders || 0,
+            total_customers: 0,
+            low_stock: 0,
+            pending_orders: 0,
+            month_revenue: data.total_revenue || 0,
+            month_orders: data.total_orders || 0,
+            total_bundles: 0,
+            total_cart_items: 0,
+            pos_orders: 0,
+            web_orders: 0,
+            total_cost: 0,
+            total_profit: data.total_revenue || 0,
+            total_items_sold: 0,
+            yesterday_revenue: 0,
+            last_month_revenue: 0,
+            today_growth_pct: 0,
+            month_growth_pct: 0,
+            db_mode: 'online'
+        };
+        
+        // Remove loading message
+        const loading = document.getElementById('statsLoading');
+        if (loading) loading.remove();
+        
+        // Reload the page to apply stats
+        location.reload();
+    })
+    .catch(err => {
+        console.error('❌ Error loading stats:', err);
+        const loading = document.getElementById('statsLoading');
+        if (loading) {
+            loading.style.background = '#dc2626';
+            loading.textContent = '⚠️ Could not load stats. Please refresh.';
+        }
+    });
+}
+</script>
+
+<!-- ============================================================
      DASHBOARD SECTION - MOBILE OPTIMIZED
      ============================================================ -->
 <div id="dashboard-section" class="section">
