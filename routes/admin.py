@@ -29,6 +29,7 @@ def is_admin():
     user = session.get('user', {})
     return user.get('role') == 'admin' or session.get('admin_logged_in')
 
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -37,6 +38,7 @@ def admin_required(f):
             return redirect(url_for('admin.user_login'))
         return f(*args, **kwargs)
     return decorated_function
+
 
 # ============================================================
 # AUTH ROUTES
@@ -58,14 +60,18 @@ def user_login():
     
     return render_template('admin_login.html')
 
+
 @admin_bp.route('/logout')
 def user_logout():
     session.clear()
     flash('Logged out', 'success')
     return redirect(url_for('admin.user_login'))
 
+
 # ============================================================
-# TEST ROUTES - FOR VERCEL DEBUGGING
+# ============================================================
+# TEST ROUTES - THESE MUST BE IN YOUR DEPLOYED CODE!
+# ============================================================
 # ============================================================
 
 @admin_bp.route('/test')
@@ -79,6 +85,21 @@ def test():
         'has_key': bool(Config.SUPABASE_KEY),
         'key_preview': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None'
     })
+
+
+@admin_bp.route('/test-env')
+def test_env():
+    """Test environment variables"""
+    return jsonify({
+        'VERCEL': os.environ.get('VERCEL'),
+        'NOW_REGION': os.environ.get('NOW_REGION'),
+        'SUPABASE_URL_from_os': os.environ.get('SUPABASE_URL'),
+        'SUPABASE_KEY_from_os': os.environ.get('SUPABASE_KEY')[:20] + '...' if os.environ.get('SUPABASE_KEY') else 'None',
+        'SUPABASE_URL_from_config': Config.SUPABASE_URL,
+        'SUPABASE_KEY_from_config': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None',
+        'has_key': bool(Config.SUPABASE_KEY)
+    })
+
 
 @admin_bp.route('/test-supabase')
 def test_supabase():
@@ -111,6 +132,7 @@ def test_supabase():
     
     return jsonify(result)
 
+
 @admin_bp.route('/test-data')
 def test_data():
     """Test data loading"""
@@ -135,22 +157,9 @@ def test_data():
         result['success'] = False
     return jsonify(result)
 
-@admin_bp.route('/test-env')
-def test_env():
-    """Test environment variables"""
-    import os
-    return jsonify({
-        'VERCEL': os.environ.get('VERCEL'),
-        'NOW_REGION': os.environ.get('NOW_REGION'),
-        'SUPABASE_URL_from_os': os.environ.get('SUPABASE_URL'),
-        'SUPABASE_KEY_from_os': os.environ.get('SUPABASE_KEY')[:20] + '...' if os.environ.get('SUPABASE_KEY') else 'None',
-        'SUPABASE_URL_from_config': Config.SUPABASE_URL,
-        'SUPABASE_KEY_from_config': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None',
-        'has_key': bool(Config.SUPABASE_KEY)
-    })
 
 # ============================================================
-# MINIMAL DASHBOARD - JUST TO SHOW IT WORKS
+# MINIMAL DASHBOARD
 # ============================================================
 
 @admin_bp.route('/')
@@ -175,23 +184,6 @@ def minimal_dashboard():
             'low_stock': len([p for p in products if p.get('stock', 0) < 10]),
             'total_revenue': sum(o.get('total', 0) for o in orders),
             'pending_orders': len([o for o in orders if o.get('status') == 'pending']),
-            'today_revenue': 0,
-            'today_orders': 0,
-            'total_customers': 0,
-            'total_profit': 0,
-            'total_cost': 0,
-            'total_bundles': 0,
-            'total_cart_items': 0,
-            'pos_orders': 0,
-            'web_orders': 0,
-            'total_items_sold': 0,
-            'month_revenue': 0,
-            'month_orders': 0,
-            'yesterday_revenue': 0,
-            'last_month_revenue': 0,
-            'today_growth_pct': 0,
-            'month_growth_pct': 0,
-            'db_mode': 'online'
         }
         
         return jsonify({
@@ -209,6 +201,7 @@ def minimal_dashboard():
             'traceback': traceback.format_exc()
         })
 
+
 # ============================================================
 # PWA ROUTES - PUBLIC
 # ============================================================
@@ -217,33 +210,37 @@ def minimal_dashboard():
 def offline_page():
     try:
         return render_template('offline.html')
-    except Exception as e:
+    except Exception:
         return "Offline page not found", 404
+
 
 @admin_bp.route('/sw.js')
 def service_worker():
     try:
         return send_from_directory('static', 'sw.js', mimetype='application/javascript')
-    except Exception as e:
+    except Exception:
         return "Service Worker not found", 404
+
 
 @admin_bp.route('/manifest.json')
 def manifest():
     try:
         return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
-    except Exception as e:
+    except Exception:
         return "Manifest not found", 404
+
 
 @admin_bp.route('/favicon.ico')
 def favicon():
     try:
         return send_from_directory('static/icons', 'favicon.ico', mimetype='image/x-icon')
-    except Exception as e:
+    except Exception:
         return "", 204
+
 
 @admin_bp.route('/static/<path:filename>')
 def static_files(filename):
     try:
         return send_from_directory('static', filename)
-    except Exception as e:
+    except Exception:
         return "File not found", 404
