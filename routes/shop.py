@@ -21,9 +21,65 @@ from utils.data import (
 shop_bp = Blueprint('shop', __name__)
 
 
+# ============================================================
+# HELPER: CLEAN PRODUCTS - Fix None values for Vercel
+# ============================================================
+def clean_products(products):
+    """Clean products to ensure no None values"""
+    if not products:
+        return []
+    
+    cleaned = []
+    for p in products:
+        if not p:
+            continue
+        clean = dict(p)
+        # Fix stock
+        if clean.get('stock') is None:
+            clean['stock'] = 0
+        # Fix price
+        if clean.get('price') is None:
+            clean['price'] = 0
+        # Fix name
+        if clean.get('name') is None:
+            clean['name'] = 'Unnamed Product'
+        # Fix category
+        if clean.get('category') is None:
+            clean['category'] = 'Uncategorized'
+        # Fix image
+        if clean.get('image') is None:
+            clean['image'] = ''
+        # Fix description
+        if clean.get('description') is None:
+            clean['description'] = ''
+        # Fix badge
+        if clean.get('badge') is None:
+            clean['badge'] = ''
+        # Fix cost_price
+        if clean.get('cost_price') is None:
+            clean['cost_price'] = 0
+        # Fix rating
+        if clean.get('rating') is None:
+            clean['rating'] = 4.0
+        # Fix reviews
+        if clean.get('reviews') is None:
+            clean['reviews'] = 0
+        # Fix barcode
+        if clean.get('barcode') is None:
+            clean['barcode'] = ''
+        cleaned.append(clean)
+    return cleaned
+
+
 @shop_bp.route('/')
 def index():
     products_list = load_products()
+    
+    # ============================================================
+    # FIX: Clean products to remove None values
+    # ============================================================
+    products_list = clean_products(products_list)
+    
     bundles_list = load_bundles()
 
     products_dict = {}
@@ -67,6 +123,12 @@ def index():
 @shop_bp.route('/category/<category_name>')
 def category_page(category_name):
     products = load_products()
+    
+    # ============================================================
+    # FIX: Clean products to remove None values
+    # ============================================================
+    products = clean_products(products)
+    
     products_dict = {}
     for product in products:
         if product and 'id' in product and product.get('category') == category_name:
@@ -77,6 +139,12 @@ def category_page(category_name):
 @shop_bp.route('/product/<product_id>')
 def product_detail(product_id):
     products = load_products()
+    
+    # ============================================================
+    # FIX: Clean products to remove None values
+    # ============================================================
+    products = clean_products(products)
+    
     product = None
     for candidate in products:
         if str(candidate.get('id')) == str(product_id):
@@ -104,6 +172,12 @@ def cart_page():
         subtotal = 0
         total_items = 0
         products = load_products()
+        
+        # ============================================================
+        # FIX: Clean products to remove None values
+        # ============================================================
+        products = clean_products(products)
+        
         bundles = load_bundles()
 
         for item_id, quantity in cart.items():
@@ -159,6 +233,12 @@ def add_to_cart(item_id):
     try:
         cart = get_cart()
         products = load_products()
+        
+        # ============================================================
+        # FIX: Clean products to remove None values
+        # ============================================================
+        products = clean_products(products)
+        
         bundles = load_bundles()
 
         product = next((p for p in products if str(p.get('id')) == str(item_id)), None)
@@ -187,6 +267,11 @@ def update_cart_item(item_id, action):
     try:
         cart = get_cart()
         products = load_products()
+        
+        # ============================================================
+        # FIX: Clean products to remove None values
+        # ============================================================
+        products = clean_products(products)
 
         if action == 'increase':
             product = next((p for p in products if str(p.get('id')) == str(item_id)), None)
@@ -281,6 +366,12 @@ def checkout_page():
         subtotal = 0
         total_items = 0
         products = load_products()
+        
+        # ============================================================
+        # FIX: Clean products to remove None values
+        # ============================================================
+        products = clean_products(products)
+        
         bundles = load_bundles()
 
         for item_id, quantity in cart.items():
@@ -385,6 +476,12 @@ def place_order():
         # ===== BUILD ORDER ITEMS =====
         subtotal = 0
         products = load_products()
+        
+        # ============================================================
+        # FIX: Clean products to remove None values
+        # ============================================================
+        products = clean_products(products)
+        
         bundles = load_bundles()
         order_items = []
 
