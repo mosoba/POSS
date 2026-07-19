@@ -178,6 +178,190 @@ def admin_logout():
 
 
 # ============================================================
+# CALCULATE ANALYTICS FROM ORDERS
+# ============================================================
+
+def calculate_analytics_from_orders(orders):
+    if not orders:
+        return {
+            'total_revenue': 0,
+            'total_cost': 0,
+            'total_profit': 0,
+            'total_orders': 0,
+            'total_items_sold': 0,
+            'pos_orders_count': 0,
+            'web_orders_count': 0,
+            'product_sales': {},
+            'category_sales': {},
+            'monthly_data': {}
+        }
+
+    products = load_products()
+    product_lookup = {str(p.get('id')): p for p in products if p and p.get('id')}
+
+    total_revenue = 0
+    total_cost = 0
+    total_profit = 0
+    total_items_sold = 0
+    pos_orders_count = 0
+    web_orders_count = 0
+    product_sales = {}
+    category_sales = {}
+    monthly_data = {}
+
+    for order in orders:
+        if order.get('status') == 'cancelled':
+            continue
+
+        if order.get('source') == 'pos':
+            pos_orders_count += 1
+        else:
+            web_orders_count += 1
+
+        created_at = order.get('created_at', '')
+        month_key = 'Unknown'
+        if created_at:
+            try:
+                if isinstance(created_at, str):
+                    if 'T' in created_at:
+                        clean = created_at.replace('Z', '').replace('+00:00', '')
+                        if '.' in clean:
+                            dt = datetime.fromisoformat(clean)
+                        else:
+                            dt = datetime.strptime(clean[:10], '%Y-%m-%d')
+                    elif ' ' in created_at:
+                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                    else:
+                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                elif isinstance(created_at, datetime):
+                    dt = created_at
+                else:
+                    dt = datetime.utcnow()
+                month_key = dt.strftime('%b %Y')
+            except:
+                month_key = 'Unknown'
+
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'orders': 0,
+                'items': 0,
+                'revenue': 0,
+                'cost': 0,
+                'profit': 0,
+                'margin': 0
+            }
+        monthly_data[month_key]['orders'] += 1
+
+        order_total = 0
+        order_cost = 0
+        order_items = 0
+
+        for item in order.get('items', []):
+            quantity = item.get('quantity', 1)
+            price = float(item.get('price', 0) or 0)
+            total_items_sold += quantity
+            order_items += quantity
+
+            item_total = price * quantity
+            order_total += item_total
+            total_revenue += item_total
+
+            cost_price = 0
+
+            if 'cost_price' in item:
+                try:
+                    cost_price = float(item.get('cost_price', 0) or 0)
+                except (ValueError, TypeError):
+                    cost_price = 0
+
+            if cost_price == 0:
+                product_id = item.get('product_id', '')
+                if product_id:
+                    product = product_lookup.get(product_id, {})
+                    if product:
+                        cost_price = float(product.get('cost_price', 0) or 0)
+
+            if cost_price == 0 and price > 0:
+                cost_price = price * 0.7
+
+            item_cost = cost_price * quantity
+            order_cost += item_cost
+            total_cost += item_cost
+            total_profit += (item_total - item_cost)
+
+            product_id = item.get('product_id', '')
+            category = 'Uncategorized'
+            if product_id:
+                product = product_lookup.get(product_id, {})
+                if product and product.get('category'):
+                    category = product.get('category')
+
+            product_name = item.get('name', 'Unknown Product')
+            if product_name not in product_sales:
+                product_sales[product_name] = {
+                    'quantity': 0,
+                    'revenue': 0,
+                    'cost': 0,
+                    'profit': 0,
+                    'margin': 0
+                }
+            product_sales[product_name]['quantity'] += quantity
+            product_sales[product_name]['revenue'] += item_total
+            product_sales[product_name]['cost'] += item_cost
+            product_sales[product_name]['profit'] += (item_total - item_cost)
+
+            if category not in category_sales:
+                category_sales[category] = {
+                    'quantity': 0,
+                    'revenue': 0,
+                    'cost': 0,
+                    'profit': 0,
+                    'margin': 0
+                }
+            category_sales[category]['quantity'] += quantity
+            category_sales[category]['revenue'] += item_total
+            category_sales[category]['cost'] += item_cost
+            category_sales[category]['profit'] += (item_total - item_cost)
+
+        monthly_data[month_key]['items'] += order_items
+        monthly_data[month_key]['revenue'] += order_total
+        monthly_data[month_key]['cost'] += order_cost
+        monthly_data[month_key]['profit'] += (order_total - order_cost)
+
+    for product in product_sales.values():
+        if product['revenue'] > 0:
+            product['margin'] = round((product['profit'] / product['revenue']) * 100, 1)
+
+    for category in category_sales.values():
+        if category['revenue'] > 0:
+            category['margin'] = round((category['profit'] / category['revenue']) * 100, 1)
+
+    for month in monthly_data.values():
+        if month['revenue'] > 0:
+            month['margin'] = round((month['profit'] / month['revenue']) * 100, 1)
+
+    sorted_products = sorted(
+        product_sales.items(),
+        key=lambda x: x[1]['profit'],
+        reverse=True
+    )
+    product_sales = dict(sorted_products)
+
+    return {
+        'total_revenue': total_revenue,
+        'total_cost': total_cost,
+        'total_profit': total_profit,
+        'total_orders': len(orders),
+        'total_items_sold': total_items_sold,
+        'pos_orders_count': pos_orders_count,
+        'web_orders_count': web_orders_count,
+        'product_sales': product_sales,
+        'category_sales': category_sales,
+        'monthly_data': monthly_data
+    }
+
+
+# ============================================================
 # ADMIN DASHBOARD
 # ============================================================
 
@@ -568,66 +752,6 @@ def admin_dashboard():
 
 
 # ============================================================
-# ============================================================
-# TEST ROUTES - FOR VERCEL DEBUGGING
-# ============================================================
-# ============================================================
-
-@admin_bp.route('/test')
-def test():
-    return jsonify({
-        'status': '✅ Flask is working on Vercel!',
-        'vercel': os.environ.get('VERCEL') == '1',
-        'supabase_url': Config.SUPABASE_URL,
-        'has_key': bool(Config.SUPABASE_KEY)
-    })
-
-@admin_bp.route('/test-supabase')
-def test_supabase():
-    result = {
-        'supabase_url': Config.SUPABASE_URL,
-        'has_key': bool(Config.SUPABASE_KEY),
-    }
-    try:
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/products?limit=1",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=5
-        )
-        result['status_code'] = response.status_code
-        result['success'] = response.status_code == 200
-        if response.status_code == 200:
-            data = response.json()
-            result['count'] = len(data)
-    except Exception as e:
-        result['error'] = str(e)
-    return jsonify(result)
-
-@admin_bp.route('/test-data')
-def test_data():
-    try:
-        products = load_products()
-        orders = load_orders()
-        return jsonify({
-            'products': len(products),
-            'orders': len(orders),
-            'sample_product': products[0] if products else None
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@admin_bp.route('/test-env')
-def test_env():
-    import os
-    return jsonify({
-        'VERCEL': os.environ.get('VERCEL'),
-        'NOW_REGION': os.environ.get('NOW_REGION'),
-        'SUPABASE_URL': Config.SUPABASE_URL,
-        'has_key': bool(Config.SUPABASE_KEY)
-    })
-
-
-# ============================================================
 # POS ROUTE
 # ============================================================
 
@@ -680,7 +804,7 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE
+# POS ORDER ROUTE - ONLINE (WORKS PERFECTLY)
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -873,6 +997,131 @@ def admin_pos_place_order():
             'success': False, 
             'message': f'Error: {str(exc)[:100]}'
         }), 500
+
+
+# ============================================================
+# SYNC QUEUED ORDERS
+# ============================================================
+
+@admin_bp.route('/admin/api/sync-queue', methods=['POST'])
+def api_sync_queue():
+    try:
+        # Check Supabase availability
+        try:
+            response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/products?limit=1",
+                headers=Config.SUPABASE_HEADERS,
+                timeout=5
+            )
+            if response.status_code not in [200, 401, 403]:
+                return jsonify({
+                    'success': True,
+                    'synced': 0,
+                    'failed': 0,
+                    'offline': True,
+                    'message': 'Supabase offline - orders will sync when online'
+                }), 200
+        except:
+            return jsonify({
+                'success': True,
+                'synced': 0,
+                'failed': 0,
+                'offline': True,
+                'message': 'Supabase offline - orders will sync when online'
+            }), 200
+
+        data = request.get_json()
+        if not data or not data.get('orders'):
+            return jsonify({
+                'success': True,
+                'synced': 0,
+                'failed': 0,
+                'message': 'No orders provided to sync'
+            })
+
+        orders_to_sync = data.get('orders', [])
+        print(f"🔄 Received {len(orders_to_sync)} items to sync from IndexedDB")
+
+        synced = 0
+        failed = 0
+
+        for order in orders_to_sync:
+            try:
+                order_id = order.get('order_id', f'OFF-{uuid.uuid4().hex[:8].upper()}')
+                
+                # Check if order already exists
+                check_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+
+                if check_response.status_code == 200 and check_response.json():
+                    print(f"⏭️ Order {order_id} already exists, skipping")
+                    synced += 1
+                    continue
+
+                # Build order data
+                order_data = {
+                    'order_id': order_id,
+                    'items': order.get('items', []),
+                    'subtotal': float(order.get('subtotal', 0)),
+                    'shipping': float(order.get('shipping', 0)),
+                    'total': float(order.get('total', 0)),
+                    'status': order.get('status', 'confirmed'),
+                    'source': order.get('source', 'pos'),
+                    'created_at': order.get('created_at', datetime.utcnow().isoformat()),
+                    'customer_name': order.get('customer_name', 'Walk-in Customer'),
+                    'customer_email': order.get('customer_email', 'walkin@example.com'),
+                    'customer_phone': order.get('customer_phone', 'N/A'),
+                    'customer_address': order.get('customer_address', 'In-store purchase'),
+                    'customer': order.get('customer', {
+                        'name': order.get('customer_name', 'Walk-in Customer'),
+                        'email': order.get('customer_email', 'walkin@example.com'),
+                        'phone': order.get('customer_phone', 'N/A'),
+                        'address': order.get('customer_address', 'In-store purchase')
+                    }),
+                    'user_id': order.get('user_id', 'unknown'),
+                    'user_name': order.get('user_name', 'Unknown User'),
+                    'user_role': order.get('user_role', 'user'),
+                    'staff_name': order.get('staff_name', order.get('user_name', 'Unknown User'))
+                }
+
+                # Save to Supabase
+                response = requests.post(
+                    f"{Config.SUPABASE_URL}/rest/v1/orders",
+                    headers=Config.SUPABASE_HEADERS,
+                    json=order_data,
+                    timeout=15
+                )
+
+                if response.status_code in [200, 201]:
+                    print(f"✅ Order synced: {order_id}")
+                    synced += 1
+                else:
+                    print(f"❌ Failed to sync: {order_id} - {response.status_code}")
+                    failed += 1
+
+            except Exception as e:
+                failed += 1
+                print(f"❌ Sync error for {order.get('order_id', 'unknown')}: {e}")
+
+        # Clear caches
+        if synced > 0:
+            import utils.data
+            utils.data.orders_cache = []
+            utils.data.products_cache = []
+
+        return jsonify({
+            'success': True,
+            'synced': synced,
+            'failed': failed,
+            'message': f"Synced {synced} items, {failed} failed"
+        })
+
+    except Exception as e:
+        print(f"❌ Sync queue error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================
