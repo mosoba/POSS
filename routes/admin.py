@@ -1,10 +1,34 @@
 # ============================================================
-# MINIMAL TEST ROUTES - ADD TO YOUR EXISTING admin.py
+# MINIMAL TEST ROUTES - FOR VERCEL DEBUGGING
 # ============================================================
+
+@admin_bp.route('/minimal/test')
+def minimal_test():
+    """Simple test to verify Flask is working"""
+    import os
+    return jsonify({
+        'status': '✅ Flask is working on Vercel!',
+        'vercel': os.environ.get('VERCEL') == '1',
+        'now_region': os.environ.get('NOW_REGION'),
+        'supabase_url': Config.SUPABASE_URL,
+        'has_key': bool(Config.SUPABASE_KEY)
+    })
+
+@admin_bp.route('/minimal/test-env')
+def minimal_test_env():
+    """Test environment variables"""
+    import os
+    return jsonify({
+        'VERCEL': os.environ.get('VERCEL'),
+        'NOW_REGION': os.environ.get('NOW_REGION'),
+        'SUPABASE_URL': Config.SUPABASE_URL,
+        'SUPABASE_KEY_exists': bool(Config.SUPABASE_KEY),
+        'SUPABASE_KEY_preview': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None'
+    })
 
 @admin_bp.route('/minimal/test-supabase')
 def minimal_test_supabase():
-    """Test Supabase connection - Minimal version"""
+    """Test Supabase connection directly"""
     import requests
     import os
     
@@ -12,11 +36,7 @@ def minimal_test_supabase():
         'vercel': os.environ.get('VERCEL') == '1',
         'supabase_url': Config.SUPABASE_URL,
         'has_key': bool(Config.SUPABASE_KEY),
-        'key_preview': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None',
-        'headers': {
-            'apikey': 'present' if Config.SUPABASE_KEY else 'missing',
-            'authorization': 'present' if Config.SUPABASE_KEY else 'missing'
-        }
+        'key_preview': Config.SUPABASE_KEY[:20] + '...' if Config.SUPABASE_KEY else 'None'
     }
     
     try:
@@ -41,11 +61,57 @@ def minimal_test_supabase():
     
     return jsonify(result)
 
+@admin_bp.route('/minimal/test-data')
+def minimal_test_data():
+    """Test data loading step by step"""
+    import traceback
+    result = {
+        'steps': {},
+        'error': None
+    }
+    
+    # Step 1: Test imports
+    try:
+        from utils.data import load_products, load_orders
+        result['steps']['imports'] = '✅ OK'
+    except Exception as e:
+        result['steps']['imports'] = f'❌ {str(e)}'
+        return jsonify(result)
+    
+    # Step 2: Test load_products
+    try:
+        print("📦 Testing load_products...")
+        products = load_products()
+        result['steps']['load_products'] = f'✅ Loaded {len(products)} products'
+        if products and len(products) > 0:
+            result['sample_product'] = {
+                'id': products[0].get('id'),
+                'name': products[0].get('name'),
+                'price': products[0].get('price'),
+                'stock': products[0].get('stock')
+            }
+        print(f"✅ load_products: {len(products)} products")
+    except Exception as e:
+        result['steps']['load_products'] = f'❌ {str(e)}'
+        result['traceback'] = traceback.format_exc()
+        print(f"❌ load_products error: {e}")
+    
+    # Step 3: Test load_orders
+    try:
+        print("📦 Testing load_orders...")
+        orders = load_orders()
+        result['steps']['load_orders'] = f'✅ Loaded {len(orders)} orders'
+        print(f"✅ load_orders: {len(orders)} orders")
+    except Exception as e:
+        result['steps']['load_orders'] = f'❌ {str(e)}'
+        print(f"❌ load_orders error: {e}")
+    
+    return jsonify(result)
 
-@admin_bp.route('/minimal')
+@admin_bp.route('/minimal/dashboard')
 @admin_required
 def minimal_dashboard():
-    """Minimal dashboard for testing - uses same template"""
+    """Minimal dashboard for testing"""
     try:
         print("=" * 60)
         print("🚀 MINIMAL: Loading admin dashboard...")
@@ -74,6 +140,10 @@ def minimal_dashboard():
                 clean_p['name'] = 'Unnamed Product'
             if clean_p.get('category') is None:
                 clean_p['category'] = 'Uncategorized'
+            if clean_p.get('image') is None:
+                clean_p['image'] = ''
+            if clean_p.get('cost_price') is None:
+                clean_p['cost_price'] = 0
             cleaned_products.append(clean_p)
         products = cleaned_products
         
