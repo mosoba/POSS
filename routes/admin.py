@@ -175,7 +175,7 @@ def admin_logout():
 
 
 # ============================================================
-# ADMIN DASHBOARD
+# ADMIN DASHBOARD - UPDATED WITH CREDIT & SUPPLIER DATA
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -479,6 +479,113 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
+        # ============================================================
+        # ✅ FETCH CREDIT DATA
+        # ============================================================
+        credit_summary = {
+            'total_customers': 0,
+            'active_customers': 0,
+            'total_balance': 0,
+            'total_purchases': 0,
+            'total_payments': 0
+        }
+        credit_customers = []
+        overdue_count = 0
+
+        try:
+            response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/credit_customers?select=*",
+                headers=Config.SUPABASE_HEADERS,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                credit_customers = response.json()
+                total_cust = len(credit_customers)
+                active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
+                total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
+                
+                # Get transactions
+                tx_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+                
+                total_purchases = 0
+                total_payments = 0
+                if tx_response.status_code == 200:
+                    transactions = tx_response.json()
+                    total_purchases = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'purchase')
+                    total_payments = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'payment')
+                
+                overdue_count = sum(1 for c in credit_customers if c.get('current_balance', 0) > c.get('credit_limit', 0))
+                
+                credit_summary = {
+                    'total_customers': total_cust,
+                    'active_customers': active_cust,
+                    'total_balance': total_balance,
+                    'total_purchases': total_purchases,
+                    'total_payments': total_payments
+                }
+                print(f"✅ Loaded {total_cust} credit customers")
+            else:
+                print(f"⚠️ Credit customers fetch error: {response.status_code}")
+        except Exception as e:
+            print(f"❌ Error loading credit data: {e}")
+
+        # ============================================================
+        # ✅ FETCH SUPPLIER DATA
+        # ============================================================
+        supplier_summary = {
+            'total_suppliers': 0,
+            'active_suppliers': 0,
+            'total_products': 0
+        }
+        suppliers = []
+        low_stock_count = low_stock_items
+
+        try:
+            response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/suppliers?select=*",
+                headers=Config.SUPABASE_HEADERS,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                suppliers = response.json()
+                total_supp = len(suppliers)
+                active_supp = sum(1 for s in suppliers if s.get('status') == 'active')
+                
+                # Get product counts for suppliers
+                prod_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/products?select=supplier_id",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+                
+                product_counts = {}
+                if prod_response.status_code == 200:
+                    products = prod_response.json()
+                    for p in products:
+                        sid = p.get('supplier_id')
+                        if sid:
+                            product_counts[sid] = product_counts.get(sid, 0) + 1
+                
+                for s in suppliers:
+                    s['total_products'] = product_counts.get(s.get('supplier_id'), 0)
+                
+                supplier_summary = {
+                    'total_suppliers': total_supp,
+                    'active_suppliers': active_supp,
+                    'total_products': sum(product_counts.values())
+                }
+                print(f"✅ Loaded {total_supp} suppliers")
+            else:
+                print(f"⚠️ Suppliers fetch error: {response.status_code}")
+        except Exception as e:
+            print(f"❌ Error loading supplier data: {e}")
+
         return render_template('admin.html',
             products=paginated_products,
             all_products=all_products,
@@ -499,7 +606,15 @@ def admin_dashboard():
             stats=stats,
             pos_count=pos_count,
             analytics=analytics,
-            DB_CONNECTED=True
+            DB_CONNECTED=True,
+            # ✅ CREDIT DATA
+            credit_summary=credit_summary,
+            credit_customers=credit_customers,
+            overdue_count=overdue_count,
+            # ✅ SUPPLIER DATA
+            supplier_summary=supplier_summary,
+            suppliers=suppliers,
+            low_stock_count=low_stock_count
         )
 
     except Exception as exc:
@@ -548,7 +663,15 @@ def admin_dashboard():
             customers_page=1,
             per_page=10,
             recent_orders=[],
-            DB_CONNECTED=False
+            DB_CONNECTED=False,
+            # ✅ CREDIT DATA (empty)
+            credit_summary={'total_customers': 0, 'active_customers': 0, 'total_balance': 0, 'total_purchases': 0, 'total_payments': 0},
+            credit_customers=[],
+            overdue_count=0,
+            # ✅ SUPPLIER DATA (empty)
+            supplier_summary={'total_suppliers': 0, 'active_suppliers': 0, 'total_products': 0},
+            suppliers=[],
+            low_stock_count=0
         )
 
 
@@ -992,7 +1115,6 @@ def api_record_credit_payment():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ✅ NEW MONTHLY REPORT ENDPOINT
 @admin_bp.route('/admin/api/credit/monthly-report', methods=['GET'])
 @admin_required
 def api_get_monthly_credit_report():
@@ -1033,6 +1155,7 @@ def api_get_credit_summary():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ============================================================
 # POS ROUTE
