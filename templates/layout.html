@@ -952,18 +952,14 @@
                 <span class="badge" id="customerCount">{{ stats.total_customers|default(0) }}</span>
             </a>
 
-            <!-- ============================================================
-                 ✅ ADDED: CREDIT MANAGEMENT NAV ITEM
-                 ============================================================ -->
-            <a href="#credit" class="nav-item" onclick="showSection('credit')">
+            <!-- ✅ CREDIT MANAGEMENT - DIRECT URL (NO onclick) -->
+            <a href="/admin/credit" class="nav-item">
                 <i class="fas fa-hand-holding-usd" style="color: #f59e0b;"></i><span>Credit Management</span>
                 <span class="badge" id="creditCount" style="background: #f59e0b; color: white;">0</span>
             </a>
 
-            <!-- ============================================================
-                 ✅ ADDED: SUPPLIERS NAV ITEM
-                 ============================================================ -->
-            <a href="#suppliers" class="nav-item" onclick="showSection('suppliers')">
+            <!-- ✅ SUPPLIERS - DIRECT URL (NO onclick) -->
+            <a href="/admin/suppliers" class="nav-item">
                 <i class="fas fa-truck" style="color: #8b5cf6;"></i><span>Suppliers</span>
                 <span class="badge" id="supplierCount" style="background: #8b5cf6; color: white;">0</span>
             </a>
