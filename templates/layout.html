@@ -44,7 +44,6 @@
                 display: inline-flex !important;
             }
             
-            /* Sidebar slides in from left */
             .sidebar {
                 position: fixed !important;
                 top: 0 !important;
@@ -67,7 +66,6 @@
                 transform: translateX(0) !important;
             }
 
-            /* Backdrop */
             .sidebar-backdrop {
                 display: none !important;
                 position: fixed !important;
@@ -80,7 +78,6 @@
                 display: block !important;
             }
 
-            /* Main content full width */
             .main-content {
                 width: 100% !important;
                 margin-left: 0 !important;
@@ -947,17 +944,17 @@
                 <span class="badge" id="customerCount">{{ stats.total_customers|default(0) }}</span>
             </a>
 
-           <!-- ✅ CREDIT MANAGEMENT - DIRECT URL -->
-<a href="/admin/credit" class="nav-item">
-    <i class="fas fa-hand-holding-usd" style="color: #f59e0b;"></i><span>Credit Management</span>
-    <span class="badge" id="creditCount" style="background: #f59e0b; color: white;">0</span>
-</a>
+            <!-- ✅ CREDIT MANAGEMENT - STAYS IN PAGE -->
+            <a href="#credit" class="nav-item" onclick="showSection('credit')">
+                <i class="fas fa-hand-holding-usd" style="color: #f59e0b;"></i><span>Credit Management</span>
+                <span class="badge" id="creditCount" style="background: #f59e0b; color: white;">0</span>
+            </a>
 
-<!-- ✅ SUPPLIERS - DIRECT URL -->
-<a href="/admin/suppliers" class="nav-item">
-    <i class="fas fa-truck" style="color: #8b5cf6;"></i><span>Suppliers</span>
-    <span class="badge" id="supplierCount" style="background: #8b5cf6; color: white;">0</span>
-</a>
+            <!-- ✅ SUPPLIERS - STAYS IN PAGE -->
+            <a href="#suppliers" class="nav-item" onclick="showSection('suppliers')">
+                <i class="fas fa-truck" style="color: #8b5cf6;"></i><span>Suppliers</span>
+                <span class="badge" id="supplierCount" style="background: #8b5cf6; color: white;">0</span>
+            </a>
 
             <div class="nav-label">Sales</div>
             <a href="/admin/pos" target="_blank" class="nav-item pos-link">
@@ -1214,6 +1211,8 @@
                 'orders': 'Orders',
                 'products': 'Products',
                 'customers': 'Customers',
+                'credit': 'Credit Management',
+                'suppliers': 'Supplier Management',
                 'analytics': 'Analytics',
                 'add-product': 'Add Product'
             };
@@ -1229,37 +1228,22 @@
         // ============================================================
         // LOAD COUNTS
         // ============================================================
-       function loadCreditCount() {
-    fetch('/admin/api/credit/customers/count')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var countEl = document.getElementById('creditCount');
-                if (countEl) {
-                    countEl.textContent = data.total || 0;
-                }
-            }
-        })
-        .catch(err => {
-            console.error('Error loading credit count:', err);
-        });
-}
+        function loadCreditCount() {
+            fetch('/admin/api/credit/customers/count')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        var countEl = document.getElementById('creditCount');
+                        if (countEl) {
+                            countEl.textContent = data.total || 0;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading credit count:', err);
+                });
+        }
 
-function loadSupplierCount() {
-    fetch('/admin/api/suppliers/count')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var countEl = document.getElementById('supplierCount');
-                if (countEl) {
-                    countEl.textContent = data.total || 0;
-                }
-            }
-        })
-        .catch(err => {
-            console.error('Error loading supplier count:', err);
-        });
-}
         function loadSupplierCount() {
             fetch('/admin/api/suppliers/count')
                 .then(response => response.json())
@@ -1890,6 +1874,71 @@ function loadSupplierCount() {
         });
 
         console.log('✅ PricePoint Admin + IndexedDB loaded');
+    </script>
+
+    <!-- ============================================================
+         SIDEBAR BADGE UPDATER - WORKS ON ALL PAGES
+         ============================================================ -->
+    <script>
+    // Update all sidebar badges on every page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Updating all sidebar badges...');
+        
+        // Update Credit count
+        fetch('/admin/api/credit/customers/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    var el = document.getElementById('creditCount');
+                    if (el) el.textContent = data.total || 0;
+                }
+            })
+            .catch(e => console.error('Credit count error:', e));
+        
+        // Update Supplier count
+        fetch('/admin/api/suppliers/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    var el = document.getElementById('supplierCount');
+                    if (el) el.textContent = data.total || 0;
+                }
+            })
+            .catch(e => console.error('Supplier count error:', e));
+        
+        // Update Orders count
+        fetch('/admin/api/orders/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    var el = document.getElementById('orderCount');
+                    if (el) el.textContent = data.total || 0;
+                }
+            })
+            .catch(e => console.error('Orders count error:', e));
+        
+        // Update Products count
+        fetch('/admin/api/products/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    var el = document.getElementById('productCount');
+                    if (el) el.textContent = data.total || 0;
+                }
+            })
+            .catch(e => console.error('Products count error:', e));
+        
+        // Update Customers count
+        fetch('/admin/api/customers/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    var el = document.getElementById('customerCount');
+                    if (el) el.textContent = data.total || 0;
+                }
+            })
+            .catch(e => console.error('Customers count error:', e));
+    });
     </script>
 
     <!-- ===== EXTRA SCRIPTS ===== -->
