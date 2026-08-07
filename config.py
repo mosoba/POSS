@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta
 
-
 class Config:
     SECRET_KEY = 'allison-electronics-secret-2026'
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
@@ -22,8 +21,11 @@ class Config:
     # ===== SUPABASE CONFIGURATION =====
     SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://hzqrdwerkgfmfaufabjr.supabase.co')
     
-    # ===== USE THE SECRET KEY (same as web version!) =====
-    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_secret_8Jk_nZzU7_cEBspHtHV0Ew_KTxfnQ65')
+    # ✅ FIX: Use the working key from environment
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld')
+    
+    # ✅ Debug: Print which key is being used
+    print(f"🔑 Using Supabase key: {SUPABASE_KEY[:30]}...")
     
     SUPABASE_HEADERS = {
         'apikey': SUPABASE_KEY,
