@@ -4607,5 +4607,65 @@ window.addEventListener('offline', () => {
     console.log('🔴 Offline - Orders will be saved locally');
 });
 </script>
+<!-- Install Button -->
+<button id="installBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#059669;color:white;border:none;padding:12px 20px;border-radius:9999px;font-weight:bold;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;font-size:14px;align-items:center;gap:8px;">
+    📱 Install App
+</button>
+
+<script>
+// ============================================================
+// PWA INSTALL - COMPLETE
+// ============================================================
+
+let deferredPrompt;
+
+// Listen for install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('installBtn');
+    if (btn) {
+        btn.style.display = 'flex';
+        console.log('📱 Install button shown!');
+    }
+});
+
+// Install button click
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const result = await deferredPrompt.userChoice;
+        if (result.outcome === 'accepted') {
+            console.log('✅ App installed!');
+            document.getElementById('installBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+    } else {
+        // If prompt not ready, show message
+        showToast('💡 Install option will appear in the address bar', 'info');
+    }
+});
+
+// Hide if already installed
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    document.getElementById('installBtn').style.display = 'none';
+}
+
+// Check if install is available
+console.log('🔍 PWA Check:');
+console.log('  SW:', 'serviceWorker' in navigator ? '✅' : '❌');
+console.log('  Manifest:', document.querySelector('link[rel="manifest"]') ? '✅' : '❌');
+console.log('  HTTPS:', window.location.protocol === 'https:' ? '✅' : '❌');
+console.log('  Install Prompt:', deferredPrompt ? '✅ Ready' : '⏳ Waiting');
+
+// If no prompt after 5 seconds, show button anyway
+setTimeout(() => {
+    const btn = document.getElementById('installBtn');
+    if (btn && btn.style.display === 'none' && !window.matchMedia('(display-mode: standalone)').matches) {
+        btn.style.display = 'flex';
+        console.log('📱 Install button shown (timeout fallback)');
+    }
+}, 5000);
+</script>
     </body>
     </html>
