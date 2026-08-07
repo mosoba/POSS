@@ -1,9 +1,6 @@
 import os
 from datetime import timedelta
-from dotenv import load_dotenv
 
-# ✅ Load .env file FIRST
-load_dotenv()
 
 class Config:
     SECRET_KEY = 'allison-electronics-secret-2026'
@@ -25,14 +22,8 @@ class Config:
     # ===== SUPABASE CONFIGURATION =====
     SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://hzqrdwerkgfmfaufabjr.supabase.co')
     
-    # ✅ FIX: Remove the hardcoded fallback key
-    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
-    
-    # ✅ Debug: Print if key is loaded
-    if SUPABASE_KEY:
-        print(f"🔑 Supabase key loaded: {SUPABASE_KEY[:20]}...")
-    else:
-        print("❌ WARNING: SUPABASE_KEY not found in environment!")
+    # ===== USE THE SECRET KEY (same as web version!) =====
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_secret_8Jk_nZzU7_cEBspHtHV0Ew_KTxfnQ65')
     
     SUPABASE_HEADERS = {
         'apikey': SUPABASE_KEY,
