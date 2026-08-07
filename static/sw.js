@@ -1,3 +1,4 @@
+// static/sw.js
 // ============================================================
 // SERVICE WORKER - PricePoint POS (Complete Offline Solution)
 // ============================================================
@@ -5,13 +6,11 @@
 const CACHE_NAME = 'pricepoint-v10';
 const OFFLINE_URL = '/offline.html';
 
-// ===== PAGES TO CACHE - INCLUDES STATIC ENTRY POINT =====
+// ===== PAGES TO CACHE =====
 const urlsToCache = [
-    // Static entry point for PWA (NO DNS needed!)
     '/static/pwa-entry.html',
     '/offline.html',
     '/manifest.json',
-    // Icons
     '/static/icons/icon-72.png',
     '/static/icons/icon-96.png',
     '/static/icons/icon-128.png',
@@ -75,7 +74,7 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH - Smart offline strategy
+// FETCH
 // ============================================================
 
 self.addEventListener('fetch', event => {
@@ -88,7 +87,7 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // Skip Supabase requests - handled by IndexedDB
+    // Skip Supabase requests
     if (url.hostname.includes('supabase.co')) {
         event.respondWith(
             fetch(request).catch(() => {
@@ -100,32 +99,6 @@ self.addEventListener('fetch', event => {
                     headers: { 'Content-Type': 'application/json' }
                 });
             })
-        );
-        return;
-    }
-    
-    // Skip API calls - don't cache them
-    if (url.pathname.startsWith('/admin/api/') || url.pathname.startsWith('/api/')) {
-        event.respondWith(
-            fetch(request)
-                .then(response => {
-                    if (response && response.status === 200) {
-                        const cloned = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(request, cloned))
-                            .catch(() => {});
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    return new Response(JSON.stringify({
-                        offline: true,
-                        message: 'You are offline.'
-                    }), {
-                        status: 503,
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                })
         );
         return;
     }
@@ -173,26 +146,22 @@ self.addEventListener('fetch', event => {
                     return response;
                 })
                 .catch(async () => {
-                    // Try cache first
                     const cached = await caches.match(request);
                     if (cached) {
                         console.log('[SW] ✅ Serving cached page:', url.pathname);
                         return cached;
                     }
-                    // Fallback to offline page
-                    console.log('[SW] 📡 Serving offline page');
                     return caches.match(OFFLINE_URL);
                 })
         );
         return;
     }
     
-    // ===== ASSETS - Cache first (OFFLINE-FIRST) =====
+    // ===== ASSETS - Cache first =====
     event.respondWith(
         caches.match(request)
             .then(response => {
                 if (response) {
-                    console.log('[SW] ✅ Cache hit:', url.pathname);
                     return response;
                 }
                 return fetch(request)
@@ -207,7 +176,6 @@ self.addEventListener('fetch', event => {
                         return networkResponse;
                     })
                     .catch(() => {
-                        // Return empty response for assets
                         if (url.pathname.match(/\.(css|js|png|jpg|jpeg|svg|ico|woff|woff2|ttf)$/)) {
                             return new Response('', { status: 404 });
                         }
