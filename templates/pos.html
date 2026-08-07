@@ -3001,247 +3001,160 @@
     // ============================================================
     // NORMAL ORDER PROCESSING
     // ============================================================
-    function processNormalOrder() {
-        const btn = document.getElementById('posPlaceOrderBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Processing...';
-        btn.disabled = true;
+   function processNormalOrder() {
+    const btn = document.getElementById('posPlaceOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Processing...';
+    btn.disabled = true;
 
-        const customerName = document.getElementById('posCustomer').value;
-        const customerEmail = document.getElementById('posCustomerEmail').value;
-        const customerPhone = document.getElementById('posCustomerPhone').value;
-        const notes = document.getElementById('orderNotes')?.value || '';
-        
-        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-        const total = Math.max(0, subtotal - discountAmount + tipAmount);
+    const customerName = document.getElementById('posCustomer').value;
+    const customerEmail = document.getElementById('posCustomerEmail').value;
+    const customerPhone = document.getElementById('posCustomerPhone').value;
+    const notes = document.getElementById('orderNotes')?.value || '';
+    
+    const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+    const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+    const total = Math.max(0, subtotal - discountAmount + tipAmount);
 
-        const orderData = {
-            items: posCart.map(item => ({
-                product_id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                total: item.price * item.quantity
-            })),
-            subtotal: subtotal,
-            shipping: 0,
-            total: total,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone,
-            customer_address: 'In-store purchase',
-            notes: notes,
-            payment_method: paymentMethod,
-            tip_amount: tipAmount || 0,
-            discount: discountValue,
-            discount_type: discountType,
-            created_at: new Date().toISOString()
-        };
+    const orderData = {
+        items: posCart.map(item => ({
+            product_id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.price * item.quantity
+        })),
+        subtotal: subtotal,
+        shipping: 0,
+        total: total,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        customer_address: 'In-store purchase',
+        notes: notes,
+        payment_method: paymentMethod,
+        tip_amount: tipAmount || 0,
+        discount: discountValue,
+        discount_type: discountType,
+        created_at: new Date().toISOString()
+    };
 
-        if (!navigator.onLine) {
-            console.log('📡 Offline detected, saving order locally...');
-            saveOrderOffline(orderData, btn, originalText);
-            return;
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        fetch('/admin/pos/place-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData),
-            signal: controller.signal
-        })
-        .then(response => {
-            clearTimeout(timeoutId);
-            return response.json();
-        })
-        .then(data => {
-            clearTimeout(timeoutId);
-            if (data.success) {
-                posCart.forEach(item => {
-                    const product = allProducts.find(p => String(p.id) === String(item.id));
-                    if (product) {
-                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                    }
-                });
-                
-                const orderToSave = {
-                    order_id: data.order_id || 'ORD-' + Date.now(),
-                    items: posCart,
-                    subtotal: subtotal,
-                    shipping: 0,
-                    total: total,
-                    customer_name: customerName,
-                    customer_email: customerEmail,
-                    customer_phone: customerPhone,
-                    payment_method: paymentMethod,
-                    tip_amount: tipAmount || 0,
-                    notes: notes,
-                    created_at: new Date().toISOString(),
-                    synced: true,
-                    synced_at: new Date().toISOString()
-                };
-                saveOrderToIndexedDB(orderToSave).catch(() => {});
-                
-                showToast('✅ Order completed!', 'success');
-                showReceipt({
-                    order_id: data.order_id || 'ORD-' + Date.now(),
-                    customer_name: customerName,
-                    subtotal: subtotal,
-                    total: total,
-                    items: posCart,
-                    payment_method: paymentMethod,
-                    created_at: new Date().toISOString(),
-                    tip_amount: tipAmount || 0,
-                    discount: discountValue
-                });
-                
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                updatePOSUI();
-                renderProducts();
-                updateQuickSalesCount();
-                loadSalesStats();
-                loadUserStats();
-                
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            } else {
-                console.log('📡 API error, saving offline:', data.message);
-                showToast('📡 Saving order offline...', 'warning');
-                saveOrderOffline(orderData, btn, originalText);
-            }
-        })
-        .catch(err => {
-            clearTimeout(timeoutId);
-            console.log('❌ Network error, saving offline:', err.message);
-            showToast('📡 No connection, saving offline...', 'warning');
-            saveOrderOffline(orderData, btn, originalText);
-        });
+    // ✅ Check if actually online
+    if (!navigator.onLine) {
+        console.log('📡 Offline detected, saving order locally...');
+        saveOrderOffline(orderData, btn, originalText);
+        return;
     }
 
-    // ============================================================
-    // SAVE ORDER OFFLINE
-    // ============================================================
-    function saveOrderOffline(orderData, btn, originalText) {
-        const orderToSave = {
-            order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-            items: orderData.items,
-            subtotal: orderData.subtotal,
-            shipping: 0,
-            total: orderData.total,
-            customer_name: orderData.customer_name,
-            customer_email: orderData.customer_email,
-            customer_phone: orderData.customer_phone,
-            payment_method: orderData.payment_method || 'cash',
-            tip_amount: orderData.tip_amount || 0,
-            notes: orderData.notes || '',
-            created_at: new Date().toISOString(),
-            synced: false,
-            synced_at: null,
-            status: 'confirmed'
-        };
-        
-        posCart.forEach(item => {
-            const product = allProducts.find(p => String(p.id) === String(item.id));
-            if (product) {
-                product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-            }
-        });
-        
-        const cartItems = [...posCart];
-        const orderTotal = orderData.total;
-        const orderSubtotal = orderData.subtotal;
-        const customer = orderData.customer_name;
-        const payment = orderData.payment_method || 'cash';
-        const tip = orderData.tip_amount || 0;
-        const disc = discountValue;
-        
-        saveOrderToIndexedDB(orderToSave)
-            .then(() => {
-                console.log('✅ Order saved to IndexedDB');
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                } catch(e) {}
-                
-                showToast('📡 Order saved offline! Will sync when online.', 'warning');
-                
-                showReceipt({
-                    order_id: orderToSave.order_id,
-                    customer_name: customer,
-                    subtotal: orderSubtotal,
-                    total: orderTotal,
-                    items: cartItems,
-                    payment_method: payment,
-                    created_at: new Date().toISOString(),
-                    tip_amount: tip,
-                    discount: disc
-                });
-                
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                updatePOSUI();
-                renderProducts();
-                updateQuickSalesCount();
-                updateUnsyncedCount();
-                
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            })
-            .catch((err) => {
-                console.log('❌ IndexedDB failed, trying localStorage:', err.message);
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                    
-                    showToast('📡 Order saved to local storage!', 'warning');
-                    
-                    showReceipt({
-                        order_id: orderToSave.order_id,
-                        customer_name: customer,
-                        subtotal: orderSubtotal,
-                        total: orderTotal,
-                        items: cartItems,
-                        payment_method: payment,
-                        created_at: new Date().toISOString(),
-                        tip_amount: tip,
-                        discount: disc
-                    });
-                    
-                    posCart = [];
-                    discountValue = 0;
-                    tipAmount = 0;
-                    document.getElementById('discountDisplay').textContent = '0%';
-                    document.getElementById('tipDisplay').textContent = 'KSh 0';
-                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                    updatePOSUI();
-                    renderProducts();
-                    updateQuickSalesCount();
-                    
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                } catch(e2) {
-                    console.log('❌ All storage failed:', e2.message);
-                    showToast('❌ Failed to save order: ' + err.message, 'error');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+    // ✅ Try to place order online
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    fetch('/admin/pos/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+        signal: controller.signal
+    })
+    .then(response => {
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+            // ✅ Only throw for actual HTTP errors
+            throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        clearTimeout(timeoutId);
+        if (data.success) {
+            // ✅ ORDER SUCCESSFUL
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
                 }
             });
-    }
+            
+            const orderToSave = {
+                order_id: data.order_id || 'ORD-' + Date.now(),
+                items: posCart,
+                subtotal: subtotal,
+                shipping: 0,
+                total: total,
+                customer_name: customerName,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
+                payment_method: paymentMethod,
+                tip_amount: tipAmount || 0,
+                notes: notes,
+                created_at: new Date().toISOString(),
+                synced: true,
+                synced_at: new Date().toISOString()
+            };
+            saveOrderToIndexedDB(orderToSave).catch(() => {});
+            
+            showToast('✅ Order completed!', 'success');
+            showReceipt({
+                order_id: data.order_id || 'ORD-' + Date.now(),
+                customer_name: customerName,
+                subtotal: subtotal,
+                total: total,
+                items: posCart,
+                payment_method: paymentMethod,
+                created_at: new Date().toISOString(),
+                tip_amount: tipAmount || 0,
+                discount: discountValue
+            });
+            
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            updatePOSUI();
+            renderProducts();
+            updateQuickSalesCount();
+            loadSalesStats();
+            loadUserStats();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } else {
+            // ✅ API returned error - SHOW ERROR, don't save offline
+            clearTimeout(timeoutId);
+            console.log('❌ API Error:', data.message);
+            showToast('❌ Order failed: ' + (data.message || 'Unknown error'), 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        clearTimeout(timeoutId);
+        console.log('❌ Network error:', err.message);
+        
+        // ✅ Only save offline for NETWORK errors, not for HTTP errors
+        if (err.name === 'AbortError') {
+            showToast('⏱️ Request timed out. Please try again.', 'warning');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } else if (err.message && err.message.includes('HTTP')) {
+            // ✅ Server error - don't save offline
+            showToast('❌ Server error: ' + err.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } else if (!navigator.onLine) {
+            // ✅ Actually offline - save offline
+            showToast('📡 No connection, saving offline...', 'warning');
+            saveOrderOffline(orderData, btn, originalText);
+        } else {
+            // ✅ Other errors - show error, don't save offline
+            showToast('❌ Error: ' + err.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+}
 
     // ============================================================
     // INDEXEDDB
