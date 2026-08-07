@@ -1158,14 +1158,20 @@ def api_get_credit_summary():
 
 
 # ============================================================
-# POS ROUTE
+# POS ROUTE - FIXED
 # ============================================================
 
 @admin_bp.route('/admin/pos')
 def admin_pos():
-    if not session.get('admin_logged_in'):
+    # ✅ Check for either admin_logged_in OR user session
+    if not session.get('admin_logged_in') and not session.get('user'):
         flash('Please login first', 'danger')
         return redirect(url_for('admin.user_login'))
+    
+    # ✅ Set admin_logged_in for POS if user exists
+    if session.get('user') and not session.get('admin_logged_in'):
+        session['admin_logged_in'] = True
+        print("✅ admin_logged_in set for POS user")
 
     all_products = load_products()
     for product in all_products:
@@ -1210,13 +1216,19 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE
+# POS ORDER ROUTE - FIXED
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
 def admin_pos_place_order():
-    if not session.get('admin_logged_in'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    # ✅ FIX: Check for either admin_logged_in OR user session
+    if not session.get('admin_logged_in') and not session.get('user'):
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    # ✅ If user session exists but no admin_logged_in, set it
+    if session.get('user') and not session.get('admin_logged_in'):
+        session['admin_logged_in'] = True
+        print("✅ admin_logged_in set for POS order")
 
     try:
         data = request.get_json()
@@ -1233,6 +1245,7 @@ def admin_pos_place_order():
         
         print(f"📦 Received order: {order_id}")
         print(f"📦 Items: {len(items)}")
+        print(f"👤 User: {user_name} ({user_role})")
         
         for item in items:
             print(f"  - {item.get('name')} x{item.get('quantity')}")
@@ -1403,8 +1416,6 @@ def admin_pos_place_order():
             'success': False, 
             'message': f'Error: {str(exc)[:100]}'
         }), 500
-
-
 # ============================================================
 # SYNC QUEUED ORDERS
 # ============================================================
