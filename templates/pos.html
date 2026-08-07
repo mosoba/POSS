@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>POS Pro · Point of Sale</title>
-    
+
     <!-- ===== PWA META TAGS ===== -->
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
     <meta name="theme-color" content="#059669">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
-    
+
     <style>
         /* ============================================================
            RESET & VARIABLES
@@ -21,7 +21,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         :root {
             --primary: #059669;
             --primary-dark: #047857;
@@ -54,7 +54,7 @@
             --radius: 12px;
             --transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        
+
         /* ===== DARK MODE ===== */
         [data-theme="dark"] {
             --bg-body: #0f172a;
@@ -78,7 +78,7 @@
             --danger-bg: #7f1d1d;
             --warning-bg: #78350f;
         }
-        
+
         [data-theme="dark"] .stat-card,
         [data-theme="dark"] .panel,
         [data-theme="dark"] .cart-panel,
@@ -93,7 +93,7 @@
             background: var(--bg-card);
             color: var(--text-primary);
         }
-        
+
         [data-theme="dark"] .search-box input,
         [data-theme="dark"] .cart-item,
         [data-theme="dark"] .held-orders-panel,
@@ -101,18 +101,18 @@
         [data-theme="dark"] .search-hint {
             background: var(--bg-input);
         }
-        
+
         [data-theme="dark"] .cart-item .item-info .name,
         [data-theme="dark"] .panel-title,
         [data-theme="dark"] .cart-header h3,
         [data-theme="dark"] .stat-info .value {
             color: var(--text-primary);
         }
-        
+
         [data-theme="dark"] .modal-overlay {
             background: rgba(0,0,0,0.8);
         }
-        
+
         [data-theme="dark"] .search-hint .shortcuts {
             background: var(--bg-card);
         }
@@ -224,7 +224,7 @@
         .shadow-xl { box-shadow: var(--shadow-xl); }
         .cursor-pointer { cursor: pointer; }
         .transition-all { transition: var(--transition); }
-        
+
         /* Colors */
         .text-gray-400 { color: var(--gray-400); }
         .text-gray-500 { color: var(--gray-500); }
@@ -243,7 +243,7 @@
         .text-amber-500 { color: var(--warning); }
         .text-rose-500 { color: #f43f5e; }
         .text-rose-600 { color: #e11d48; }
-        
+
         .bg-gray-50 { background-color: var(--gray-50); }
         .bg-gray-100 { background-color: var(--gray-100); }
         .bg-gray-200 { background-color: var(--gray-200); }
@@ -263,7 +263,7 @@
         .hover\:text-primary:hover { color: var(--primary); }
         .hover\:scale-105:hover { transform: scale(1.05); }
         .hover\:shadow-lg:hover { box-shadow: var(--shadow-lg); }
-        
+
         @media (max-width: 768px) {
             .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
             .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
@@ -1210,10 +1210,10 @@
             border: 1px solid var(--border-color);
             margin-bottom: 4px;
         }
-        .return-item input[type="checkbox"] { 
-            width: 18px; 
-            height: 18px; 
-            accent-color: #dc2626; 
+        .return-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #dc2626;
             flex-shrink: 0;
             cursor: pointer;
         }
@@ -1712,7 +1712,7 @@
                 <div class="cart-summary">
                     <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
                     <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
-                    
+
                     <!-- ===== TIP SECTION ===== -->
                     <div class="tip-section">
                         <div class="tip-btn-group">
@@ -1729,7 +1729,7 @@
                     </div>
 
                     <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
-                    
+
                     <!-- ===== ORDER NOTES ===== -->
                     <div class="order-notes">
                         <label>📝 Order Notes</label>
@@ -1817,12 +1817,12 @@
             <button class="close" onclick="closeReturnModal()">✕</button>
             <div class="title">↩ Customer Return</div>
             <p style="font-size:0.75rem;color:var(--gray-500);margin-bottom:14px;">
-                Select a <strong style="color:var(--primary);">SOLD order</strong> to return items. 
+                Select a <strong style="color:var(--primary);">SOLD order</strong> to return items.
                 <span style="display:block;margin-top:4px;color:var(--danger);font-weight:600;">🚫 You can ONLY return items from completed/paid orders!</span>
                 <span style="display:block;font-size:0.65rem;color:var(--gray-400);">Items in current cart cannot be returned - they haven't been sold yet.</span>
                 <span style="display:block;font-size:0.65rem;color:var(--warning);font-weight:600;">🔒 Items already returned cannot be returned again!</span>
             </p>
-            
+
             <div class="order-selector">
                 <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">📋 Select SOLD Order to Return</label>
                 <select id="returnOrderSelect" onchange="loadOrderForReturn()">
@@ -1832,7 +1832,7 @@
                     <span id="orderInfoText"></span>
                 </div>
             </div>
-            
+
             <div id="returnItemsContainer" style="display:none;">
                 <div style="background:var(--bg-input);padding:10px 14px;border-radius:8px;margin-bottom:12px;border-left:4px solid var(--primary);">
                     <div style="display:flex;justify-content:space-between;font-size:0.75rem;">
@@ -1909,7 +1909,7 @@
     <!-- ============================================================
     JAVASCRIPT
     ============================================================ -->
-    
+
   <script>
     // ============================================================
     // DATA
@@ -1992,7 +1992,7 @@
         paymentMethod = method;
         document.querySelectorAll('.payment-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('pay' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('active');
-        
+
         const creditSection = document.getElementById('creditCustomerSection');
         if (method === 'credit') {
             creditSection.style.display = 'block';
@@ -2025,7 +2025,7 @@
         const select = document.getElementById('creditCustomerSelect');
         const selected = select ? select.options[select.selectedIndex] : null;
         if (!selected || !selected.value) return null;
-        
+
         return {
             customer_id: selected.value,
             full_name: selected.dataset.name || '',
@@ -2040,13 +2040,13 @@
     function loadCreditCustomers() {
         const select = document.getElementById('creditCustomerSelect');
         if (!select) return;
-        
+
         if (select.options.length > 1 && select.options[1].value !== '') {
             return;
         }
-        
+
         select.innerHTML = '<option value="">-- Select Credit Customer --</option>';
-        
+
         fetch('/admin/api/credit/customers')
             .then(r => r.json())
             .then(data => {
@@ -2089,27 +2089,27 @@
         const select = document.getElementById('creditCustomerSelect');
         const infoDiv = document.getElementById('creditCustomerInfo');
         const selected = select.options[select.selectedIndex];
-        
+
         if (!selected || !selected.value) {
             infoDiv.style.display = 'none';
             return;
         }
-        
+
         select.dataset.selectedId = selected.value;
-        
+
         const balance = parseFloat(selected.dataset.balance) || 0;
         const limit = parseFloat(selected.dataset.limit) || 0;
         const name = selected.dataset.name || '';
         const available = limit - balance;
-        
+
         document.getElementById('creditBalanceDisplay').textContent = 'KSh ' + balance.toLocaleString();
         document.getElementById('creditLimitDisplay').textContent = 'KSh ' + limit.toLocaleString();
         document.getElementById('creditAvailableDisplay').textContent = 'KSh ' + available.toLocaleString();
         document.getElementById('creditCustomerName').textContent = '👤 ' + name;
-        
+
         const balanceEl = document.getElementById('creditBalanceDisplay');
         const availableEl = document.getElementById('creditAvailableDisplay');
-        
+
         if (balance > limit) {
             balanceEl.style.color = '#dc2626';
             availableEl.style.color = '#dc2626';
@@ -2120,7 +2120,7 @@
             balanceEl.style.color = '#7c3aed';
             availableEl.style.color = '#059669';
         }
-        
+
         infoDiv.style.display = 'block';
     }
 
@@ -2187,7 +2187,7 @@
 
     function saveQuickCreditCustomer(event) {
         event.preventDefault();
-        
+
         const data = {
             full_name: document.getElementById('quickCreditName').value.trim(),
             phone: document.getElementById('quickCreditPhone').value.trim(),
@@ -2198,17 +2198,17 @@
             payment_terms: document.getElementById('quickPaymentTerms').value,
             account_status: 'active'
         };
-        
+
         if (!data.full_name || !data.phone) {
             showToast('⚠️ Name and Phone are required', 'warning');
             return;
         }
-        
+
         const btn = document.querySelector('#quickCreditForm button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Adding...';
         btn.disabled = true;
-        
+
         fetch('/admin/api/credit/customers', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2250,18 +2250,18 @@
     function viewCreditCustomer() {
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         const customer = creditCustomers.find(c => c.customer_id === customerId);
         if (!customer) {
             showToast('⚠️ Customer not found', 'error');
             return;
         }
-        
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.id = 'viewCustomerModal';
@@ -2307,18 +2307,18 @@
     function editCreditCustomer() {
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         const customer = creditCustomers.find(c => c.customer_id === customerId);
         if (!customer) {
             showToast('⚠️ Customer not found', 'error');
             return;
         }
-        
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.id = 'editCustomerModal';
@@ -2380,9 +2380,9 @@
 
     function saveEditCustomer(event) {
         event.preventDefault();
-        
+
         const customerId = getSelectedCustomerId();
-        
+
         const data = {
             full_name: document.getElementById('editCustomerName').value.trim(),
             phone: document.getElementById('editCustomerPhone').value.trim(),
@@ -2393,17 +2393,17 @@
             payment_terms: document.getElementById('editPaymentTerms').value,
             account_status: document.getElementById('editCustomerStatus').value
         };
-        
+
         if (!data.full_name || !data.phone) {
             showToast('⚠️ Name and Phone are required', 'warning');
             return;
         }
-        
+
         const btn = document.querySelector('#editCustomerForm button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Saving...';
         btn.disabled = true;
-        
+
         fetch('/admin/api/credit/customers/' + customerId, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -2445,12 +2445,12 @@
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
         const customerData = getSelectedCustomerData();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.id = 'recordPaymentModal';
@@ -2499,36 +2499,36 @@
 
     function recordPayment(event) {
         event.preventDefault();
-        
+
         const customerId = getSelectedCustomerId();
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const method = document.getElementById('paymentMethodSelect').value;
         const notes = document.getElementById('paymentNotes').value || '';
-        
+
         if (!customerId) {
             showToast('⚠️ No customer selected', 'warning');
             return;
         }
-        
+
         if (!amount || amount <= 0) {
             showToast('⚠️ Please enter a valid amount', 'warning');
             return;
         }
-        
+
         const data = {
             customer_id: customerId,
             amount: amount,
             staff_name: '{{ session.user.name if session.user else "POS" }}',
             notes: notes + ' (Payment via ' + method + ')'
         };
-        
+
         const btn = document.querySelector('#recordPaymentForm button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Processing...';
         btn.disabled = true;
-        
+
         showToast('🔄 Recording payment...', 'info');
-        
+
         fetch('/admin/api/credit/payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2569,21 +2569,21 @@
     function viewCreditHistory() {
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         showToast('🔄 Loading transaction history...', 'info');
-        
+
         fetch('/admin/api/credit/transactions/' + customerId)
             .then(r => r.json())
             .then(data => {
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.id = 'historyModal';
-                
+
                 let historyHtml = '';
                 if (data.success && data.transactions && data.transactions.length > 0) {
                     data.transactions.forEach(t => {
@@ -2593,7 +2593,7 @@
                         const typeColor = type === 'purchase' ? '#dc2626' : '#059669';
                         const sign = type === 'purchase' ? '+' : '-';
                         const date = t.created_at ? new Date(t.created_at).toLocaleString() : 'Unknown';
-                        
+
                         historyHtml += `
                             <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
                                 <div>
@@ -2609,7 +2609,7 @@
                 } else {
                     historyHtml = '<div style="text-align:center;padding:30px;color:var(--gray-400);">No transactions found</div>';
                 }
-                
+
                 modal.innerHTML = `
                     <div class="modal" style="max-width:550px;" onclick="event.stopPropagation()">
                         <button class="close" onclick="this.closest('.modal-overlay').remove()">✕</button>
@@ -2638,18 +2638,18 @@
     function deleteCreditCustomer() {
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         if (!confirm(`⚠️ Are you sure you want to deactivate ${customerName}?\n\nThis will set the account to INACTIVE.\n\nThey will no longer be able to make credit purchases.`)) {
             return;
         }
-        
+
         const data = { account_status: 'inactive' };
-        
+
         fetch('/admin/api/credit/customers/' + customerId, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -2680,18 +2680,18 @@
     function reactivateCreditCustomer() {
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         if (!confirm(`✅ Reactivate ${customerName}?\n\nThis will set the account to ACTIVE.`)) {
             return;
         }
-        
+
         const data = { account_status: 'active' };
-        
+
         fetch('/admin/api/credit/customers/' + customerId, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -2728,19 +2728,19 @@
         const customerId = getSelectedCustomerId();
         const customerName = getSelectedCustomerName();
         const customerData = getSelectedCustomerData();
-        
+
         if (!customerId) {
             showToast('⚠️ Please select a credit customer first', 'warning');
             return;
         }
-        
+
         const phone = customerData?.phone || '';
         const balance = customerData?.balance || 0;
-        
+
         const message = `Dear ${customerName},\n\nYour current credit balance with PricePoint is KSh ${balance.toLocaleString()}.\n\nPlease make your payment as soon as possible.\n\nThank you for your business!\n\nPricePoint Kenya`;
-        
+
         const whatsappUrl = `https://wa.me/254${phone.replace(/^0+/, '').replace(/^254+/, '')}?text=${encodeURIComponent(message)}`;
-        
+
         window.open(whatsappUrl, '_blank');
     }
 
@@ -2749,14 +2749,14 @@
     // ============================================================
     function viewOverdueAlerts() {
         showToast('🔄 Loading overdue customers...', 'info');
-        
+
         fetch('/admin/api/credit/overdue')
             .then(r => r.json())
             .then(data => {
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.id = 'overdueModal';
-                
+
                 let overdueHtml = '';
                 if (data.success && data.overdue && data.overdue.length > 0) {
                     data.overdue.forEach(c => {
@@ -2777,7 +2777,7 @@
                 } else {
                     overdueHtml = '<div style="text-align:center;padding:30px;color:var(--gray-400);">✅ No overdue customers found!</div>';
                 }
-                
+
                 modal.innerHTML = `
                     <div class="modal" style="max-width:500px;" onclick="event.stopPropagation()">
                         <button class="close" onclick="this.closest('.modal-overlay').remove()">✕</button>
@@ -2835,31 +2835,31 @@
         if (paymentMethod === 'credit') {
             const select = document.getElementById('creditCustomerSelect');
             const selected = select.options[select.selectedIndex];
-            
+
             if (!selected || !selected.value) {
                 showToast('⚠️ Please select a credit customer', 'warning');
                 return;
             }
-            
+
             const customerId = selected.value;
             const customerName = selected.dataset.name || 'Customer';
             const balance = parseFloat(selected.dataset.balance) || 0;
             const limit = parseFloat(selected.dataset.limit) || 0;
-            
+
             const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
             const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
             const total = Math.max(0, subtotal - discountAmount + tipAmount);
-            
+
             if (limit > 0 && (balance + total) > limit) {
                 showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
                 return;
             }
-            
+
             if (selected.dataset.status === 'inactive') {
                 showToast('⚠️ This customer account is inactive!', 'danger');
                 return;
             }
-            
+
             if (!confirm(`💳 CREDIT PURCHASE\n\n` +
                 `👤 Customer: ${customerName}\n` +
                 `💰 Total: KSh ${total.toLocaleString()}\n` +
@@ -2870,7 +2870,7 @@
                 `Proceed?`)) {
                 return;
             }
-            
+
             processCreditPurchase(customerId, customerName, total);
             return;
         }
@@ -2886,10 +2886,10 @@
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Processing credit...';
         btn.disabled = true;
-        
+
         const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
         const notes = document.getElementById('orderNotes')?.value || '';
-        
+
         const data = {
             customer_id: customerId,
             items: itemsList,
@@ -2897,7 +2897,7 @@
             staff_name: '{{ session.user.name if session.user else "POS" }}',
             notes: notes + ' (Credit purchase via POS)'
         };
-        
+
         fetch('/admin/api/credit/purchase', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2912,10 +2912,10 @@
                         product.stock = Math.max(0, (product.stock || 0) - item.quantity);
                     }
                 });
-                
+
                 showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
                 showCreditReceipt(customerName, total, result);
-                
+
                 posCart = [];
                 discountValue = 0;
                 tipAmount = 0;
@@ -2927,7 +2927,7 @@
                 loadCreditCustomers();
                 updateQuickSalesCount();
                 loadSalesStats();
-                
+
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             } else {
@@ -2982,7 +2982,7 @@
         if (!modal) return;
         const content = modal.querySelector('.modal .bg-input');
         if (!content) return;
-        
+
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         if (!printWindow) {
             showToast('⚠️ Please allow popups for printing', 'warning');
@@ -3011,7 +3011,7 @@
         const customerEmail = document.getElementById('posCustomerEmail').value;
         const customerPhone = document.getElementById('posCustomerPhone').value;
         const notes = document.getElementById('orderNotes')?.value || '';
-        
+
         const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
         const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
         const total = Math.max(0, subtotal - discountAmount + tipAmount);
@@ -3067,7 +3067,7 @@
                         product.stock = Math.max(0, (product.stock || 0) - item.quantity);
                     }
                 });
-                
+
                 const orderToSave = {
                     order_id: data.order_id || 'ORD-' + Date.now(),
                     items: posCart,
@@ -3085,7 +3085,7 @@
                     synced_at: new Date().toISOString()
                 };
                 saveOrderToIndexedDB(orderToSave).catch(() => {});
-                
+
                 showToast('✅ Order completed!', 'success');
                 showReceipt({
                     order_id: data.order_id || 'ORD-' + Date.now(),
@@ -3098,7 +3098,7 @@
                     tip_amount: tipAmount || 0,
                     discount: discountValue
                 });
-                
+
                 posCart = [];
                 discountValue = 0;
                 tipAmount = 0;
@@ -3110,7 +3110,7 @@
                 updateQuickSalesCount();
                 loadSalesStats();
                 loadUserStats();
-                
+
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             } else {
@@ -3148,14 +3148,14 @@
             synced_at: null,
             status: 'confirmed'
         };
-        
+
         posCart.forEach(item => {
             const product = allProducts.find(p => String(p.id) === String(item.id));
             if (product) {
                 product.stock = Math.max(0, (product.stock || 0) - item.quantity);
             }
         });
-        
+
         const cartItems = [...posCart];
         const orderTotal = orderData.total;
         const orderSubtotal = orderData.subtotal;
@@ -3163,7 +3163,7 @@
         const payment = orderData.payment_method || 'cash';
         const tip = orderData.tip_amount || 0;
         const disc = discountValue;
-        
+
         saveOrderToIndexedDB(orderToSave)
             .then(() => {
                 console.log('✅ Order saved to IndexedDB');
@@ -3172,9 +3172,9 @@
                     localOrders.push(orderToSave);
                     localStorage.setItem('pos_orders', JSON.stringify(localOrders));
                 } catch(e) {}
-                
+
                 showToast('📡 Order saved offline! Will sync when online.', 'warning');
-                
+
                 showReceipt({
                     order_id: orderToSave.order_id,
                     customer_name: customer,
@@ -3186,7 +3186,7 @@
                     tip_amount: tip,
                     discount: disc
                 });
-                
+
                 posCart = [];
                 discountValue = 0;
                 tipAmount = 0;
@@ -3197,7 +3197,7 @@
                 renderProducts();
                 updateQuickSalesCount();
                 updateUnsyncedCount();
-                
+
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             })
@@ -3207,9 +3207,9 @@
                     const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
                     localOrders.push(orderToSave);
                     localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                    
+
                     showToast('📡 Order saved to local storage!', 'warning');
-                    
+
                     showReceipt({
                         order_id: orderToSave.order_id,
                         customer_name: customer,
@@ -3221,7 +3221,7 @@
                         tip_amount: tip,
                         discount: disc
                     });
-                    
+
                     posCart = [];
                     discountValue = 0;
                     tipAmount = 0;
@@ -3231,7 +3231,7 @@
                     updatePOSUI();
                     renderProducts();
                     updateQuickSalesCount();
-                    
+
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 } catch(e2) {
@@ -3536,14 +3536,14 @@
             const label = stock <= 0 ? 'Out' : stock < 10 ? 'Low' : stock < 30 ? 'Med' : 'In Stock';
             const out = stock <= 0;
             const barcode = p.barcode ? '<div class="barcode">' + p.barcode + '</div>' : '';
-            
+
             let imageHtml = '';
             if (img && img !== '' && img !== 'null' && img !== 'undefined') {
                 imageHtml = '<img src="' + img + '" onerror="this.parentElement.innerHTML=\'<span class=placeholder>📦</span>\'">';
             } else {
                 imageHtml = '<span class="placeholder">📦</span>';
             }
-            
+
             html += '<div class="product-card" data-id="' + (p.id || '') + '" data-name="' + (p.name || '') + '" data-price="' + price + '" data-stock="' + stock + '" data-image="' + img + '" data-barcode="' + (p.barcode || '') + '" onclick="' + (out ? '' : 'addToPOSCart(this)') + '" style="' + (out ? 'opacity:0.7;' : '') + '">' +
                 '<div class="image-wrap">' + imageHtml + '</div>' +
                 '<span class="stock-tag ' + stockClass + '">' + label + '</span>' +
@@ -3918,17 +3918,17 @@
     function showReceipt(orderData) {
         const modal = document.getElementById('receiptModal');
         modal.classList.remove('hidden');
-        
+
         const content = document.getElementById('receiptContent');
         const date = new Date(orderData.created_at || Date.now()).toLocaleString();
         const items = orderData.items.map(function(item) {
             return item.name + ' x' + item.quantity + ' = KSh ' + (item.price * item.quantity).toLocaleString();
         }).join('\n');
-        
+
         const discountAmount = orderData.subtotal - (orderData.total - (orderData.tip_amount || 0));
         const tip = orderData.tip_amount || 0;
-        
-        content.textContent = 
+
+        content.textContent =
             '╔══════════════════════════════════╗\n' +
             '║          PRICEPOINT POS          ║\n' +
             '║         📍 Nairobi, Kenya        ║\n' +
@@ -4002,18 +4002,18 @@
     function loadOrdersForReturn() {
         const select = document.getElementById('returnOrderSelect');
         select.innerHTML = '<option value="">-- Select a SOLD order --</option>';
-        
+
         const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-        const confirmedOrders = localOrders.filter(o => 
+        const confirmedOrders = localOrders.filter(o =>
             o.status === 'confirmed' || o.status === 'completed' || o.status === 'delivered'
         );
-        
+
         if (navigator.onLine) {
             fetch('/admin/api/orders')
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.orders) {
-                        const apiOrders = data.orders.filter(o => 
+                        const apiOrders = data.orders.filter(o =>
                             (o.status === 'confirmed' || o.status === 'completed' || o.status === 'delivered') &&
                             !o.is_return
                         );
@@ -4079,25 +4079,25 @@
         const select = document.getElementById('returnOrderSelect');
         const selected = select.options[select.selectedIndex];
         const container = document.getElementById('returnItemsContainer');
-        
+
         if (!selected || !selected.value) {
             container.style.display = 'none';
             return;
         }
-        
+
         try {
             const items = JSON.parse(selected.dataset.items || '[]');
             const total = parseFloat(selected.dataset.total) || 0;
             const customer = selected.dataset.customer || 'Customer';
             const returned = parseInt(selected.dataset.returned) || 0;
-            
+
             document.getElementById('returnOrderItemsCount').textContent = items.length;
             document.getElementById('returnOrderTotal').textContent = 'KSh ' + total.toLocaleString();
             document.getElementById('returnAvailableItems').textContent = items.length - returned;
             document.getElementById('returnAlreadyReturned').textContent = returned;
             document.getElementById('orderInfoText').textContent = '📋 Order: #' + selected.value + ' | Customer: ' + customer + ' | Total: KSh ' + total.toLocaleString();
             document.getElementById('orderInfoDisplay').style.display = 'block';
-            
+
             let html = '';
             let totalRefund = 0;
             items.forEach((item, idx) => {
@@ -4105,7 +4105,7 @@
                 const qty = parseInt(item.quantity) || 1;
                 const itemTotal = price * qty;
                 const isAlreadyReturned = idx < returned;
-                
+
                 html += '<div class="return-item">' +
                     '<input type="checkbox" ' + (isAlreadyReturned ? 'disabled checked' : '') + ' data-id="' + (item.product_id || item.id || '') + '" data-price="' + price + '" data-quantity="' + qty + '" data-name="' + (item.name || 'Product') + '" onchange="updateReturnTotal()">' +
                     '<div class="info">' +
@@ -4140,7 +4140,7 @@
             showToast('⚠️ Select items to return', 'warning');
             return;
         }
-        
+
         const items = [];
         let refundTotal = 0;
         checkboxes.forEach(cb => {
@@ -4155,12 +4155,12 @@
             });
             refundTotal += price * qty;
         });
-        
+
         const select = document.getElementById('returnOrderSelect');
         const selected = select.options[select.selectedIndex];
         const customerName = selected.dataset.customer || 'Customer';
         const orderId = selected.value;
-        
+
         if (!confirm(`🔄 Process Return\n\n` +
             `📦 Items: ${items.length}\n` +
             `💰 Refund: KSh ${refundTotal.toLocaleString()}\n` +
@@ -4168,7 +4168,7 @@
             `Proceed?`)) {
             return;
         }
-        
+
         const returnData = {
             items: items,
             refund_total: refundTotal,
@@ -4178,7 +4178,7 @@
             original_order_id: orderId,
             returned_items: items.map(i => i.id)
         };
-        
+
         if (navigator.onLine) {
             fetch('/admin/api/process-return', {
                 method: 'POST',
@@ -4246,7 +4246,7 @@
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showToast('⚠️ Camera not available', 'warning');
             btn.style.display = 'none';
-            document.getElementById('barcode-reader').innerHTML = 
+            document.getElementById('barcode-reader').innerHTML =
                 '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
                 '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
                 '<p>Camera not available</p>' +
@@ -4283,7 +4283,7 @@
                 btn.innerHTML = '📷 Try Again';
                 btn.disabled = false;
                 showToast('⚠️ Camera error: ' + err.message, 'error');
-                document.getElementById('barcode-reader').innerHTML = 
+                document.getElementById('barcode-reader').innerHTML =
                     '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
                     '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
                     '<p>Camera not accessible</p>' +
@@ -4337,14 +4337,14 @@
             if (existing.quantity < product.stock) { existing.quantity++; showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success'); }
             else { showToast('⚠️ Not enough stock for ' + product.name, 'warning'); }
         } else {
-            posCart.push({ 
-                id: product.id, 
-                name: product.name, 
-                price: product.price, 
-                image: getProductImage(product), 
-                stock: product.stock || 0, 
-                barcode: product.barcode || '', 
-                quantity: 1 
+            posCart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: getProductImage(product),
+                stock: product.stock || 0,
+                barcode: product.barcode || '',
+                quantity: 1
             });
             showToast('✅ Added: ' + product.name, 'success');
         }
@@ -4463,10 +4463,10 @@
     // ============================================================
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('✅ POS Pro v12.0 - Credit System Enabled with ' + allProducts.length + ' products');
-        
+
         filteredProducts = allProducts.slice(0, 50);
-        
-        document.getElementById('posProductGrid').innerHTML = 
+
+        document.getElementById('posProductGrid').innerHTML =
             '<div class="search-hint">' +
             '<span class="icon">🔍</span>' +
             '<p>Search for products</p>' +
@@ -4474,7 +4474,7 @@
             '<div class="shortcuts">💡 Search by name, category, or barcode</div>' +
             '</div>';
         document.getElementById('resultCount').textContent = allProducts.length + ' products available';
-        
+
         renderProducts();
         updatePOSUI();
         loadSalesStats();
@@ -4483,6 +4483,129 @@
         loadOrdersForReturn();
         setTimeout(checkUnsyncedOrdersOnLoad, 2000);
     });
+</script>
+<!-- ============================================================
+     PWA INSTALL BUTTON & SERVICE WORKER
+     ============================================================ -->
+<button id="installBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#059669;color:white;border:none;padding:12px 20px;border-radius:9999px;font-weight:bold;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;font-size:14px;align-items:center;gap:8px;">
+    📱 Install App
+</button>
+
+<script>
+// ============================================================
+// PWA SERVICE WORKER REGISTRATION
+// ============================================================
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+            console.log('✅ Service Worker registered!');
+            // Check for updates
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated') {
+                        console.log('✅ New Service Worker activated!');
+                    }
+                });
+            });
+        })
+        .catch(err => {
+            console.log('❌ Service Worker registration failed:', err);
+            // Try with static path
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(() => console.log('✅ SW registered with static path'))
+                .catch(err2 => console.log('❌ Both SW paths failed:', err2));
+        });
+}
+
+// ============================================================
+// INSTALL BUTTON
+// ============================================================
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+
+    // Show the install button
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+        console.log('📱 Install button shown!');
+    }
+});
+
+// Handle install button click
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const result = await deferredPrompt.userChoice;
+        if (result.outcome === 'accepted') {
+            console.log('✅ User accepted the install prompt');
+            document.getElementById('installBtn').style.display = 'none';
+        } else {
+            console.log('❌ User dismissed the install prompt');
+        }
+        deferredPrompt = null;
+    }
+});
+
+// Hide install button if already installed
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    document.getElementById('installBtn').style.display = 'none';
+    console.log('📱 Already installed!');
+}
+
+// Also hide after successful installation
+window.addEventListener('appinstalled', () => {
+    document.getElementById('installBtn').style.display = 'none';
+    console.log('✅ App was installed!');
+});
+
+// ============================================================
+// CHECK PWA STATUS
+// ============================================================
+
+// Log PWA status
+console.log('🔍 PWA Status:');
+console.log('  Service Worker:', 'serviceWorker' in navigator ? '✅ Supported' : '❌ Not supported');
+console.log('  Install Prompt:', deferredPrompt ? '✅ Ready' : '⏳ Waiting');
+console.log('  Display Mode:', window.matchMedia('(display-mode: standalone)').matches ? '📱 Standalone' : '🌐 Browser');
+console.log('  Online:', navigator.onLine ? '🟢 Yes' : '🔴 No');
+
+// Check manifest
+fetch('/static/manifest.json')
+    .then(r => {
+        if (r.status === 200) {
+            console.log('✅ Manifest loaded');
+            return r.json();
+        }
+        throw new Error('Manifest not found');
+    })
+    .then(data => {
+        console.log('📄 Manifest:', data.name);
+    })
+    .catch(e => console.log('❌ Manifest error:', e.message));
+
+// Listen for online/offline events
+window.addEventListener('online', () => {
+    console.log('🟢 Back online!');
+    // Try to sync pending orders
+    if (typeof manualSync === 'function') {
+        manualSync();
+    }
+});
+
+window.addEventListener('offline', () => {
+    console.log('🔴 Offline - Orders will be saved locally');
+});
 </script>
     </body>
     </html>
