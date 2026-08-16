@@ -4206,398 +4206,499 @@
             saveReturnLocally(returnData);
         }
     }
-function saveReturnLocally(returnData) {
-    const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-    orders.push({
-        order_id: returnData.return_order_id,
-        items: returnData.items,
-        total: -returnData.refund_total,
-        customer_name: returnData.customer_name,
-        status: 'returned',
-        is_return: true,
-        original_order_id: returnData.original_order_id,
-        returned_items: returnData.returned_items,
-        created_at: new Date().toISOString()
-    });
-    localStorage.setItem('pos_orders', JSON.stringify(orders));
-    showToast('📡 Return saved offline! Will sync when online.', 'warning');
-    closeReturnModal();
-    renderProducts();
-}
 
-// ============================================================
-// BARCODE SCANNER - PHONE CAMERA
-// ============================================================
-var html5QrCode = null;
-var isScannerRunning = false;
-var scannerStarted = false;
+    function saveReturnLocally(returnData) {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        orders.push({
+            order_id: returnData.return_order_id,
+            items: returnData.items,
+            total: -returnData.refund_total,
+            customer_name: returnData.customer_name,
+            status: 'returned',
+            is_return: true,
+            original_order_id: returnData.original_order_id,
+            returned_items: returnData.returned_items,
+            created_at: new Date().toISOString()
+        });
+        localStorage.setItem('pos_orders', JSON.stringify(orders));
+        showToast('📡 Return saved offline! Will sync when online.', 'warning');
+        closeReturnModal();
+        renderProducts();
+    }
 
-// ----- OPEN SCANNER -----
-function openBarcodeScanner() {
-    var modal = document.getElementById('barcodeModal');
-    if (!modal) {
-        showToast('⚠️ Scanner not found', 'error');
-        return;
-    }
-    
-    modal.classList.remove('hidden');
-    document.getElementById('scannerResult').style.display = 'none';
-    document.getElementById('scannedValue').textContent = '';
-    
-    var btn = document.getElementById('startScannerBtn');
-    if (btn) {
-        btn.style.display = 'block';
-        btn.innerHTML = '▶ Start';
-        btn.disabled = false;
-    }
-    
-    // Clean up existing scanner
-    if (html5QrCode) {
-        try { 
-            html5QrCode.stop().then(function() { 
-                html5QrCode.clear(); 
-                scannerStarted = false; 
-            }).catch(function() {}); 
-        } catch(e) {}
-    }
-    
-    // Check camera availability
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showToast('⚠️ Camera not available', 'warning');
-        if (btn) btn.style.display = 'none';
-        document.getElementById('barcode-reader').innerHTML =
-            '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
-            '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
-            '<p>Camera not available</p>' +
-            '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
-            '</div>';
-    }
-}
+    // ============================================================
+    // BARCODE SCANNER - PHONE CAMERA
+    // ============================================================
+    var html5QrCode = null;
+    var isScannerRunning = false;
+    var scannerStarted = false;
 
-// ----- CLOSE SCANNER -----
-function closeBarcodeScanner() {
-    var modal = document.getElementById('barcodeModal');
-    if (modal) modal.classList.add('hidden');
-    
-    if (html5QrCode && scannerStarted) {
-        try { 
-            html5QrCode.stop().then(function() { 
-                html5QrCode.clear(); 
-                scannerStarted = false; 
-            }).catch(function() {}); 
-        } catch(e) {}
-    }
-    isScannerRunning = false;
-}
-
-// ----- START SCANNER -----
-function startScanner() {
-    // Prevent multiple starts
-    if (isScannerRunning) {
-        showToast('⏳ Scanner already running', 'info');
-        return;
-    }
-    
-    // Check if library is loaded
-    if (typeof Html5Qrcode === 'undefined') {
-        showToast('⚠️ Scanner library not loaded! Please refresh.', 'error');
+    // ----- OPEN SCANNER -----
+    function openBarcodeScanner() {
+        var modal = document.getElementById('barcodeModal');
+        if (!modal) {
+            showToast('⚠️ Scanner not found', 'error');
+            return;
+        }
+        
+        modal.classList.remove('hidden');
+        document.getElementById('scannerResult').style.display = 'none';
+        document.getElementById('scannedValue').textContent = '';
+        
         var btn = document.getElementById('startScannerBtn');
         if (btn) {
-            btn.innerHTML = '🔄 Reload';
+            btn.style.display = 'block';
+            btn.innerHTML = '▶ Start';
             btn.disabled = false;
         }
-        return;
-    }
-    
-    var btn = document.getElementById('startScannerBtn');
-    var readerDiv = document.getElementById('barcode-reader');
-    
-    if (!btn || !readerDiv) {
-        showToast('⚠️ Scanner elements not found', 'error');
-        return;
-    }
-    
-    btn.innerHTML = '⏳ Starting...';
-    btn.disabled = true;
-    readerDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);">📷 Starting camera...</div>';
-    
-    try {
-        // Create new scanner instance
-        html5QrCode = new Html5Qrcode("barcode-reader");
         
-        // Start scanning with BOTH success AND error callbacks
-        html5QrCode.start(
-            { 
-                facingMode: "environment"  // Use back camera
-            },
-            { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 }, 
-                aspectRatio: 1.0 
-            },
-            // SUCCESS CALLBACK - when barcode is found
-            function(decodedText, decodedResult) {
-                console.log('✅ Barcode detected:', decodedText);
-                onScanSuccess(decodedText);
-            },
-            // ERROR CALLBACK - handles scan attempts (required!)
-            function(errorMessage) {
-                // Ignore "no barcode found" errors - they're normal
-                if (errorMessage && (
-                    errorMessage.includes('No MultiFormat Readers') ||
-                    errorMessage.includes('NotFoundException') ||
-                    errorMessage.includes('FormatException')
-                )) {
-                    return; // Silent ignore - normal scanning
-                }
-                // Only log real errors
-                console.log('Scanner debug:', errorMessage);
-            }
-        ).then(function() {
-            // Scanner started successfully
-            scannerStarted = true;
-            isScannerRunning = true;
-            btn.innerHTML = '⏸️ Scanning...';
-            btn.disabled = false;
-            showToast('📷 Camera started! Point at barcode.', 'success');
-            
-            // Toggle button to stop
-            btn.onclick = function() {
-                if (isScannerRunning) {
-                    // Stop scanner
-                    if (html5QrCode && scannerStarted) {
-                        try {
-                            html5QrCode.stop().then(function() {
-                                html5QrCode.clear();
-                                scannerStarted = false;
-                                isScannerRunning = false;
-                                btn.innerHTML = '▶ Start';
-                                btn.onclick = startScanner;
-                                showToast('⏹️ Scanner stopped', 'info');
-                            }).catch(function() {});
-                        } catch(e) {}
-                    }
-                } else {
-                    startScanner();
-                }
-            };
-        }).catch(function(err) {
-            // Failed to start camera
-            console.error('Camera error:', err);
-            btn.innerHTML = '📷 Try Again';
-            btn.disabled = false;
-            btn.onclick = startScanner;
-            
-            var errorMsg = 'Camera error: ';
-            if (err.message) {
-                if (err.message.includes('Permission')) {
-                    errorMsg += 'Please allow camera access';
-                } else if (err.message.includes('NotAllowedError')) {
-                    errorMsg += 'Camera access denied. Allow in browser settings.';
-                } else if (err.message.includes('NotFoundError')) {
-                    errorMsg += 'No camera found on this device';
-                } else {
-                    errorMsg += err.message;
-                }
-            } else {
-                errorMsg += 'Unknown error';
-            }
-            showToast('⚠️ ' + errorMsg, 'error');
-            
-            readerDiv.innerHTML =
+        // Clean up existing scanner
+        if (html5QrCode) {
+            try { 
+                html5QrCode.stop().then(function() { 
+                    html5QrCode.clear(); 
+                    scannerStarted = false; 
+                }).catch(function() {}); 
+            } catch(e) {}
+        }
+        
+        // Check camera availability
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast('⚠️ Camera not available', 'warning');
+            if (btn) btn.style.display = 'none';
+            document.getElementById('barcode-reader').innerHTML =
                 '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
                 '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
-                '<p style="color:var(--danger);font-size:0.9rem;">' + errorMsg + '</p>' +
-                '<p style="font-size:0.7rem;margin-top:8px;">Try manual entry instead</p>' +
+                '<p>Camera not available</p>' +
                 '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
                 '</div>';
-            btn.style.display = 'none';
-        });
-    } catch(err) {
-        console.error('Scanner init error:', err);
-        btn.innerHTML = '📷 Try Again';
-        btn.disabled = false;
-        btn.onclick = startScanner;
-        showToast('⚠️ Scanner error: ' + err.message, 'error');
+        }
     }
-}
 
-// ----- SCAN SUCCESS -----
-function onScanSuccess(decodedText) {
-    if (!decodedText || decodedText.length < 2) {
-        showToast('⚠️ Invalid barcode', 'warning');
-        return;
+    // ----- CLOSE SCANNER -----
+    function closeBarcodeScanner() {
+        var modal = document.getElementById('barcodeModal');
+        if (modal) modal.classList.add('hidden');
+        
+        if (html5QrCode && scannerStarted) {
+            try { 
+                html5QrCode.stop().then(function() { 
+                    html5QrCode.clear(); 
+                    scannerStarted = false; 
+                }).catch(function() {}); 
+            } catch(e) {}
+        }
+        isScannerRunning = false;
     }
-    
-    if (navigator.vibrate) navigator.vibrate(200);
-    
-    document.getElementById('scannerResult').style.display = 'block';
-    document.getElementById('scannedValue').textContent = decodedText;
-    
-    // Pause scanner after successful scan
-    if (html5QrCode && scannerStarted) {
-        try { 
-            html5QrCode.pause(); 
-            isScannerRunning = false; 
-            document.getElementById('startScannerBtn').innerHTML = '▶ Resume';
-            document.getElementById('startScannerBtn').onclick = function() {
-                if (html5QrCode) {
-                    html5QrCode.resume();
-                    isScannerRunning = true;
-                    document.getElementById('startScannerBtn').innerHTML = '⏸️ Scanning...';
-                    document.getElementById('startScannerBtn').onclick = function() {
+
+    // ----- START SCANNER -----
+    function startScanner() {
+        // Prevent multiple starts
+        if (isScannerRunning) {
+            showToast('⏳ Scanner already running', 'info');
+            return;
+        }
+        
+        // Check if library is loaded
+        if (typeof Html5Qrcode === 'undefined') {
+            showToast('⚠️ Scanner library not loaded! Please refresh.', 'error');
+            var btn = document.getElementById('startScannerBtn');
+            if (btn) {
+                btn.innerHTML = '🔄 Reload';
+                btn.disabled = false;
+            }
+            return;
+        }
+        
+        var btn = document.getElementById('startScannerBtn');
+        var readerDiv = document.getElementById('barcode-reader');
+        
+        if (!btn || !readerDiv) {
+            showToast('⚠️ Scanner elements not found', 'error');
+            return;
+        }
+        
+        btn.innerHTML = '⏳ Starting...';
+        btn.disabled = true;
+        readerDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);">📷 Starting camera...</div>';
+        
+        try {
+            // Create new scanner instance
+            html5QrCode = new Html5Qrcode("barcode-reader");
+            
+            // Start scanning with BOTH success AND error callbacks
+            html5QrCode.start(
+                { 
+                    facingMode: "environment"  // Use back camera
+                },
+                { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 }, 
+                    aspectRatio: 1.0 
+                },
+                // SUCCESS CALLBACK - when barcode is found
+                function(decodedText, decodedResult) {
+                    console.log('✅ Barcode detected:', decodedText);
+                    onScanSuccess(decodedText);
+                },
+                // ERROR CALLBACK - handles scan attempts (required!)
+                function(errorMessage) {
+                    // Ignore "no barcode found" errors - they're normal
+                    if (errorMessage && (
+                        errorMessage.includes('No MultiFormat Readers') ||
+                        errorMessage.includes('NotFoundException') ||
+                        errorMessage.includes('FormatException')
+                    )) {
+                        return; // Silent ignore - normal scanning
+                    }
+                    // Only log real errors
+                    console.log('Scanner debug:', errorMessage);
+                }
+            ).then(function() {
+                // Scanner started successfully
+                scannerStarted = true;
+                isScannerRunning = true;
+                btn.innerHTML = '⏸️ Scanning...';
+                btn.disabled = false;
+                showToast('📷 Camera started! Point at barcode.', 'success');
+                
+                // Toggle button to stop
+                btn.onclick = function() {
+                    if (isScannerRunning) {
+                        // Stop scanner
                         if (html5QrCode && scannerStarted) {
                             try {
                                 html5QrCode.stop().then(function() {
                                     html5QrCode.clear();
                                     scannerStarted = false;
                                     isScannerRunning = false;
-                                    document.getElementById('startScannerBtn').innerHTML = '▶ Start';
-                                    document.getElementById('startScannerBtn').onclick = startScanner;
+                                    btn.innerHTML = '▶ Start';
+                                    btn.onclick = startScanner;
+                                    showToast('⏹️ Scanner stopped', 'info');
                                 }).catch(function() {});
                             } catch(e) {}
                         }
-                    };
+                    } else {
+                        startScanner();
+                    }
+                };
+            }).catch(function(err) {
+                // Failed to start camera
+                console.error('Camera error:', err);
+                btn.innerHTML = '📷 Try Again';
+                btn.disabled = false;
+                btn.onclick = startScanner;
+                
+                var errorMsg = 'Camera error: ';
+                if (err.message) {
+                    if (err.message.includes('Permission')) {
+                        errorMsg += 'Please allow camera access';
+                    } else if (err.message.includes('NotAllowedError')) {
+                        errorMsg += 'Camera access denied. Allow in browser settings.';
+                    } else if (err.message.includes('NotFoundError')) {
+                        errorMsg += 'No camera found on this device';
+                    } else {
+                        errorMsg += err.message;
+                    }
+                } else {
+                    errorMsg += 'Unknown error';
                 }
-            };
-        } catch(e) {}
+                showToast('⚠️ ' + errorMsg, 'error');
+                
+                readerDiv.innerHTML =
+                    '<div style="text-align:center;padding:30px 10px;color:var(--gray-400);">' +
+                    '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
+                    '<p style="color:var(--danger);font-size:0.9rem;">' + errorMsg + '</p>' +
+                    '<p style="font-size:0.7rem;margin-top:8px;">Try manual entry instead</p>' +
+                    '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
+                    '</div>';
+                btn.style.display = 'none';
+            });
+        } catch(err) {
+            console.error('Scanner init error:', err);
+            btn.innerHTML = '📷 Try Again';
+            btn.disabled = false;
+            btn.onclick = startScanner;
+            showToast('⚠️ Scanner error: ' + err.message, 'error');
+        }
     }
-    
-    // Process the barcode
-    searchProductByBarcode(decodedText);
-}
 
-// ----- SEARCH PRODUCT BY BARCODE -----
-function searchProductByBarcode(barcode) {
-    var term = String(barcode).trim();
-    if (!term) return;
-    
-    var product = allProducts.find(function(p) { 
-        return String(p.barcode || '').trim() === term; 
-    });
-    if (!product) product = allProducts.find(function(p) { 
-        return String(p.id || '').trim() === term; 
-    });
-    if (!product) product = allProducts.find(function(p) { 
-        return (p.name || '').toLowerCase().includes(term.toLowerCase()); 
-    });
-    
-    if (product) {
-        showToast('✅ Found: ' + product.name, 'success');
-        addToPOSCartByProduct(product);
-        // Auto-close after 1.5 seconds
-        setTimeout(function() {
+    // ----- SCAN SUCCESS -----
+    function onScanSuccess(decodedText) {
+        if (!decodedText || decodedText.length < 2) {
+            showToast('⚠️ Invalid barcode', 'warning');
+            return;
+        }
+        
+        if (navigator.vibrate) navigator.vibrate(200);
+        
+        document.getElementById('scannerResult').style.display = 'block';
+        document.getElementById('scannedValue').textContent = decodedText;
+        
+        // Pause scanner after successful scan
+        if (html5QrCode && scannerStarted) {
+            try { 
+                html5QrCode.pause(); 
+                isScannerRunning = false; 
+                document.getElementById('startScannerBtn').innerHTML = '▶ Resume';
+                document.getElementById('startScannerBtn').onclick = function() {
+                    if (html5QrCode) {
+                        html5QrCode.resume();
+                        isScannerRunning = true;
+                        document.getElementById('startScannerBtn').innerHTML = '⏸️ Scanning...';
+                        document.getElementById('startScannerBtn').onclick = function() {
+                            if (html5QrCode && scannerStarted) {
+                                try {
+                                    html5QrCode.stop().then(function() {
+                                        html5QrCode.clear();
+                                        scannerStarted = false;
+                                        isScannerRunning = false;
+                                        document.getElementById('startScannerBtn').innerHTML = '▶ Start';
+                                        document.getElementById('startScannerBtn').onclick = startScanner;
+                                    }).catch(function() {});
+                                } catch(e) {}
+                            }
+                        };
+                    }
+                };
+            } catch(e) {}
+        }
+        
+        // Process the barcode
+        searchProductByBarcode(decodedText);
+    }
+
+    // ----- SEARCH PRODUCT BY BARCODE -----
+    function searchProductByBarcode(barcode) {
+        var term = String(barcode).trim();
+        if (!term) return;
+        
+        var product = allProducts.find(function(p) { 
+            return String(p.barcode || '').trim() === term; 
+        });
+        if (!product) product = allProducts.find(function(p) { 
+            return String(p.id || '').trim() === term; 
+        });
+        if (!product) product = allProducts.find(function(p) { 
+            return (p.name || '').toLowerCase().includes(term.toLowerCase()); 
+        });
+        
+        if (product) {
+            showToast('✅ Found: ' + product.name, 'success');
+            addToPOSCartByProduct(product);
+            // Auto-close after 1.5 seconds
+            setTimeout(function() {
+                var modal = document.getElementById('barcodeModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeBarcodeScanner();
+                }
+            }, 1500);
+        } else {
+            showToast('❌ Product not found: ' + barcode, 'error');
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            setTimeout(function() {
+                if (confirm('Product not found for "' + barcode + '". Search by name?')) {
+                    closeBarcodeScanner();
+                    document.getElementById('posSearch').value = barcode;
+                    searchProducts(barcode);
+                }
+            }, 500);
+        }
+    }
+
+    // ----- ADD TO CART BY PRODUCT -----
+    function addToPOSCartByProduct(product) {
+        if (!product) return;
+        
+        var stock = product.stock || 0;
+        if (stock <= 0) {
+            showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
+            return;
+        }
+        
+        var existing = posCart.find(function(item) { 
+            return item.id === product.id; 
+        });
+        
+        if (existing) {
+            if (existing.quantity < stock) {
+                existing.quantity++;
+                showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success');
+            } else {
+                showToast('⚠️ Not enough stock for ' + product.name, 'warning');
+            }
+        } else {
+            posCart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: getProductImage(product),
+                stock: stock,
+                barcode: product.barcode || '',
+                quantity: 1
+            });
+            showToast('✅ Added: ' + product.name, 'success');
+        }
+        updatePOSUI();
+    }
+
+    // ----- MANUAL INPUT -----
+    function openBarcodeInputModal() {
+        document.getElementById('barcodeInputModal').classList.remove('hidden');
+        setTimeout(function() { 
+            document.getElementById('manualBarcode').focus(); 
+        }, 300);
+    }
+
+    function closeBarcodeInputModal() {
+        document.getElementById('barcodeInputModal').classList.add('hidden');
+        document.getElementById('manualBarcode').value = '';
+    }
+
+    function submitManualBarcode() {
+        var barcode = document.getElementById('manualBarcode').value.trim();
+        if (!barcode) { 
+            showToast('⚠️ Enter a barcode', 'warning'); 
+            return; 
+        }
+        closeBarcodeInputModal();
+        searchProductByBarcode(barcode);
+    }
+
+    // ----- KEYBOARD SHORTCUT -----
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            e.preventDefault();
+            openBarcodeScanner();
+        }
+        if (e.key === 'Escape') {
             var modal = document.getElementById('barcodeModal');
             if (modal && !modal.classList.contains('hidden')) {
                 closeBarcodeScanner();
             }
-        }, 1500);
-    } else {
-        showToast('❌ Product not found: ' + barcode, 'error');
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        setTimeout(function() {
-            if (confirm('Product not found for "' + barcode + '". Search by name?')) {
-                closeBarcodeScanner();
-                document.getElementById('posSearch').value = barcode;
-                searchProducts(barcode);
-            }
-        }, 500);
-    }
-}
-
-// ----- ADD TO CART BY PRODUCT -----
-function addToPOSCartByProduct(product) {
-    if (!product) return;
-    
-    var stock = product.stock || 0;
-    if (stock <= 0) {
-        showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
-        return;
-    }
-    
-    var existing = posCart.find(function(item) { 
-        return item.id === product.id; 
+        }
     });
-    
-    if (existing) {
-        if (existing.quantity < stock) {
-            existing.quantity++;
-            showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success');
-        } else {
-            showToast('⚠️ Not enough stock for ' + product.name, 'warning');
+
+    console.log('✅ Barcode Scanner Ready!');
+    console.log('📱 Click "Scan" button or press Ctrl+B');
+
+    // ============================================================
+    // CHECK UNSYNCED ON LOAD
+    // ============================================================
+    async function checkUnsyncedOrdersOnLoad() {
+        try {
+            var u = await getUnsyncedOrders();
+            updateUnsyncedCount(u.length);
+            if (u.length && navigator.onLine) setTimeout(performAutoSync, 3000);
+        } catch(e) {}
+    }
+
+    // ============================================================
+    // LOAD CREDIT CUSTOMERS ON PAGE LOAD
+    // ============================================================
+    setTimeout(loadCreditCustomers, 2000);
+
+    // ============================================================
+    // ADVANCED FEATURES
+    // ============================================================
+    function toggleAdvancedFeatures() {
+        const panel = document.getElementById('advancedPanel');
+        const arrow = document.getElementById('advArrow');
+        panel.classList.toggle('open');
+        arrow.classList.toggle('open');
+    }
+
+    function openCashDrawerModal() {
+        showToast('💰 Cash Drawer - Coming Soon', 'info');
+    }
+
+    function quickStockCheck() {
+        const lowStock = allProducts.filter(p => (p.stock || 0) < 10 && (p.stock || 0) > 0);
+        const outOfStock = allProducts.filter(p => (p.stock || 0) === 0);
+        let msg = '📊 Stock Check:\n';
+        if (outOfStock.length) msg += '🚫 Out of Stock: ' + outOfStock.length + '\n';
+        if (lowStock.length) msg += '⚠️ Low Stock: ' + lowStock.length + '\n';
+        if (!lowStock.length && !outOfStock.length) msg += '✅ All products have sufficient stock!';
+        showToast(msg, 'info');
+    }
+
+    function quickExchange() {
+        showToast('🔄 Exchange - Coming Soon', 'info');
+    }
+
+    function bulkAddToCart() {
+        showToast('📦 Bulk Add - Coming Soon', 'info');
+    }
+
+    function showOrderHistory() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = orders.filter(o => o.created_at && o.created_at.startsWith(today));
+        showToast(`📋 Today: ${todayOrders.length} orders | Total: ${orders.length} orders`, 'info');
+    }
+
+    function showDailyReport() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = orders.filter(o => o.created_at && o.created_at.startsWith(today));
+        const total = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        showToast(`📊 Today: ${todayOrders.length} orders, KSh ${total.toLocaleString()}`, 'success');
+    }
+
+    function exportOrders() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        if (!orders.length) {
+            showToast('⚠️ No orders to export', 'warning');
+            return;
         }
-    } else {
-        posCart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: getProductImage(product),
-            stock: stock,
-            barcode: product.barcode || '',
-            quantity: 1
+        let csv = 'Order ID,Date,Customer,Items,Total,Payment,Status\n';
+        orders.forEach(o => {
+            const items = (o.items || []).map(i => i.name + '(' + i.quantity + ')').join('; ');
+            csv += `${o.order_id},${o.created_at || ''},${o.customer_name || 'Walk-in'},${items},${o.total || 0},${o.payment_method || 'cash'},${o.synced ? 'Synced' : 'Pending'}\n`;
         });
-        showToast('✅ Added: ' + product.name, 'success');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'orders_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('💾 Orders exported!', 'success');
     }
-    updatePOSUI();
-}
 
-// ----- MANUAL INPUT -----
-function openBarcodeInputModal() {
-    document.getElementById('barcodeInputModal').classList.remove('hidden');
-    setTimeout(function() { 
-        document.getElementById('manualBarcode').focus(); 
-    }, 300);
-}
-
-function closeBarcodeInputModal() {
-    document.getElementById('barcodeInputModal').classList.add('hidden');
-    document.getElementById('manualBarcode').value = '';
-}
-
-function submitManualBarcode() {
-    var barcode = document.getElementById('manualBarcode').value.trim();
-    if (!barcode) { 
-        showToast('⚠️ Enter a barcode', 'warning'); 
-        return; 
+    function quickThemeSelect() {
+        showToast('🎨 Theme selector - Coming Soon', 'info');
     }
-    closeBarcodeInputModal();
-    searchProductByBarcode(barcode);
-}
 
-// ----- KEYBOARD SHORTCUT -----
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        openBarcodeScanner();
-    }
-    if (e.key === 'Escape') {
-        var modal = document.getElementById('barcodeModal');
-        if (modal && !modal.classList.contains('hidden')) {
-            closeBarcodeScanner();
-        }
-    }
-});
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('✅ POS Pro v12.0 - Credit System Enabled with ' + allProducts.length + ' products');
 
-console.log('✅ Barcode Scanner Ready!');
-console.log('📱 Click "Scan" button or press Ctrl+B');
+        filteredProducts = allProducts.slice(0, 50);
 
-// ============================================================
-// CHECK UNSYNCED ON LOAD
-// ============================================================
-async function checkUnsyncedOrdersOnLoad() {
-    try {
-        var u = await getUnsyncedOrders();
-        updateUnsyncedCount(u.length);
-        if (u.length && navigator.onLine) setTimeout(performAutoSync, 3000);
-    } catch(e) {}
-}
+        document.getElementById('posProductGrid').innerHTML =
+            '<div class="search-hint">' +
+            '<span class="icon">🔍</span>' +
+            '<p>Search for products</p>' +
+            '<p style="font-size:0.7rem;color:var(--gray-400);">' + allProducts.length + ' products available</p>' +
+            '<div class="shortcuts">💡 Search by name, category, or barcode</div>' +
+            '</div>';
+        document.getElementById('resultCount').textContent = allProducts.length + ' products available';
 
-// ============================================================
-// LOAD CREDIT CUSTOMERS ON PAGE LOAD
-// ============================================================
-setTimeout(loadCreditCustomers, 2000);
-
-
+        renderProducts();
+        updatePOSUI();
+        loadSalesStats();
+        loadUserStats();
+        updateQuickSalesCount();
+        loadOrdersForReturn();
+        setTimeout(checkUnsyncedOrdersOnLoad, 2000);
+    });
+</script>
+<!-- ============================================================
      PWA INSTALL BUTTON & SERVICE WORKER
      ============================================================ -->
 <button id="installBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#059669;color:white;border:none;padding:12px 20px;border-radius:9999px;font-weight:bold;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;font-size:14px;align-items:center;gap:8px;">
@@ -4614,7 +4715,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
         .then(reg => {
             console.log('✅ Service Worker registered!');
-            // Check for updates
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
@@ -4626,7 +4726,6 @@ if ('serviceWorker' in navigator) {
         })
         .catch(err => {
             console.log('❌ Service Worker registration failed:', err);
-            // Try with static path
             navigator.serviceWorker.register('/static/sw.js')
                 .then(() => console.log('✅ SW registered with static path'))
                 .catch(err2 => console.log('❌ Both SW paths failed:', err2));
@@ -4640,12 +4739,8 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
-    // Stash the event so it can be triggered later
     deferredPrompt = e;
-
-    // Show the install button
     const installBtn = document.getElementById('installBtn');
     if (installBtn) {
         installBtn.style.display = 'flex';
@@ -4653,12 +4748,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
-// Handle install button click
 document.getElementById('installBtn')?.addEventListener('click', async () => {
     if (deferredPrompt) {
-        // Show the install prompt
         deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
         const result = await deferredPrompt.userChoice;
         if (result.outcome === 'accepted') {
             console.log('✅ User accepted the install prompt');
@@ -4670,13 +4762,11 @@ document.getElementById('installBtn')?.addEventListener('click', async () => {
     }
 });
 
-// Hide install button if already installed
 if (window.matchMedia('(display-mode: standalone)').matches) {
     document.getElementById('installBtn').style.display = 'none';
     console.log('📱 Already installed!');
 }
 
-// Also hide after successful installation
 window.addEventListener('appinstalled', () => {
     document.getElementById('installBtn').style.display = 'none';
     console.log('✅ App was installed!');
@@ -4686,14 +4776,12 @@ window.addEventListener('appinstalled', () => {
 // CHECK PWA STATUS
 // ============================================================
 
-// Log PWA status
 console.log('🔍 PWA Status:');
 console.log('  Service Worker:', 'serviceWorker' in navigator ? '✅ Supported' : '❌ Not supported');
 console.log('  Install Prompt:', deferredPrompt ? '✅ Ready' : '⏳ Waiting');
 console.log('  Display Mode:', window.matchMedia('(display-mode: standalone)').matches ? '📱 Standalone' : '🌐 Browser');
 console.log('  Online:', navigator.onLine ? '🟢 Yes' : '🔴 No');
 
-// Check manifest
 fetch('/static/manifest.json')
     .then(r => {
         if (r.status === 200) {
@@ -4707,10 +4795,8 @@ fetch('/static/manifest.json')
     })
     .catch(e => console.log('❌ Manifest error:', e.message));
 
-// Listen for online/offline events
 window.addEventListener('online', () => {
     console.log('🟢 Back online!');
-    // Try to sync pending orders
     if (typeof manualSync === 'function') {
         manualSync();
     }
@@ -4720,6 +4806,7 @@ window.addEventListener('offline', () => {
     console.log('🔴 Offline - Orders will be saved locally');
 });
 </script>
+
 <!-- Install Button -->
 <button id="installBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#059669;color:white;border:none;padding:12px 20px;border-radius:9999px;font-weight:bold;box-shadow:0 4px 12px rgba(5,150,105,0.4);cursor:pointer;font-size:14px;align-items:center;gap:8px;">
     📱 Install App
@@ -4732,7 +4819,6 @@ window.addEventListener('offline', () => {
 
 let deferredPrompt;
 
-// Listen for install prompt
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -4743,7 +4829,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
-// Install button click
 document.getElementById('installBtn')?.addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -4754,30 +4839,27 @@ document.getElementById('installBtn')?.addEventListener('click', async () => {
         }
         deferredPrompt = null;
     } else {
-        // If prompt not ready, show message
         showToast('💡 Install option will appear in the address bar', 'info');
     }
 });
 
-// Hide if already installed
 if (window.matchMedia('(display-mode: standalone)').matches) {
     document.getElementById('installBtn').style.display = 'none';
 }
 
-// Check if install is available
 console.log('🔍 PWA Check:');
 console.log('  SW:', 'serviceWorker' in navigator ? '✅' : '❌');
 console.log('  Manifest:', document.querySelector('link[rel="manifest"]') ? '✅' : '❌');
 console.log('  HTTPS:', window.location.protocol === 'https:' ? '✅' : '❌');
 console.log('  Install Prompt:', deferredPrompt ? '✅ Ready' : '⏳ Waiting');
 
-// If no prompt after 5 seconds, show button anyway
 setTimeout(() => {
     const btn = document.getElementById('installBtn');
     if (btn && btn.style.display === 'none' && !window.matchMedia('(display-mode: standalone)').matches) {
         btn.style.display = 'flex';
         console.log('📱 Install button shown (timeout fallback)');
     }
+}, 5000);
 </script>
-    </body>
-    </html>
+</body>
+</html>
