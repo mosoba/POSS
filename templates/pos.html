@@ -4225,33 +4225,154 @@
         renderProducts();
     }
 // ============================================================
-// BARCODE SCANNER - SIMPLIFIED WORKING VERSION
+// BARCODE SCANNER - COMPLETE WORKING VERSION
 // ============================================================
 
 let html5QrCode = null;
 let isScannerRunning = false;
+let barcodeTimer = null;
 
-// OPEN SCANNER MODAL
+// ============================================================
+// USB SCANNER - AUTO ADD TO CART
+// ============================================================
+
+// This handles both USB scanners AND manual entry
+function handleBarcodeInput(value) {
+    if (!value || value.length < 3) return false;
+    
+    console.log('📱 Processing barcode:', value);
+    
+    // Clean the barcode (remove .0 suffix if present)
+    const cleanValue = value.replace(/\.0$/, '').trim();
+    
+    // Search for product by barcode
+    let product = allProducts.find(p => {
+        const barcode = String(p.barcode || '').replace(/\.0$/, '').trim();
+        return barcode === cleanValue || barcode === value;
+    });
+    
+    // If not found, try by ID
+    if (!product) {
+        product = allProducts.find(p => String(p.id || '').trim() === cleanValue);
+    }
+    
+    // If still not found, try by name
+    if (!product) {
+        product = allProducts.find(p => 
+            (p.name || '').toLowerCase().includes(cleanValue.toLowerCase())
+        );
+    }
+    
+    if (!product) {
+        showToast('❌ Product not found: ' + value, 'error');
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        return false;
+    }
+    
+    // Check stock
+    const stock = product.stock || 0;
+    if (stock <= 0) {
+        showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
+        return false;
+    }
+    
+    // Add to cart
+    const existing = posCart.find(item => item.id === product.id);
+    if (existing) {
+        if (existing.quantity < stock) {
+            existing.quantity++;
+            showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success');
+        } else {
+            showToast('⚠️ Not enough stock for ' + product.name, 'warning');
+            return false;
+        }
+    } else {
+        posCart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: getProductImage(product),
+            stock: stock,
+            barcode: product.barcode || '',
+            quantity: 1
+        });
+        showToast('✅ Added: ' + product.name, 'success');
+    }
+    
+    // Update UI
+    updatePOSUI();
+    
+    // Clear search box
+    const searchInput = document.getElementById('posSearch');
+    if (searchInput) searchInput.value = '';
+    
+    // Vibrate feedback
+    if (navigator.vibrate) navigator.vibrate(100);
+    
+    console.log('✅ Product added to cart:', product.name);
+    return true;
+}
+
+// ============================================================
+// SEARCH BOX LISTENER - HANDLES USB SCANNERS
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('posSearch');
+    if (!searchInput) return;
+    
+    // Handle Enter key (most USB scanners send Enter)
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const value = this.value.trim();
+            if (value) {
+                e.preventDefault();
+                console.log('🔑 Enter detected with value:', value);
+                handleBarcodeInput(value);
+            }
+        }
+    });
+    
+    // Handle input (for scanners that don't send Enter)
+    searchInput.addEventListener('input', function(e) {
+        const value = this.value.trim();
+        if (!value || value.length < 4) return;
+        
+        // Only process if it looks like a barcode (numbers only)
+        if (/^\d+$/.test(value)) {
+            clearTimeout(barcodeTimer);
+            barcodeTimer = setTimeout(() => {
+                console.log('⏱️ Auto-detect barcode:', value);
+                handleBarcodeInput(value);
+            }, 300);
+        }
+    });
+    
+    console.log('✅ USB Scanner listener ready!');
+});
+
+// ============================================================
+// CAMERA SCANNER FUNCTIONS
+// ============================================================
+
 function openBarcodeScanner() {
     const modal = document.getElementById('barcodeModal');
     modal.classList.remove('hidden');
     document.getElementById('scannerResult').style.display = 'none';
     document.getElementById('scannedValue').textContent = '';
-
-    // Reset button
+    
     const btn = document.getElementById('startScannerBtn');
     btn.innerHTML = '▶ Start Camera';
     btn.disabled = false;
     btn.style.display = 'block';
     btn.onclick = startScanner;
-
-    // Clear previous scanner
+    
     if (html5QrCode) {
         try { html5QrCode.stop().catch(() => {}); } catch(e) {}
         html5QrCode = null;
     }
-
-    document.getElementById('barcode-reader').innerHTML =
+    
+    document.getElementById('barcode-reader').innerHTML = 
         '<div style="text-align:center;padding:40px 20px;color:var(--gray-400);">' +
         '<span style="font-size:3rem;display:block;margin-bottom:12px;">📷</span>' +
         '<p>Click "Start Camera" to scan</p>' +
@@ -4259,7 +4380,6 @@ function openBarcodeScanner() {
         '</div>';
 }
 
-// CLOSE SCANNER
 function closeBarcodeScanner() {
     document.getElementById('barcodeModal').classList.add('hidden');
     if (html5QrCode) {
@@ -4269,46 +4389,48 @@ function closeBarcodeScanner() {
     }
 }
 
-// START SCANNER - SIMPLIFIED
 function startScanner() {
     if (isScannerRunning) {
         showToast('Scanner already running', 'info');
         return;
     }
-
+    
     const btn = document.getElementById('startScannerBtn');
     const readerDiv = document.getElementById('barcode-reader');
-
-    // Check if library loaded
+    
     if (typeof Html5Qrcode === 'undefined') {
         showToast('⚠️ Scanner library not loaded - refreshing...', 'error');
         location.reload();
         return;
     }
-
+    
     btn.innerHTML = '⏳ Starting...';
     btn.disabled = true;
     readerDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);">📷 Starting camera...</div>';
-
-    // Create scanner
+    
     html5QrCode = new Html5Qrcode("barcode-reader");
-
-    // Start scanning
+    
     html5QrCode.start(
         { facingMode: "environment" },
-        {
-            fps: 10,
+        { 
+            fps: 10, 
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0
         },
-        // Success callback
         function(decodedText) {
-            console.log('✅ Scanned:', decodedText);
-            handleBarcodeScanned(decodedText);
+            console.log('✅ Camera scanned:', decodedText);
+            // Directly add to cart
+            handleBarcodeInput(decodedText);
+            // Close scanner after successful scan
+            setTimeout(() => {
+                const modal = document.getElementById('barcodeModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeBarcodeScanner();
+                }
+            }, 1000);
         },
-        // Error callback - ignore normal scan errors
         function(errorMessage) {
-            // Silently ignore "no barcode" errors
+            // Ignore normal scan errors
             if (errorMessage && (
                 errorMessage.includes('No MultiFormat') ||
                 errorMessage.includes('NotFoundException') ||
@@ -4337,7 +4459,7 @@ function startScanner() {
         btn.innerHTML = '📷 Try Again';
         btn.disabled = false;
         btn.onclick = startScanner;
-
+        
         let msg = 'Camera error: ';
         if (err.message) {
             if (err.message.includes('Permission')) msg += 'Allow camera access';
@@ -4348,8 +4470,8 @@ function startScanner() {
             msg += 'Unknown error';
         }
         showToast('⚠️ ' + msg, 'error');
-
-        readerDiv.innerHTML =
+        
+        readerDiv.innerHTML = 
             '<div style="text-align:center;padding:30px;color:var(--gray-400);">' +
             '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
             '<p style="color:var(--danger);">' + msg + '</p>' +
@@ -4360,123 +4482,10 @@ function startScanner() {
     });
 }
 
-// HANDLE SCANNED BARCODE - SIMPLIFIED
-// HANDLE SCANNED BARCODE - AUTO ADD
-function handleBarcodeScanned(barcode) {
-    if (!barcode || barcode.length < 2) {
-        showToast('⚠️ Invalid barcode', 'warning');
-        return;
-    }
-    
-    // Vibrate if supported
-    if (navigator.vibrate) navigator.vibrate(200);
-    
-    // Show result briefly
-    document.getElementById('scannerResult').style.display = 'block';
-    document.getElementById('scannedValue').textContent = barcode;
-    
-    // AUTO ADD TO CART - Call the function
-    findProductByBarcode(barcode);
-}
-
-// FIND PRODUCT BY BARCODE
-// FIND PRODUCT BY BARCODE - AUTO ADD TO CART
-function findProductByBarcode(barcode) {
-    const term = String(barcode).trim();
-    
-    // Remove .0 suffix if present (common in some barcodes)
-    const cleanTerm = term.replace(/\.0$/, '');
-    
-    // Search by barcode
-    let product = allProducts.find(p => {
-        const b = String(p.barcode || '').trim().replace(/\.0$/, '');
-        return b === term || b === cleanTerm;
-    });
-    
-    // Search by ID
-    if (!product) {
-        product = allProducts.find(p => {
-            const id = String(p.id || '').trim();
-            return id === term || id === cleanTerm;
-        });
-    }
-    
-    // Search by name (partial match)
-    if (!product) {
-        product = allProducts.find(p => 
-            (p.name || '').toLowerCase().includes(term.toLowerCase())
-        );
-    }
-    
-    if (product) {
-        const stock = product.stock || 0;
-        if (stock <= 0) {
-            showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
-            return;
-        }
-        
-        // ============================================================
-        // AUTO ADD TO CART
-        // ============================================================
-        // Check if product already in cart
-        const existing = posCart.find(item => item.id === product.id);
-        
-        if (existing) {
-            // Product exists - increase quantity
-            if (existing.quantity < stock) {
-                existing.quantity++;
-                showToast('✅ Added another ' + product.name + ' (Total: ' + existing.quantity + ')', 'success');
-            } else {
-                showToast('⚠️ Not enough stock for ' + product.name, 'warning');
-                return;
-            }
-        } else {
-            // New product - add to cart
-            posCart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: getProductImage(product),
-                stock: stock,
-                barcode: product.barcode || '',
-                quantity: 1
-            });
-            showToast('✅ Added: ' + product.name, 'success');
-        }
-        
-        // Update cart UI
-        updatePOSUI();
-        
-        // Clear search box if it has the barcode
-        const searchInput = document.getElementById('posSearch');
-        if (searchInput && searchInput.value === term) {
-            searchInput.value = '';
-        }
-        
-        // Auto-close scanner after 1.5 seconds
-        setTimeout(() => {
-            const modal = document.getElementById('barcodeModal');
-            if (modal && !modal.classList.contains('hidden')) {
-                closeBarcodeScanner();
-            }
-        }, 1500);
-        
-    } else {
-        showToast('❌ Product not found: ' + barcode, 'error');
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        
-        // Ask if user wants to search by name
-        setTimeout(() => {
-            if (confirm('Product not found for "' + barcode + '". Search by name?')) {
-                closeBarcodeScanner();
-                document.getElementById('posSearch').value = barcode;
-                searchProducts(barcode);
-            }
-        }, 500);
-    }
-}
-
+// ============================================================
 // MANUAL BARCODE INPUT
+// ============================================================
+
 function openBarcodeInputModal() {
     document.getElementById('barcodeInputModal').classList.remove('hidden');
     setTimeout(() => document.getElementById('manualBarcode').focus(), 300);
@@ -4494,10 +4503,13 @@ function submitManualBarcode() {
         return;
     }
     closeBarcodeInputModal();
-    findProductByBarcode(barcode);
+    handleBarcodeInput(barcode);
 }
 
-// KEYBOARD SHORTCUT: Ctrl+B to open scanner
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+
 document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
         e.preventDefault();
@@ -4511,8 +4523,9 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-console.log('✅ Barcode Scanner Ready! Press Ctrl+B to scan');
-
+console.log('✅ Barcode Scanner Ready!');
+console.log('📱 Press Ctrl+B to open scanner');
+console.log('📱 Or scan barcode in search box');
     // ============================================================
     // CHECK UNSYNCED ON LOAD
     // ============================================================
