@@ -3929,28 +3929,36 @@
         const discountAmount = orderData.subtotal - (orderData.total - (orderData.tip_amount || 0));
         const tip = orderData.tip_amount || 0;
 
-        content.textContent =
-            '╔══════════════════════════════════╗\n' +
-            '║          PRICEPOINT POS          ║\n' +
-            '║         📍 Nairobi, Kenya        ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║ 📅 ' + date + '                         ║\n' +
-            '║ 👤 ' + (orderData.customer_name || 'Walk-in Customer') + ' ║\n' +
-            '║ 📋 #' + orderData.order_id + '          ║\n' +
-            '║ 💳 ' + (orderData.payment_method || 'cash').toUpperCase() + ' ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            items.split('\n').map(function(line) { return '║ ' + line.padEnd(40) + ' ║'; }).join('\n') + '\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║ Subtotal:    KSh ' + orderData.subtotal.toLocaleString().padStart(12) + ' ║\n' +
-            '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n' +
-            (tip > 0 ? '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n' : '') +
-            '╠══════════════════════════════════╣\n' +
-            '║ TOTAL:       KSh ' + orderData.total.toLocaleString().padStart(12) + ' ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║         ✅ THANK YOU!            ║\n' +
-            '║    Have a great day! 😊          ║\n' +
-            '╚══════════════════════════════════╝';
-    }
+       // SIMPLE CLEAN RECEIPT - NO BOX DRAWING CHARACTERS
+    content.textContent =
+        '\n' +
+        '========================================\n' +
+        '          PRICEPOINT POS                \n' +
+        '          Nairobi, Kenya                \n' +
+        '          +254 700 000 000              \n' +
+        '========================================\n' +
+        '  Date:   ' + date + '\n' +
+        '  Order:  #' + orderId + '\n' +
+        '  Customer: ' + (orderData.customer_name || 'Walk-in') + '\n' +
+        '  Payment: ' + (orderData.payment_method || 'cash').toUpperCase() + '\n' +
+        '----------------------------------------\n' +
+        '  Item                  Qty  Total      \n' +
+        '----------------------------------------\n' +
+        itemsText +
+        '----------------------------------------\n' +
+        '  Subtotal:              KSh ' + orderData.subtotal.toLocaleString() + '\n' +
+        (discountAmount > 0 ? '  Discount:             -KSh ' + discountAmount.toLocaleString() + '\n' : '') +
+        (tip > 0 ? '  Tip:                   KSh ' + tip.toLocaleString() + '\n' : '') +
+        '========================================\n' +
+        '  TOTAL:                 KSh ' + orderData.total.toLocaleString() + '\n' +
+        '========================================\n' +
+        '\n' +
+        '        ✅ THANK YOU!                  \n' +
+        '     Have a great day! 😊              \n' +
+        '\n' +
+        '========================================\n';
+}
+
 
     function printReceipt() {
         const content = document.getElementById('receiptContent');
