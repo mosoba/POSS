@@ -4231,6 +4231,7 @@
 let html5QrCode = null;
 let isScannerRunning = false;
 let barcodeTimer = null;
+let isProcessingBarcode = false;  // ← ADD THIS LINE
 
 // ============================================================
 // USB SCANNER - AUTO ADD TO CART
@@ -4312,9 +4313,9 @@ function handleBarcodeInput(value) {
     console.log('✅ Product added to cart:', product.name);
     return true;
 }
-
+           
 // ============================================================
-// SEARCH BOX LISTENER - HANDLES USB SCANNERS
+// SEARCH BOX LISTENER - HANDLES USB SCANNERS (NO DUPLICATES)
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -4327,8 +4328,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const value = this.value.trim();
             if (value) {
                 e.preventDefault();
+                // ✅ PREVENT DUPLICATE
+                if (isProcessingBarcode) return;
+                isProcessingBarcode = true;
+                
                 console.log('🔑 Enter detected with value:', value);
                 handleBarcodeInput(value);
+                
+                // Reset after processing
+                setTimeout(() => {
+                    isProcessingBarcode = false;
+                }, 500);
             }
         }
     });
@@ -4342,13 +4352,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (/^\d+$/.test(value)) {
             clearTimeout(barcodeTimer);
             barcodeTimer = setTimeout(() => {
+                // ✅ PREVENT DUPLICATE
+                if (isProcessingBarcode) return;
+                isProcessingBarcode = true;
+                
                 console.log('⏱️ Auto-detect barcode:', value);
                 handleBarcodeInput(value);
+                
+                setTimeout(() => {
+                    isProcessingBarcode = false;
+                }, 500);
             }, 300);
         }
     });
     
-    console.log('✅ USB Scanner listener ready!');
+    console.log('✅ USB Scanner listener ready (no duplicates)!');
 });
 
 // ============================================================
