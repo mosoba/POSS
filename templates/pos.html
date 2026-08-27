@@ -4822,6 +4822,161 @@ setTimeout(() => {
         console.log('📱 Install button shown (timeout fallback)');
     }
 }, 5000);
+
+// ============================================================
+// USB THERMAL PRINTER - SIMPLIFIED
+// ============================================================
+
+let thermalPrinter = null;
+let printerConnected = false;
+
+// Connect to USB Printer
+async function connectUSBPrinter() {
+    try {
+        if (!navigator.serial) {
+            showToast('⚠️ Use Chrome or Edge browser for USB printing', 'warning');
+            return false;
+        }
+        
+        showToast('🔌 Select your USB printer...', 'info');
+        const port = await navigator.serial.requestPort();
+        
+        // Try to connect
+        await port.open({ baudRate: 9600 });
+        
+        thermalPrinter = port;
+        printerConnected = true;
+        localStorage.setItem('printer_connected', 'true');
+        
+        showToast('✅ Printer connected!', 'success');
+        console.log('✅ Printer connected');
+        return true;
+        
+    } catch(e) {
+        if (e.message && e.message.includes('cancel')) {
+            showToast('❌ Selection cancelled', 'warning');
+        } else {
+            showToast('❌ Failed: ' + e.message, 'error');
+        }
+        return false;
+    }
+}
+
+// Print to USB Printer
+async function printToUSBPrinter(receiptText) {
+    if (!printerConnected || !thermalPrinter) {
+        const connected = await connectUSBPrinter();
+        if (!connected) {
+            printViaBrowser(receiptText);
+            return;
+        }
+    }
+    
+    try {
+        const writer = thermalPrinter.writable.getWriter();
+        const encoder = new TextEncoder();
+        
+        // ESC/POS commands
+        await writer.write(encoder.encode('\x1B\x40'));        // Init
+        await writer.write(encoder.encode('\x1B\x21\x00'));    // Normal font
+        await writer.write(encoder.encode('\x1B\x61\x01'));    // Center
+        
+        const lines = receiptText.split('\n');
+        for (const line of lines) {
+            await writer.write(encoder.encode(line + '\n'));
+        }
+        
+        await writer.write(encoder.encode('\n\n\n'));
+        await writer.write(encoder.encode('\x1D\x56\x00'));    // Cut
+        
+        await writer.close();
+        showToast('✅ Receipt printed!', 'success');
+        
+    } catch(e) {
+        console.error('Print error:', e);
+        printViaBrowser(receiptText);
+    }
+}
+
+// Print via Browser (fallback)
+function printViaBrowser(receiptText) {
+    const win = window.open('', '_blank', 'width=400,height=600');
+    if (!win) {
+        showToast('⚠️ Allow popups for printing', 'warning');
+        return;
+    }
+    win.document.write(`
+        <html><head><title>Receipt</title>
+        <style>body{font-family:'Courier New',monospace;padding:20px;background:white;color:black;max-width:80mm;margin:0 auto;}pre{font-family:'Courier New',monospace;font-size:10pt;white-space:pre-wrap;word-wrap:break-word;margin:0;}@page{margin:0;size:80mm auto;}</style>
+        </head><body><pre>${receiptText}</pre>
+        <script>window.onload=function(){window.print();setTimeout(function(){window.close();},2000);};<\/script>
+        </body></html>
+    `);
+    win.document.close();
+}
+
+// Main print function
+function printReceipt() {
+    const content = document.getElementById('receiptContent');
+    if (!content || !content.textContent) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
+    }
+    printToUSBPrinter(content.textContent);
+}
+
+// Disconnect printer
+async function disconnectPrinter() {
+    if (thermalPrinter) {
+        try { await thermalPrinter.close(); } catch(e) {}
+        thermalPrinter = null;
+        printerConnected = false;
+        localStorage.removeItem('printer_connected');
+        showToast('🔌 Printer disconnected', 'info');
+    }
+}
+
+// Check status
+function checkPrinterStatus() {
+    if (printerConnected && thermalPrinter) {
+        showToast('✅ Printer is connected and ready', 'success');
+    } else {
+        showToast('❌ Printer not connected. Click "Connect Printer"', 'warning');
+    }
+}
+
+// Auto-reconnect on page load
+async function autoReconnect() {
+    if (localStorage.getItem('printer_connected') === 'true' && navigator.serial) {
+        console.log('🔄 Auto-reconnecting...');
+        await connectUSBPrinter();
+    }
+}
+
+// Add printer buttons
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(autoReconnect, 2000);
+    
+    const actions = document.querySelector('.cart-actions');
+    if (actions) {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;';
+        div.innerHTML = `
+            <button onclick="connectUSBPrinter()" class="btn-outline" style="flex:1;min-width:100px;background:#6366f1;color:white;border-color:#6366f1;">
+                🔌 Connect Printer
+            </button>
+            <button onclick="checkPrinterStatus()" class="btn-outline" style="flex:1;min-width:80px;">
+                📊 Status
+            </button>
+            <button onclick="disconnectPrinter()" class="btn-outline" style="flex:1;min-width:80px;color:#ef4444;border-color:#ef4444;">
+                🔌 Disconnect
+            </button>
+        `;
+        actions.insertBefore(div, actions.firstChild);
+    }
+    
+    console.log('✅ Printer module loaded');
+});
 </script>
 </body>
 </html>
