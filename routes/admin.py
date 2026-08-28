@@ -175,7 +175,7 @@ def admin_logout():
 
 
 # ============================================================
-# ADMIN DASHBOARD - UPDATED WITH CREDIT & SUPPLIER DATA
+# ADMIN DASHBOARD
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -196,7 +196,6 @@ def admin_dashboard():
         all_products = load_products()
         all_orders = load_orders()
         
-        # SAFELY CLEAN PRODUCTS - Fix any None values
         cleaned_products = []
         for p in all_products:
             clean_p = dict(p)
@@ -479,9 +478,7 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
-        # ============================================================
-        # ✅ FETCH CREDIT DATA
-        # ============================================================
+        # FETCH CREDIT DATA
         credit_summary = {
             'total_customers': 0,
             'active_customers': 0,
@@ -505,7 +502,6 @@ def admin_dashboard():
                 active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
                 total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
                 
-                # Get transactions
                 tx_response = requests.get(
                     f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
                     headers=Config.SUPABASE_HEADERS,
@@ -534,9 +530,7 @@ def admin_dashboard():
         except Exception as e:
             print(f"❌ Error loading credit data: {e}")
 
-        # ============================================================
-        # ✅ FETCH SUPPLIER DATA
-        # ============================================================
+        # FETCH SUPPLIER DATA
         supplier_summary = {
             'total_suppliers': 0,
             'active_suppliers': 0,
@@ -557,7 +551,6 @@ def admin_dashboard():
                 total_supp = len(suppliers)
                 active_supp = sum(1 for s in suppliers if s.get('status') == 'active')
                 
-                # Get product counts for suppliers
                 prod_response = requests.get(
                     f"{Config.SUPABASE_URL}/rest/v1/products?select=supplier_id",
                     headers=Config.SUPABASE_HEADERS,
@@ -607,11 +600,9 @@ def admin_dashboard():
             pos_count=pos_count,
             analytics=analytics,
             DB_CONNECTED=True,
-            # ✅ CREDIT DATA
             credit_summary=credit_summary,
             credit_customers=credit_customers,
             overdue_count=overdue_count,
-            # ✅ SUPPLIER DATA
             supplier_summary=supplier_summary,
             suppliers=suppliers,
             low_stock_count=low_stock_count
@@ -664,15 +655,331 @@ def admin_dashboard():
             per_page=10,
             recent_orders=[],
             DB_CONNECTED=False,
-            # ✅ CREDIT DATA (empty)
             credit_summary={'total_customers': 0, 'active_customers': 0, 'total_balance': 0, 'total_purchases': 0, 'total_payments': 0},
             credit_customers=[],
             overdue_count=0,
-            # ✅ SUPPLIER DATA (empty)
             supplier_summary={'total_suppliers': 0, 'active_suppliers': 0, 'total_products': 0},
             suppliers=[],
             low_stock_count=0
         )
+
+
+# ============================================================
+# CREDIT CUSTOMER MANAGEMENT ROUTES - FIXED
+# ============================================================
+
+@admin_bp.route('/admin/credit')
+@admin_required
+def admin_credit():
+    """Credit management page"""
+    try:
+        from utils.credit import get_all_credit_customers, get_credit_summary, get_overdue_customers
+        from datetime import datetime
+        
+        customers = get_all_credit_customers()
+        summary = get_credit_summary()
+        overdue = get_overdue_customers()
+        
+        stats = {
+            'total_orders': 0,
+            'pending_orders': 0,
+            'total_products': 0,
+            'total_customers': summary.get('total_customers', 0),
+            'today_revenue': 0,
+            'month_revenue': 0,
+            'total_revenue': 0,
+            'low_stock': 0,
+            'total_bundles': 0,
+            'total_cart_items': 0,
+            'pos_orders': 0,
+            'web_orders': 0,
+            'today_growth_pct': 0,
+            'month_growth_pct': 0,
+            'db_mode': 'online'
+        }
+        
+        return render_template('admin_credit.html',
+            customers=customers,
+            summary=summary,
+            overdue=overdue,
+            overdue_count=len(overdue),
+            stats=stats,
+            DB_CONNECTED=True,
+            IS_VERCEL=IS_VERCEL,
+            now=datetime.utcnow()
+        )
+    except Exception as e:
+        print(f"❌ Error loading credit customers: {e}")
+        flash('Error loading credit customers', 'danger')
+        
+        stats = {
+            'total_orders': 0,
+            'pending_orders': 0,
+            'total_products': 0,
+            'total_customers': 0,
+            'today_revenue': 0,
+            'month_revenue': 0,
+            'total_revenue': 0,
+            'low_stock': 0,
+            'total_bundles': 0,
+            'total_cart_items': 0,
+            'pos_orders': 0,
+            'web_orders': 0,
+            'today_growth_pct': 0,
+            'month_growth_pct': 0,
+            'db_mode': 'offline'
+        }
+        
+        return render_template('admin_credit.html',
+            customers=[],
+            summary={'total_customers': 0, 'active_customers': 0, 'inactive_customers': 0, 
+                    'total_balance': 0, 'total_credit_limit': 0, 'total_purchases': 0, 
+                    'total_payments': 0, 'average_balance': 0},
+            overdue=[],
+            overdue_count=0,
+            stats=stats,
+            DB_CONNECTED=False,
+            IS_VERCEL=IS_VERCEL,
+            now=datetime.utcnow()
+        )
+
+
+@admin_bp.route('/admin/api/credit/customers', methods=['GET'])
+@admin_required
+def api_get_credit_customers():
+    """Get all credit customers - API endpoint"""
+    try:
+        from utils.credit import get_all_credit_customers
+        customers = get_all_credit_customers()
+        return jsonify({'success': True, 'customers': customers})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/customers', methods=['POST'])
+@admin_required
+def api_add_credit_customer():
+    """Add a new credit customer - API endpoint"""
+    try:
+        from utils.credit import add_credit_customer
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        required = ['full_name', 'phone']
+        for field in required:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'{field} is required'}), 400
+        
+        result = add_credit_customer(data)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# FIXED: GET SINGLE CREDIT CUSTOMER
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['GET'])
+@admin_required
+def api_get_credit_customer(customer_id):
+    """Get a specific credit customer - FIXED API endpoint"""
+    try:
+        from utils.credit import get_credit_customer_by_id
+        
+        print(f"🔍 API called with customer_id: '{customer_id}'")
+        
+        customer = get_credit_customer_by_id(customer_id)
+        
+        if customer:
+            print(f"✅ Returning customer: {customer.get('full_name')}")
+            return jsonify({'success': True, 'customer': customer})
+        else:
+            print(f"❌ Customer not found: '{customer_id}'")
+            return jsonify({'success': False, 'message': 'Customer not found'}), 404
+            
+    except Exception as e:
+        print(f"❌ API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['PUT'])
+@admin_required
+def api_update_credit_customer(customer_id):
+    """Update a credit customer - API endpoint"""
+    try:
+        from utils.credit import update_credit_customer
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        result = update_credit_customer(customer_id, data)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['DELETE'])
+@admin_required
+def api_delete_credit_customer(customer_id):
+    """Delete a credit customer - API endpoint"""
+    try:
+        from utils.credit import delete_credit_customer
+        
+        result = delete_credit_customer(customer_id)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/balance/<customer_id>', methods=['GET'])
+@admin_required
+def api_get_credit_balance(customer_id):
+    """Get customer balance - API endpoint"""
+    try:
+        from utils.credit import get_customer_balance
+        
+        balance = get_customer_balance(customer_id)
+        if balance:
+            return jsonify({'success': True, 'balance': balance})
+        else:
+            return jsonify({'success': False, 'message': 'Customer not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/transactions/<customer_id>', methods=['GET'])
+@admin_required
+def api_get_credit_transactions(customer_id):
+    """Get customer transactions - API endpoint"""
+    try:
+        from utils.credit import get_customer_transactions
+        
+        transactions = get_customer_transactions(customer_id)
+        return jsonify({'success': True, 'transactions': transactions})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# FIXED: CREDIT PURCHASE ROUTE
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/purchase', methods=['POST'])
+@admin_required
+def api_record_credit_purchase():
+    """Record a credit purchase - FIXED API endpoint"""
+    try:
+        from utils.credit import record_credit_purchase
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        required = ['customer_id', 'items', 'total_amount', 'staff_name']
+        for field in required:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'{field} is required'}), 400
+        
+        print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
+        print(f"📤 Total amount: {data.get('total_amount')}")
+        
+        result = record_credit_purchase(
+            customer_id=data['customer_id'],
+            items=data['items'],
+            total_amount=float(data['total_amount']),
+            staff_name=data['staff_name'],
+            notes=data.get('notes', '')
+        )
+        
+        print(f"📥 Result: {result}")
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/payment', methods=['POST'])
+@admin_required
+def api_record_credit_payment():
+    """Record a credit payment - API endpoint"""
+    try:
+        from utils.credit import record_credit_payment
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        required = ['customer_id', 'amount', 'staff_name']
+        for field in required:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'{field} is required'}), 400
+        
+        result = record_credit_payment(
+            customer_id=data['customer_id'],
+            amount=float(data['amount']),
+            staff_name=data['staff_name'],
+            notes=data.get('notes', '')
+        )
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/monthly-report', methods=['GET'])
+@admin_required
+def api_get_monthly_credit_report():
+    """Get monthly credit report - API endpoint"""
+    try:
+        from utils.credit import get_monthly_credit_report
+        
+        year = request.args.get('year', type=int)
+        report = get_monthly_credit_report(year)
+        return jsonify({'success': True, 'report': report})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/overdue', methods=['GET'])
+@admin_required
+def api_get_overdue_customers():
+    """Get overdue customers - API endpoint"""
+    try:
+        from utils.credit import get_overdue_customers
+        
+        overdue = get_overdue_customers()
+        return jsonify({'success': True, 'overdue': overdue, 'count': len(overdue)})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/summary', methods=['GET'])
+@admin_required
+def api_get_credit_summary():
+    """Get credit summary statistics - API endpoint"""
+    try:
+        from utils.credit import get_credit_summary
+        
+        summary = get_credit_summary()
+        return jsonify({'success': True, 'summary': summary})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================
@@ -864,311 +1171,15 @@ def api_get_supplier_summary():
 
 
 # ============================================================
-# CREDIT CUSTOMER MANAGEMENT ROUTES
-# ============================================================
-
-@admin_bp.route('/admin/credit')
-@admin_required
-def admin_credit():
-    """Credit management page"""
-    try:
-        from utils.credit import get_all_credit_customers, get_credit_summary, get_overdue_customers
-        from datetime import datetime
-        
-        customers = get_all_credit_customers()
-        summary = get_credit_summary()
-        overdue = get_overdue_customers()
-        
-        stats = {
-            'total_orders': 0,
-            'pending_orders': 0,
-            'total_products': 0,
-            'total_customers': summary.get('total_customers', 0),
-            'today_revenue': 0,
-            'month_revenue': 0,
-            'total_revenue': 0,
-            'low_stock': 0,
-            'total_bundles': 0,
-            'total_cart_items': 0,
-            'pos_orders': 0,
-            'web_orders': 0,
-            'today_growth_pct': 0,
-            'month_growth_pct': 0,
-            'db_mode': 'online'
-        }
-        
-        return render_template('admin_credit.html',
-            customers=customers,
-            summary=summary,
-            overdue=overdue,
-            overdue_count=len(overdue),
-            stats=stats,
-            DB_CONNECTED=True,
-            IS_VERCEL=IS_VERCEL,
-            now=datetime.utcnow()
-        )
-    except Exception as e:
-        print(f"❌ Error loading credit customers: {e}")
-        flash('Error loading credit customers', 'danger')
-        
-        stats = {
-            'total_orders': 0,
-            'pending_orders': 0,
-            'total_products': 0,
-            'total_customers': 0,
-            'today_revenue': 0,
-            'month_revenue': 0,
-            'total_revenue': 0,
-            'low_stock': 0,
-            'total_bundles': 0,
-            'total_cart_items': 0,
-            'pos_orders': 0,
-            'web_orders': 0,
-            'today_growth_pct': 0,
-            'month_growth_pct': 0,
-            'db_mode': 'offline'
-        }
-        
-        return render_template('admin_credit.html',
-            customers=[],
-            summary={'total_customers': 0, 'active_customers': 0, 'inactive_customers': 0, 
-                    'total_balance': 0, 'total_credit_limit': 0, 'total_purchases': 0, 
-                    'total_payments': 0, 'average_balance': 0},
-            overdue=[],
-            overdue_count=0,
-            stats=stats,
-            DB_CONNECTED=False,
-            IS_VERCEL=IS_VERCEL,
-            now=datetime.utcnow()
-        )
-
-
-@admin_bp.route('/admin/api/credit/customers', methods=['GET'])
-@admin_required
-def api_get_credit_customers():
-    """Get all credit customers - API endpoint"""
-    try:
-        from utils.credit import get_all_credit_customers
-        customers = get_all_credit_customers()
-        return jsonify({'success': True, 'customers': customers})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/customers', methods=['POST'])
-@admin_required
-def api_add_credit_customer():
-    """Add a new credit customer - API endpoint"""
-    try:
-        from utils.credit import add_credit_customer
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-        
-        required = ['full_name', 'phone']
-        for field in required:
-            if not data.get(field):
-                return jsonify({'success': False, 'message': f'{field} is required'}), 400
-        
-        result = add_credit_customer(data)
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['GET'])
-@admin_required
-def api_get_credit_customer(customer_id):
-    """Get a specific credit customer - API endpoint"""
-    try:
-        from utils.credit import get_credit_customer_by_id
-        
-        customer = get_credit_customer_by_id(customer_id)
-        if customer:
-            return jsonify({'success': True, 'customer': customer})
-        else:
-            return jsonify({'success': False, 'message': 'Customer not found'}), 404
-            
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['PUT'])
-@admin_required
-def api_update_credit_customer(customer_id):
-    """Update a credit customer - API endpoint"""
-    try:
-        from utils.credit import update_credit_customer
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-        
-        result = update_credit_customer(customer_id, data)
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['DELETE'])
-@admin_required
-def api_delete_credit_customer(customer_id):
-    """Delete a credit customer - API endpoint"""
-    try:
-        from utils.credit import delete_credit_customer
-        
-        result = delete_credit_customer(customer_id)
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/balance/<customer_id>', methods=['GET'])
-@admin_required
-def api_get_credit_balance(customer_id):
-    """Get customer balance - API endpoint"""
-    try:
-        from utils.credit import get_customer_balance
-        
-        balance = get_customer_balance(customer_id)
-        if balance:
-            return jsonify({'success': True, 'balance': balance})
-        else:
-            return jsonify({'success': False, 'message': 'Customer not found'}), 404
-            
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/transactions/<customer_id>', methods=['GET'])
-@admin_required
-def api_get_credit_transactions(customer_id):
-    """Get customer transactions - API endpoint"""
-    try:
-        from utils.credit import get_customer_transactions
-        
-        transactions = get_customer_transactions(customer_id)
-        return jsonify({'success': True, 'transactions': transactions})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/purchase', methods=['POST'])
-@admin_required
-def api_record_credit_purchase():
-    """Record a credit purchase - API endpoint"""
-    try:
-        from utils.credit import record_credit_purchase
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-        
-        required = ['customer_id', 'items', 'total_amount', 'staff_name']
-        for field in required:
-            if not data.get(field):
-                return jsonify({'success': False, 'message': f'{field} is required'}), 400
-        
-        result = record_credit_purchase(
-            customer_id=data['customer_id'],
-            items=data['items'],
-            total_amount=float(data['total_amount']),
-            staff_name=data['staff_name'],
-            notes=data.get('notes', '')
-        )
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/payment', methods=['POST'])
-@admin_required
-def api_record_credit_payment():
-    """Record a credit payment - API endpoint"""
-    try:
-        from utils.credit import record_credit_payment
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-        
-        required = ['customer_id', 'amount', 'staff_name']
-        for field in required:
-            if not data.get(field):
-                return jsonify({'success': False, 'message': f'{field} is required'}), 400
-        
-        result = record_credit_payment(
-            customer_id=data['customer_id'],
-            amount=float(data['amount']),
-            staff_name=data['staff_name'],
-            notes=data.get('notes', '')
-        )
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/monthly-report', methods=['GET'])
-@admin_required
-def api_get_monthly_credit_report():
-    """Get monthly credit report - API endpoint"""
-    try:
-        from utils.credit import get_monthly_credit_report
-        
-        year = request.args.get('year', type=int)
-        report = get_monthly_credit_report(year)
-        return jsonify({'success': True, 'report': report})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/overdue', methods=['GET'])
-@admin_required
-def api_get_overdue_customers():
-    """Get overdue customers - API endpoint"""
-    try:
-        from utils.credit import get_overdue_customers
-        
-        overdue = get_overdue_customers()
-        return jsonify({'success': True, 'overdue': overdue, 'count': len(overdue)})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/summary', methods=['GET'])
-@admin_required
-def api_get_credit_summary():
-    """Get credit summary statistics - API endpoint"""
-    try:
-        from utils.credit import get_credit_summary
-        
-        summary = get_credit_summary()
-        return jsonify({'success': True, 'summary': summary})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# POS ROUTE - FIXED
+# POS ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos')
 def admin_pos():
-    # ✅ Check for either admin_logged_in OR user session
     if not session.get('admin_logged_in') and not session.get('user'):
         flash('Please login first', 'danger')
         return redirect(url_for('admin.user_login'))
     
-    # ✅ Set admin_logged_in for POS if user exists
     if session.get('user') and not session.get('admin_logged_in'):
         session['admin_logged_in'] = True
         print("✅ admin_logged_in set for POS user")
@@ -1216,16 +1227,14 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE - FIXED
+# POS ORDER ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
 def admin_pos_place_order():
-    # ✅ FIX: Check for either admin_logged_in OR user session
     if not session.get('admin_logged_in') and not session.get('user'):
         return jsonify({'success': False, 'message': 'Please login first'}), 401
     
-    # ✅ If user session exists but no admin_logged_in, set it
     if session.get('user') and not session.get('admin_logged_in'):
         session['admin_logged_in'] = True
         print("✅ admin_logged_in set for POS order")
@@ -1416,6 +1425,8 @@ def admin_pos_place_order():
             'success': False, 
             'message': f'Error: {str(exc)[:100]}'
         }), 500
+
+
 # ============================================================
 # SYNC QUEUED ORDERS
 # ============================================================
