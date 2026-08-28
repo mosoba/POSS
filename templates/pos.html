@@ -2945,51 +2945,44 @@
         });
     }
 
-
-                          // ============================================================
-// COMPLETE CREDIT RECEIPT WITH THERMAL PRINTER - FULLY WORKING
+    // ============================================================
+// CREDIT RECEIPT WITH THERMAL PRINTER
 // ============================================================
 
-function generateCreditReceiptText(customerName, total, result) {
-    const date = new Date().toLocaleString();
-    const orderId = result.transaction_id || result.order_id || 'CREDIT-' + Date.now();
-    
-    let receipt = '';
-    receipt += '╔══════════════════════════════════╗\n';
-    receipt += '║       PRICEPOINT POS             ║\n';
-    receipt += '║      📍 Nairobi, Kenya           ║\n';
-    receipt += '╠══════════════════════════════════╣\n';
-    receipt += '║ 📅 ' + date.padEnd(32) + '║\n';
-    receipt += '║ 💳 CREDIT PURCHASE               ║\n';
-    receipt += '║ 📋 #' + orderId.padEnd(32) + '║\n';
-    receipt += '║ 👤 ' + (customerName || 'Customer').padEnd(32) + '║\n';
-    receipt += '╠══════════════════════════════════╣\n';
-    receipt += '║ Total:      KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
-    if (result.due_date) {
-        receipt += '║ Due Date:   ' + (result.due_date || '').padEnd(12) + ' ║\n';
-    }
-    receipt += '╠══════════════════════════════════╣\n';
-    receipt += '║ New Balance: KSh ' + (result.balance_after || 0).toLocaleString().padStart(12) + ' ║\n';
-    receipt += '║ Available:   KSh ' + ((result.credit_limit || 0) - (result.balance_after || 0)).toLocaleString().padStart(12) + ' ║\n';
-    receipt += '╠══════════════════════════════════╣\n';
-    receipt += '║     ✅ Thank you for credit!     ║\n';
-    receipt += '║    Have a great day! 😊          ║\n';
-    receipt += '╚══════════════════════════════════╝\n';
-    
-    return receipt;
-}
-
 function showCreditReceipt(customerName, total, result) {
-    // Remove old modal
     const existingModal = document.getElementById('creditReceiptModal');
     if (existingModal) existingModal.remove();
-    
-    const receiptText = generateCreditReceiptText(customerName, total, result);
-    
+
+    const date = new Date().toLocaleString();
+    const orderId = result.transaction_id || result.order_id || 'CREDIT-' + Date.now();
+
+    // Build receipt text
+    let receiptText = '';
+    receiptText += '╔══════════════════════════════════╗\n';
+    receiptText += '║       PRICEPOINT POS             ║\n';
+    receiptText += '║      📍 Nairobi, Kenya           ║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ 📅 ' + date.padEnd(32) + '║\n';
+    receiptText += '║ 💳 CREDIT PURCHASE               ║\n';
+    receiptText += '║ 📋 #' + orderId.padEnd(32) + '║\n';
+    receiptText += '║ 👤 ' + (customerName || 'Customer').padEnd(32) + '║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ Total:      KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
+    if (result.due_date) {
+        receiptText += '║ Due Date:   ' + (result.due_date || '').padEnd(12) + ' ║\n';
+    }
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ New Balance: KSh ' + (result.balance_after || 0).toLocaleString().padStart(12) + ' ║\n';
+    receiptText += '║ Available:   KSh ' + ((result.credit_limit || 0) - (result.balance_after || 0)).toLocaleString().padStart(12) + ' ║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║     ✅ Thank you for credit!     ║\n';
+    receiptText += '║    Have a great day! 😊          ║\n';
+    receiptText += '╚══════════════════════════════════╝\n';
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.id = 'creditReceiptModal';
-    
+
     modal.innerHTML = `
         <div class="modal" style="max-width:450px;" onclick="event.stopPropagation()">
             <button class="close" onclick="closeCreditReceipt()">✕</button>
@@ -3008,19 +3001,10 @@ function showCreditReceipt(customerName, total, result) {
             </div>
             <div style="margin-top:8px;text-align:center;font-size:0.6rem;color:var(--gray-400);">
                 🔌 Printer Status: <span id="creditPrinterStatus">${window.printerConnected ? '✅ Connected' : '❌ Not connected'}</span>
-                <button onclick="connectPrinterNow()" style="margin-left:8px;font-size:0.55rem;background:#6366f1;color:white;border:none;border-radius:9999px;padding:2px 10px;cursor:pointer;">Connect</button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
-    
-    // Update status after a moment
-    setTimeout(updateCreditPrinterStatus, 200);
-}
-
-function closeCreditReceipt() {
-    const modal = document.getElementById('creditReceiptModal');
-    if (modal) modal.remove();
 }
 
 function printCreditReceiptUSB() {
@@ -3029,27 +3013,23 @@ function printCreditReceiptUSB() {
         showToast('⚠️ No receipt content found', 'warning');
         return;
     }
-    
+
     let receiptText = content.textContent || content.innerText || '';
     receiptText = receiptText.trim();
-    
+
     if (!receiptText) {
         showToast('⚠️ No receipt to print', 'warning');
         return;
     }
-    
-    console.log('🖨️ Credit Receipt Text:', receiptText);
-    console.log('📄 Length:', receiptText.length);
-    
-    showToast('🖨️ Printing to USB printer...', 'info');
-    
-    // Check if USB printer function exists
+
     if (typeof window.printToUSBPrinter === 'function') {
         window.printToUSBPrinter(receiptText);
     } else {
-        console.error('❌ printToUSBPrinter not found - using fallback');
-        showToast('⚠️ USB not available, using browser', 'warning');
-        printCreditReceiptBrowser();
+        showToast('⚠️ USB printer not available', 'warning');
+        // Fallback to browser print
+        if (typeof window.printViaBrowser === 'function') {
+            window.printViaBrowser(receiptText);
+        }
     }
 }
 
@@ -3059,356 +3039,832 @@ function printCreditReceiptBrowser() {
         showToast('⚠️ No receipt to print', 'warning');
         return;
     }
-    
+
     let receiptText = content.textContent || content.innerText || '';
     receiptText = receiptText.trim();
-    
+
     if (!receiptText) {
         showToast('⚠️ No receipt to print', 'warning');
         return;
     }
-    
-    console.log('🖨️ Printing via browser...');
-    
+
     if (typeof window.printViaBrowser === 'function') {
         window.printViaBrowser(receiptText);
-    } else {
-        const win = window.open('', '_blank', 'width=400,height=600');
-        if (!win) {
-            showToast('⚠️ Allow popups for printing', 'warning');
+    }
+}
+
+function closeCreditReceipt() {
+    const modal = document.getElementById('creditReceiptModal');
+    if (modal) modal.remove();
+}
+
+// Override old print function
+window.printCreditReceipt = function() {
+    const modal = document.getElementById('creditReceiptModal');
+    if (modal) {
+        printCreditReceiptUSB();
+    }
+};
+    // ============================================================
+    // NORMAL ORDER PROCESSING
+    // ============================================================
+    function processNormalOrder() {
+        const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Processing...';
+        btn.disabled = true;
+
+        const customerName = document.getElementById('posCustomer').value;
+        const customerEmail = document.getElementById('posCustomerEmail').value;
+        const customerPhone = document.getElementById('posCustomerPhone').value;
+        const notes = document.getElementById('orderNotes')?.value || '';
+
+        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        const total = Math.max(0, subtotal - discountAmount + tipAmount);
+
+        const orderData = {
+            items: posCart.map(item => ({
+                product_id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity
+            })),
+            subtotal: subtotal,
+            shipping: 0,
+            total: total,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+            customer_address: 'In-store purchase',
+            notes: notes,
+            payment_method: paymentMethod,
+            tip_amount: tipAmount || 0,
+            discount: discountValue,
+            discount_type: discountType,
+            created_at: new Date().toISOString()
+        };
+
+        if (!navigator.onLine) {
+            console.log('📡 Offline detected, saving order locally...');
+            saveOrderOffline(orderData, btn, originalText);
             return;
         }
-        win.document.write(`
-            <html>
-            <head>
-                <title>Credit Receipt - PRICEPOINT</title>
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
-                    pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
-                    @page { margin: 0; size: 80mm auto; }
-                    @media print { body { padding: 10px; margin: 0; } }
-                </style>
-            </head>
-            <body>
-                <pre>${receiptText}</pre>
-                <script>
-                    window.onload = function() {
-                        setTimeout(function() { window.print(); }, 500);
-                        setTimeout(function() { window.close(); }, 3000);
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        win.document.close();
-    }
-}
 
-function updateCreditPrinterStatus() {
-    const statusEl = document.getElementById('creditPrinterStatus');
-    if (statusEl) {
-        statusEl.textContent = window.printerConnected ? '✅ Connected' : '❌ Not connected';
-        statusEl.style.color = window.printerConnected ? '#10b981' : '#ef4444';
-    }
-}
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-function connectPrinterNow() {
-    if (typeof window.connectUSBPrinter === 'function') {
-        window.connectUSBPrinter().then(connected => {
-            if (connected) {
-                updateCreditPrinterStatus();
-                showToast('✅ Printer connected!', 'success');
+        fetch('/admin/pos/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData),
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json();
+        })
+        .then(data => {
+            clearTimeout(timeoutId);
+            if (data.success) {
+                posCart.forEach(item => {
+                    const product = allProducts.find(p => String(p.id) === String(item.id));
+                    if (product) {
+                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                    }
+                });
+
+                const orderToSave = {
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    items: posCart,
+                    subtotal: subtotal,
+                    shipping: 0,
+                    total: total,
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                    payment_method: paymentMethod,
+                    tip_amount: tipAmount || 0,
+                    notes: notes,
+                    created_at: new Date().toISOString(),
+                    synced: true,
+                    synced_at: new Date().toISOString()
+                };
+                saveOrderToIndexedDB(orderToSave).catch(() => {});
+
+                showToast('✅ Order completed!', 'success');
+                showReceipt({
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    customer_name: customerName,
+                    subtotal: subtotal,
+                    total: total,
+                    items: posCart,
+                    payment_method: paymentMethod,
+                    created_at: new Date().toISOString(),
+                    tip_amount: tipAmount || 0,
+                    discount: discountValue
+                });
+
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                updatePOSUI();
+                renderProducts();
+                updateQuickSalesCount();
+                loadSalesStats();
+                loadUserStats();
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } else {
+                console.log('📡 API error, saving offline:', data.message);
+                showToast('📡 Saving order offline...', 'warning');
+                saveOrderOffline(orderData, btn, originalText);
+            }
+        })
+        .catch(err => {
+            clearTimeout(timeoutId);
+            console.log('❌ Network error, saving offline:', err.message);
+            showToast('📡 No connection, saving offline...', 'warning');
+            saveOrderOffline(orderData, btn, originalText);
+        });
+    }
+
+    // ============================================================
+    // SAVE ORDER OFFLINE
+    // ============================================================
+    function saveOrderOffline(orderData, btn, originalText) {
+        const orderToSave = {
+            order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+            items: orderData.items,
+            subtotal: orderData.subtotal,
+            shipping: 0,
+            total: orderData.total,
+            customer_name: orderData.customer_name,
+            customer_email: orderData.customer_email,
+            customer_phone: orderData.customer_phone,
+            payment_method: orderData.payment_method || 'cash',
+            tip_amount: orderData.tip_amount || 0,
+            notes: orderData.notes || '',
+            created_at: new Date().toISOString(),
+            synced: false,
+            synced_at: null,
+            status: 'confirmed'
+        };
+
+        posCart.forEach(item => {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product) {
+                product.stock = Math.max(0, (product.stock || 0) - item.quantity);
             }
         });
-    } else {
-        showToast('⚠️ USB printing not available in this browser', 'warning');
-    }
-}
 
-// ============================================================
-// FIXED PROCESS CREDIT PURCHASE
-// ============================================================
+        const cartItems = [...posCart];
+        const orderTotal = orderData.total;
+        const orderSubtotal = orderData.subtotal;
+        const customer = orderData.customer_name;
+        const payment = orderData.payment_method || 'cash';
+        const tip = orderData.tip_amount || 0;
+        const disc = discountValue;
 
-function processCreditPurchase(customerId, customerName, total) {
-    const btn = document.getElementById('posPlaceOrderBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Processing credit...';
-    btn.disabled = true;
+        saveOrderToIndexedDB(orderToSave)
+            .then(() => {
+                console.log('✅ Order saved to IndexedDB');
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+                } catch(e) {}
 
-    const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
-    const notes = document.getElementById('orderNotes')?.value || '';
+                showToast('📡 Order saved offline! Will sync when online.', 'warning');
 
-    const data = {
-        customer_id: customerId,
-        items: itemsList,
-        total_amount: total,
-        staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
-        notes: notes + ' (Credit purchase via POS)'
-    };
+                showReceipt({
+                    order_id: orderToSave.order_id,
+                    customer_name: customer,
+                    subtotal: orderSubtotal,
+                    total: orderTotal,
+                    items: cartItems,
+                    payment_method: payment,
+                    created_at: new Date().toISOString(),
+                    tip_amount: tip,
+                    discount: disc
+                });
 
-    console.log('📤 Sending credit purchase:', data);
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                updatePOSUI();
+                renderProducts();
+                updateQuickSalesCount();
+                updateUnsyncedCount();
 
-    fetch('/admin/api/credit/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(r => r.json())
-    .then(result => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        
-        if (result.success) {
-            // Update stock
-            posCart.forEach(item => {
-                const product = allProducts.find(p => String(p.id) === String(item.id));
-                if (product) {
-                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            })
+            .catch((err) => {
+                console.log('❌ IndexedDB failed, trying localStorage:', err.message);
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+
+                    showToast('📡 Order saved to local storage!', 'warning');
+
+                    showReceipt({
+                        order_id: orderToSave.order_id,
+                        customer_name: customer,
+                        subtotal: orderSubtotal,
+                        total: orderTotal,
+                        items: cartItems,
+                        payment_method: payment,
+                        created_at: new Date().toISOString(),
+                        tip_amount: tip,
+                        discount: disc
+                    });
+
+                    posCart = [];
+                    discountValue = 0;
+                    tipAmount = 0;
+                    document.getElementById('discountDisplay').textContent = '0%';
+                    document.getElementById('tipDisplay').textContent = 'KSh 0';
+                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                    updatePOSUI();
+                    renderProducts();
+                    updateQuickSalesCount();
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                } catch(e2) {
+                    console.log('❌ All storage failed:', e2.message);
+                    showToast('❌ Failed to save order: ' + err.message, 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             });
-
-            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
-            
-            // Show receipt with thermal printer support
-            showCreditReceipt(customerName, total, result);
-
-            // Clear cart
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-            updatePOSUI();
-            renderProducts();
-            loadCreditCustomers();
-            updateQuickSalesCount();
-            loadSalesStats();
-        } else {
-            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
-        }
-    })
-    .catch(err => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        showToast('❌ Error: ' + err.message, 'error');
-        console.error('❌ Credit purchase error:', err);
-    });
-}
-
-// ============================================================
-// GLOBAL PRINTER FUNCTIONS - FIXED
-// ============================================================
-
-// Make sure these are defined globally
-window.thermalPrinter = window.thermalPrinter || null;
-window.printerConnected = window.printerConnected || false;
-
-window.connectUSBPrinter = async function() {
-    try {
-        if (!navigator.serial) {
-            showToast('⚠️ Use Chrome/Edge for USB printing', 'warning');
-            return false;
-        }
-        
-        showToast('🔌 Select your USB printer...', 'info');
-        const port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 9600 });
-        
-        window.thermalPrinter = port;
-        window.printerConnected = true;
-        localStorage.setItem('printer_connected', 'true');
-        
-        showToast('✅ Printer connected!', 'success');
-        console.log('✅ Printer connected');
-        return true;
-    } catch(e) {
-        if (e.message && e.message.includes('cancel')) {
-            showToast('❌ Selection cancelled', 'warning');
-        } else {
-            showToast('❌ Failed: ' + e.message, 'error');
-        }
-        return false;
     }
-};
 
-window.printToUSBPrinter = async function(receiptText) {
-    console.log('🖨️ printToUSBPrinter called');
-    console.log('📄 Receipt length:', receiptText.length);
-    
-    // If no printer connected, try to connect
-    if (!window.printerConnected || !window.thermalPrinter) {
-        console.log('🔌 No printer, attempting to connect...');
-        const connected = await window.connectUSBPrinter();
-        if (!connected) {
-            console.log('⚠️ Connection failed, using browser');
-            window.printViaBrowser(receiptText);
+    // ============================================================
+    // INDEXEDDB
+    // ============================================================
+    const DB_NAME = 'PricePointDB';
+    const DB_VERSION = 9;
+    const STORE_NAME = 'orders';
+    let dbInstance = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            if (dbInstance) { resolve(dbInstance); return; }
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = function(e) {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'order_id' });
+                    store.createIndex('synced', 'synced', { unique: false });
+                    store.createIndex('created_at', 'created_at', { unique: false });
+                }
+            };
+            request.onsuccess = function(e) { dbInstance = e.target.result; resolve(dbInstance); };
+            request.onerror = function(e) { reject(e.target.error); };
+        });
+    }
+
+    function saveOrderToIndexedDB(order) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const db = await openDB();
+                const tx = db.transaction('orders', 'readwrite');
+                const store = tx.objectStore('orders');
+                if (order.synced === undefined) order.synced = false;
+                if (!order.synced_at) order.synced_at = null;
+                const req = store.put(order);
+                req.onsuccess = () => resolve(order);
+                req.onerror = () => reject(req.error);
+            } catch (e) { reject(e); }
+        });
+    }
+
+    async function getUnsyncedOrders() {
+        try {
+            const db = await openDB();
+            if (!db.objectStoreNames.contains('orders')) return [];
+            const tx = db.transaction('orders', 'readonly');
+            const store = tx.objectStore('orders');
+            return new Promise((resolve) => {
+                try {
+                    const index = store.index('synced');
+                    const req = index.getAll(false);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => {
+                        const allReq = store.getAll();
+                        allReq.onsuccess = () => resolve(allReq.result.filter(o => o.synced !== true));
+                        allReq.onerror = () => resolve([]);
+                    };
+                } catch {
+                    const allReq = store.getAll();
+                    allReq.onsuccess = () => resolve(allReq.result.filter(o => o.synced !== true));
+                    allReq.onerror = () => resolve([]);
+                }
+            });
+        } catch { return []; }
+    }
+
+    function markOrdersSynced(orderIds) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const db = await openDB();
+                const tx = db.transaction('orders', 'readwrite');
+                const store = tx.objectStore('orders');
+                for (const id of orderIds) {
+                    const req = store.get(id);
+                    await new Promise((res, rej) => {
+                        req.onsuccess = function() {
+                            const order = req.result;
+                            if (order) { order.synced = true; order.synced_at = new Date().toISOString(); store.put(order); }
+                            res();
+                        };
+                        req.onerror = () => rej(req.error);
+                    });
+                }
+                resolve();
+            } catch (e) { reject(e); }
+        });
+    }
+
+    // ============================================================
+    // AUTO SYNC
+    // ============================================================
+    async function performAutoSync() {
+        if (isSyncing) return;
+        if (!navigator.onLine) {
+            try { const u = await getUnsyncedOrders(); updateUnsyncedCount(u.length); } catch {}
             return;
         }
-    }
-    
-    try {
-        const writer = window.thermalPrinter.writable.getWriter();
-        const encoder = new TextEncoder();
-        
-        // ESC/POS commands
-        await writer.write(encoder.encode('\x1B\x40'));        // Init
-        await writer.write(encoder.encode('\x1B\x21\x00'));    // Normal font
-        await writer.write(encoder.encode('\x1B\x61\x01'));    // Center
-        
-        const lines = receiptText.split('\n');
-        for (const line of lines) {
-            await writer.write(encoder.encode(line + '\n'));
+        try {
+            isSyncing = true;
+            updateSyncStatusUI(true);
+            showToast('🔄 Syncing offline items...', 'info');
+            const unsynced = await getUnsyncedOrders();
+            const returns = unsynced.filter(o => o.is_return === true);
+            const orders = unsynced.filter(o => o.is_return !== true);
+            if (!unsynced.length) {
+                showToast('✅ No offline items to sync', 'success');
+                updateSyncStatusUI(false);
+                updateUnsyncedCount(0);
+                isSyncing = false;
+                return;
+            }
+
+            let rSynced = 0, rFailed = 0;
+            for (const ret of returns) {
+                try {
+                    const items = (ret.items || []).map(item => ({
+                        id: item.id || item.product_id || 'unknown',
+                        product_id: item.product_id || item.id || 'unknown',
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        barcode: item.barcode || ''
+                    }));
+                    const res = await fetch('/admin/api/process-return', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            items, refund_total: Math.abs(ret.total || 0),
+                            customer_name: ret.customer_name || 'Customer',
+                            reason: ret.return_reason || 'Customer return',
+                            return_order_id: ret.order_id,
+                            original_order_id: ret.original_order_id || '',
+                            returned_items: ret.returned_items || []
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) { await markOrdersSynced([ret.order_id]); rSynced++; }
+                    else rFailed++;
+                } catch { rFailed++; }
+            }
+
+            let oSynced = 0, oFailed = 0;
+            if (orders.length) {
+                const clean = orders.map(o => ({
+                    order_id: o.order_id,
+                    items: (o.items || []).map(item => ({
+                        product_id: item.product_id || item.id || 'unknown',
+                        name: item.name || 'Product',
+                        price: Number(item.price) || 0,
+                        quantity: Number(item.quantity) || 1,
+                        total: (Number(item.price) || 0) * (Number(item.quantity) || 1),
+                        barcode: item.barcode || ''
+                    })),
+                    subtotal: Number(o.subtotal) || Number(o.total) || 0,
+                    shipping: Number(o.shipping) || 0,
+                    total: Number(o.total) || 0,
+                    status: o.status || 'confirmed',
+                    source: o.source || 'pos',
+                    created_at: o.created_at || new Date().toISOString(),
+                    customer_name: o.customer_name || 'Walk-in Customer',
+                    customer_email: o.customer_email || 'walkin@example.com',
+                    customer_phone: o.customer_phone || 'N/A',
+                    customer_address: o.customer_address || 'In-store purchase',
+                    customer: o.customer || { name: o.customer_name || 'Walk-in Customer', email: o.customer_email || 'walkin@example.com', phone: o.customer_phone || 'N/A', address: o.customer_address || 'In-store purchase' },
+                    user_id: o.user_id || 'unknown',
+                    user_name: o.user_name || 'Unknown User',
+                    user_role: o.user_role || 'user',
+                    staff_name: o.staff_name || o.user_name || 'Unknown User',
+                    returned_items: o.returned_items || []
+                }));
+                try {
+                    const res = await fetch('/admin/api/sync-queue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orders: clean })
+                    });
+                    const data = await res.json();
+                    if (data.synced > 0) {
+                        await markOrdersSynced(orders.map(o => o.order_id));
+                        oSynced = data.synced;
+                        oFailed = data.failed || 0;
+                    } else { oFailed = orders.length; }
+                } catch { oFailed = orders.length; }
+            }
+
+            const total = oSynced + rSynced;
+            const failed = oFailed + rFailed;
+            if (total > 0) {
+                showToast('✅ ' + total + ' items synced!', 'success');
+            } else {
+                showToast('⚠️ ' + failed + ' items failed to sync', 'warning');
+            }
+            const remaining = await getUnsyncedOrders();
+            updateUnsyncedCount(remaining.length);
+        } catch (e) {
+            if (navigator.onLine) { showToast('❌ Sync failed', 'error'); }
+            try { const r = await getUnsyncedOrders(); updateUnsyncedCount(r.length); } catch {}
+        } finally {
+            isSyncing = false;
+            updateSyncStatusUI(false);
         }
-        
-        await writer.write(encoder.encode('\n\n\n'));
-        await writer.write(encoder.encode('\x1D\x56\x00'));    // Cut paper
-        
-        await writer.close();
-        showToast('✅ Receipt printed!', 'success');
-        console.log('✅ Receipt printed successfully');
-        return true;
-    } catch(e) {
-        console.error('❌ Print error:', e);
-        showToast('❌ Print failed: ' + e.message, 'error');
-        window.printViaBrowser(receiptText);
-        return false;
     }
-};
 
-window.printViaBrowser = function(receiptText) {
-    const win = window.open('', '_blank', 'width=400,height=600');
-    if (!win) {
-        showToast('⚠️ Allow popups for printing', 'warning');
-        return;
+    function updateSyncStatusUI(syncing) {
+        const el = document.getElementById('syncStatus');
+        if (!el) return;
+        if (syncing) el.classList.add('syncing');
+        else el.classList.remove('syncing');
     }
-    win.document.write(`
-        <html>
-        <head>
-            <title>Receipt - PRICEPOINT</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
-                pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
-                @page { margin: 0; size: 80mm auto; }
-                @media print { body { padding: 10px; margin: 0; } }
-            </style>
-        </head>
-        <body>
-            <pre>${receiptText}</pre>
-            <script>
-                window.onload = function() {
-                    setTimeout(function() { window.print(); }, 500);
-                    setTimeout(function() { window.close(); }, 3000);
-                };
-            <\/script>
-        </body>
-        </html>
-    `);
-    win.document.close();
-};
 
-// Disconnect printer
-window.disconnectPrinter = async function() {
-    if (window.thermalPrinter) {
-        try { await window.thermalPrinter.close(); } catch(e) {}
-        window.thermalPrinter = null;
-        window.printerConnected = false;
-        localStorage.removeItem('printer_connected');
-        showToast('🔌 Printer disconnected', 'info');
-        updateCreditPrinterStatus();
+    async function updateUnsyncedCount(count) {
+        const el = document.getElementById('syncStatus');
+        const cEl = document.getElementById('unsyncedCount');
+        if (!el || !cEl) return;
+        if (count === undefined) {
+            try { const u = await getUnsyncedOrders(); count = u.length; } catch { count = 0; }
+        }
+        if (count > 0) {
+            el.style.display = 'inline-flex';
+            cEl.textContent = count;
+            el.title = count + ' offline items waiting to sync';
+            if (navigator.onLine && !isSyncing) setTimeout(performAutoSync, 2000);
+        } else {
+            el.style.display = 'none';
+        }
     }
-};
 
-// Check status
-window.checkPrinterStatus = function() {
-    if (window.printerConnected && window.thermalPrinter) {
-        showToast('✅ Printer is connected and ready', 'success');
-        console.log('✅ Printer connected:', window.thermalPrinter);
+    function manualSync() {
+        if (!navigator.onLine) { showToast('📡 Offline - will sync when online', 'warning'); return; }
+        if (isSyncing) { showToast('⏳ Sync in progress', 'info'); return; }
+        performAutoSync();
+    }
+
+    // ============================================================
+    // SEARCH & FILTER
+    // ============================================================
+   function searchProducts(query) {
+    const term = query.toLowerCase().trim();
+    document.getElementById('searchClear').classList.toggle('visible', term !== '');
+    if (term === '') {
+        filteredProducts = currentCategory === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === currentCategory).slice(0, 50);
+        document.getElementById('resultCount').textContent = filteredProducts.length + ' of ' + allProducts.length + ' products';
     } else {
-        showToast('❌ Printer not connected. Click "Connect Printer"', 'warning');
+        const results = allProducts.filter(p => {
+            const name = (p.name || '').toLowerCase();
+            const cat = (p.category || '').toLowerCase();
+            const id = (p.id || '').toLowerCase();
+            const barcode = (p.barcode || '').toLowerCase();
+            return name.includes(term) || cat.includes(term) || id.includes(term) || barcode.includes(term);
+        });
+        filteredProducts = results.slice(0, 100);
+        document.getElementById('resultCount').textContent = results.length + ' found' + (results.length > 100 ? ' (showing 100)' : '');
     }
-};
-
-// Auto-reconnect on page load
-window.autoReconnect = async function() {
-    if (localStorage.getItem('printer_connected') === 'true' && navigator.serial) {
-        console.log('🔄 Auto-reconnecting...');
-        await window.connectUSBPrinter();
+    renderProducts();
+}
+    function filterByCategory(category, el) {
+        document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+        if (el) el.classList.add('active');
+        currentCategory = category;
+        const input = document.getElementById('posSearch');
+        if (input.value.trim() === '') {
+            filteredProducts = category === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === category).slice(0, 50);
+            document.getElementById('resultCount').textContent = filteredProducts.length + ' products' + (category !== 'all' ? ' in "' + category + '"' : '');
+            renderProducts();
+        } else {
+            searchProducts(input.value);
+        }
     }
-};
 
-// ============================================================
-// OVERRIDE MAIN PRINT RECEIPT FUNCTION
-// ============================================================
-
-// Override the default printReceipt to use USB printer
-const originalPrintReceipt = window.printReceipt || function() {};
-window.printReceipt = function() {
-    const content = document.getElementById('receiptContent');
-    if (!content || !content.textContent) {
-        showToast('⚠️ No receipt to print', 'warning');
-        return;
+    function clearSearch() {
+        document.getElementById('posSearch').value = '';
+        document.getElementById('searchClear').classList.remove('visible');
+        searchProducts('');
     }
-    
-    const receiptText = content.textContent;
-    console.log('🖨️ Printing receipt...');
-    
-    if (typeof window.printToUSBPrinter === 'function') {
-        window.printToUSBPrinter(receiptText);
-    } else {
-        originalPrintReceipt();
+
+    // ============================================================
+    // RENDER PRODUCTS
+    // ============================================================
+    function renderProducts() {
+        const grid = document.getElementById('posProductGrid');
+        if (!filteredProducts.length) {
+            grid.innerHTML = '<div class="search-hint"><span class="icon">🔍</span><p>No products found</p><div class="shortcuts">💡 Try a different search term</div></div>';
+            return;
+        }
+        let html = '';
+        filteredProducts.forEach(p => {
+            const price = Number(p.price) || 0;
+            const stock = Number(p.stock) || 0;
+            const img = getProductImage(p);
+            const stockClass = stock <= 0 ? 'out' : stock < 10 ? 'low' : stock < 30 ? 'medium' : 'high';
+            const label = stock <= 0 ? 'Out' : stock < 10 ? 'Low' : stock < 30 ? 'Med' : 'In Stock';
+            const out = stock <= 0;
+            const barcode = p.barcode ? '<div class="barcode">' + p.barcode + '</div>' : '';
+
+            let imageHtml = '';
+            if (img && img !== '' && img !== 'null' && img !== 'undefined') {
+                imageHtml = '<img src="' + img + '" onerror="this.parentElement.innerHTML=\'<span class=placeholder>📦</span>\'">';
+            } else {
+                imageHtml = '<span class="placeholder">📦</span>';
+            }
+
+            html += '<div class="product-card" data-id="' + (p.id || '') + '" data-name="' + (p.name || '') + '" data-price="' + price + '" data-stock="' + stock + '" data-image="' + img + '" data-barcode="' + (p.barcode || '') + '" onclick="' + (out ? '' : 'addToPOSCart(this)') + '" style="' + (out ? 'opacity:0.7;' : '') + '">' +
+                '<div class="image-wrap">' + imageHtml + '</div>' +
+                '<span class="stock-tag ' + stockClass + '">' + label + '</span>' +
+                (out ? '<div class="out-overlay">OUT OF STOCK</div>' : '') +
+                '<div class="name">' + (p.name || 'Product') + '</div>' +
+                '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                '<div class="stock-info">📦 <span style="font-weight:600;' + (stock < 10 ? 'color:#dc2626;' : stock < 30 ? 'color:#d97706;' : 'color:#059669;') + '">' + stock + '</span> in stock</div>' +
+                barcode +
+                '<button class="add-btn" ' + (out ? 'disabled' : '') + '>' + (out ? 'Out of Stock' : '➕ Add') + '</button>' +
+                '</div>';
+        });
+        grid.innerHTML = html;
     }
-};
 
-// ============================================================
-// ADD PRINTER BUTTONS TO CART
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-reconnect after 2 seconds
-    setTimeout(window.autoReconnect, 2000);
-    
-    // Check if buttons already exist
-    if (document.getElementById('printerButtons')) return;
-    
-    const actions = document.querySelector('.cart-actions');
-    if (actions) {
-        const div = document.createElement('div');
-        div.id = 'printerButtons';
-        div.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;';
-        div.innerHTML = `
-            <button onclick="window.connectUSBPrinter()" class="btn-outline" style="flex:1;min-width:100px;background:#6366f1;color:white;border-color:#6366f1;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;">
-                🔌 Connect Printer
-            </button>
-            <button onclick="window.checkPrinterStatus()" class="btn-outline" style="flex:1;min-width:80px;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;border:1px solid #ccc;">
-                📊 Status
-            </button>
-            <button onclick="window.disconnectPrinter()" class="btn-outline" style="flex:1;min-width:80px;color:#ef4444;border-color:#ef4444;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;">
-                🔌 Disconnect
-            </button>
-        `;
-        actions.insertBefore(div, actions.firstChild);
+    // ============================================================
+    // STATS
+    // ============================================================
+    function loadUserStats() {
+        if (!navigator.onLine) return;
+        fetch('/admin/api/user-stats').then(r => r.json()).then(d => {
+            if (d.success) {
+                document.getElementById('userTodaySales').textContent = 'KSh ' + (d.today_revenue || 0).toLocaleString();
+                document.getElementById('userTodayOrders').textContent = d.today_orders || 0;
+            }
+        }).catch(() => {});
     }
-    
-    console.log('✅ Global Printer module loaded');
-    console.log('📱 Functions available:');
-    console.log('  - window.connectUSBPrinter()');
-    console.log('  - window.printToUSBPrinter(text)');
-    console.log('  - window.printViaBrowser(text)');
-    console.log('  - window.disconnectPrinter()');
-    console.log('  - window.checkPrinterStatus()');
-});
 
-console.log('✅ Credit receipt with thermal printer - FULLY LOADED!');
-console.log('📱 Credit Functions:');
-console.log('  - showCreditReceipt()');
-console.log('  - printCreditReceiptUSB()');
-console.log('  - printCreditReceiptBrowser()');
-console.log('  - connectPrinterNow()');
-console.log('  - updateCreditPrinterStatus()');
-console.log('  - processCreditPurchase()');
+    function loadSalesStats() {
+        if (!navigator.onLine) return;
+        fetch('/admin/api/sales-stats').then(r => r.json()).then(d => {
+            if (d.success) {
+                document.getElementById('todaySales').textContent = 'KSh ' + (d.today_revenue || 0).toLocaleString();
+                document.getElementById('todayOrders').textContent = d.today_orders || 0;
+                document.getElementById('todayReturns').textContent = d.today_returns || 0;
+                document.getElementById('totalCustomers').textContent = d.total_customers || 0;
+                document.getElementById('totalProducts').textContent = d.total_products || 0;
+            }
+        }).catch(() => {});
+    }
+
+    // ============================================================
+    // CART
+    // ============================================================
+    function addToPOSCart(el) {
+        const card = el.closest ? el.closest('.product-card') : el;
+        if (!card) { showToast('❌ Product not found'); return; }
+        let pid = String(card.dataset.id || '').trim();
+        const name = String(card.dataset.name || 'Product').trim();
+        const price = parseFloat(card.dataset.price) || 0;
+        const stock = parseInt(card.dataset.stock) || 0;
+        const image = String(card.dataset.image || '').trim();
+        const barcode = String(card.dataset.barcode || '').trim();
+        if (!pid || pid === 'product_id_here' || pid === '') {
+            const found = allProducts.find(p => p.name === name);
+            if (found) pid = String(found.id);
+        }
+        if (!pid || price <= 0) { showToast('❌ Invalid product'); return; }
+        if (stock <= 0) { showToast('⚠️ Out of stock!'); return; }
+        const existing = posCart.find(item => item.id === pid);
+        if (existing) {
+            if (existing.quantity < stock) existing.quantity++;
+            else { showToast('⚠️ Not enough stock!'); return; }
+        } else {
+            posCart.push({ id: pid, name, price, image, stock, barcode, quantity: 1 });
+        }
+        updatePOSUI();
+        showToast('✅ Added ' + name + ' (' + stock + ' left)');
+    }
+
+    function updatePOSQuantity(idx, delta) {
+        if (!posCart[idx]) return;
+        const n = posCart[idx].quantity + delta;
+        if (n <= 0) posCart.splice(idx, 1);
+        else if (n <= posCart[idx].stock) posCart[idx].quantity = n;
+        else { showToast('⚠️ Not enough stock!'); return; }
+        updatePOSUI();
+    }
+
+    function removePOSItem(idx) {
+        posCart.splice(idx, 1);
+        updatePOSUI();
+        showToast('🗑️ Removed');
+    }
+
+    function voidLastItem() {
+        if (!posCart.length) { showToast('⚠️ Cart is empty', 'warning'); return; }
+        const removed = posCart.pop();
+        updatePOSUI();
+        showToast('↩️ Voided: ' + removed.name, 'info');
+    }
+
+    function clearCart() {
+        if (posCart.length && !confirm('Clear all items?')) return;
+        posCart = [];
+        discountValue = 0;
+        tipAmount = 0;
+        document.getElementById('discountDisplay').textContent = '0%';
+        document.getElementById('tipDisplay').textContent = 'KSh 0';
+        updatePOSUI();
+        showToast('🔄 Cart cleared');
+    }
+
+    // ============================================================
+    // UPDATE POS UI
+    // ============================================================
+    function updatePOSUI() {
+        const list = document.getElementById('posCartItemsList');
+        const empty = document.getElementById('emptyCartMessage');
+        const subtotalEl = document.getElementById('posSubtotal');
+        const totalEl = document.getElementById('posTotal');
+        const discountEl = document.getElementById('posDiscount');
+        const itemCountEl = document.getElementById('itemCount');
+        const cartStatsEl = document.getElementById('cartStats');
+        const placeBtn = document.getElementById('posPlaceOrderBtn');
+
+        let subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+        const discountAmt = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        let total = Math.max(0, subtotal - discountAmt + tipAmount);
+
+        if (subtotalEl) subtotalEl.textContent = 'KSh ' + subtotal.toLocaleString();
+        if (discountEl) discountEl.textContent = '-KSh ' + discountAmt.toLocaleString();
+        if (totalEl) totalEl.textContent = 'KSh ' + total.toLocaleString();
+
+        const qty = posCart.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
+        if (itemCountEl) itemCountEl.textContent = qty + ' items';
+        if (cartStatsEl) cartStatsEl.textContent = qty;
+        if (placeBtn) { placeBtn.disabled = !posCart.length; placeBtn.style.opacity = posCart.length ? '1' : '0.5'; }
+        if (empty) empty.style.display = posCart.length ? 'none' : 'block';
+        if (!list) return;
+        if (!posCart.length) { list.innerHTML = ''; return; }
+
+        let html = '';
+        posCart.forEach((item, i) => {
+            const price = Number(item.price) || 0;
+            const q = Number(item.quantity) || 1;
+            const barcode = item.barcode ? '<div class="barcode">' + item.barcode + '</div>' : '';
+            const imgSrc = item.image || '';
+            const imgHtml = imgSrc ? '<img src="' + imgSrc + '" onerror="this.textContent=\'📱\'">' : '📱';
+            html += '<div class="cart-item">' +
+                '<div class="item-img">' + imgHtml + '</div>' +
+                '<div class="item-info">' +
+                '<div class="name">' + (item.name || 'Product') + '</div>' +
+                '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                barcode +
+                '<div style="font-size:0.5rem;color:var(--gray-400);">Stock: ' + item.stock + '</div>' +
+                '</div>' +
+                '<div class="controls">' +
+                '<button onclick="updatePOSQuantity(' + i + ', -1)">−</button>' +
+                '<span class="qty">' + q + '</span>' +
+                '<button onclick="updatePOSQuantity(' + i + ', 1)">+</button>' +
+                '<button class="remove" onclick="removePOSItem(' + i + ')">✕</button>' +
+                '</div>' +
+                '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    // ============================================================
+    // DISCOUNT
+    // ============================================================
+    function toggleDiscountModal() {
+        document.getElementById('discountModal').classList.toggle('hidden');
+        updateDiscountPreview();
+    }
+
+    function closeDiscountModal(e) {
+        if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close')) {
+            document.getElementById('discountModal').classList.add('hidden');
+        }
+    }
+
+    function setDiscountPreset(v) {
+        document.getElementById('discountType').value = 'percentage';
+        document.getElementById('discountValue').value = v;
+        updateDiscountPreview();
+    }
+
+    function updateDiscountPreview() {
+        const type = document.getElementById('discountType').value;
+        const val = parseFloat(document.getElementById('discountValue').value) || 0;
+        const subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+        const amt = type === 'percentage' ? (subtotal * val / 100) : val;
+        const total = Math.max(0, subtotal - amt);
+        document.getElementById('discountSubtotal').textContent = 'KSh ' + subtotal.toLocaleString();
+        document.getElementById('discountNewTotal').textContent = 'KSh ' + total.toLocaleString();
+    }
+
+    function applyDiscount() {
+        discountType = document.getElementById('discountType').value;
+        discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+        document.getElementById('discountDisplay').textContent = discountType === 'percentage' ? discountValue + '%' : 'KSh ' + discountValue.toLocaleString();
+        closeDiscountModal();
+        updatePOSUI();
+        showToast('✅ Discount applied!', 'success');
+    }
+
+    // ============================================================
+    // CUSTOMER
+    // ============================================================
+    function toggleCustomerModal() { document.getElementById('customerModal').classList.toggle('hidden'); }
+
+    function closeCustomerModal(e) {
+        if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close')) {
+            document.getElementById('customerModal').classList.add('hidden');
+        }
+    }
+
+    function addCustomer(e) {
+        e.preventDefault();
+        const name = document.getElementById('custName').value.trim();
+        const email = document.getElementById('custEmail').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        if (!name) { showToast('⚠️ Name required', 'warning'); return; }
+        const select = document.getElementById('posCustomer');
+        const existing = Array.from(select.options).some(o => o.value === name);
+        if (existing) { showToast('⚠️ Customer exists!', 'warning'); return; }
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        opt.dataset.email = email || '';
+        opt.dataset.phone = phone || '';
+        select.appendChild(opt);
+        select.value = name;
+        document.getElementById('posCustomerEmail').value = email || '';
+        document.getElementById('posCustomerPhone').value = phone || '';
+        closeCustomerModal();
+        showToast('✅ Customer added: ' + name);
+        document.getElementById('customerForm').reset();
+        loadSalesStats();
+    }
+
+    function selectCustomer() {
+        const select = document.getElementById('posCustomer');
+        const opt = select.options[select.selectedIndex];
+        if (opt) {
+            document.getElementById('posCustomerEmail').value = opt.dataset.email || '';
+            document.getElementById('posCustomerPhone').value = opt.dataset.phone || '';
+        }
+    }
+
+    // ============================================================
+    // TIP MANAGEMENT
+    // ============================================================
+    function addTip(amount) {
+        tipAmount = amount;
+        document.getElementById('tipDisplay').textContent = 'KSh ' + amount.toLocaleString();
+        updatePOSUI();
+        showToast('💝 Tip of KSh ' + amount.toLocaleString() + ' added!', 'success');
+    }
+
+    function addCustomTip() {
+        const val = parseFloat(document.getElementById('customTip').value);
+        if (val > 0) { addTip(val); document.getElementById('customTip').value = ''; }
+    }
+
     // ============================================================
     // HOLD ORDERS
     // ============================================================
@@ -3849,43 +4305,43 @@ let isProcessingBarcode = false;  // ← ADD THIS LINE
 // This handles both USB scanners AND manual entry
 function handleBarcodeInput(value) {
     if (!value || value.length < 3) return false;
-    
+
     console.log('📱 Processing barcode:', value);
-    
+
     // Clean the barcode (remove .0 suffix if present)
     const cleanValue = value.replace(/\.0$/, '').trim();
-    
+
     // Search for product by barcode
     let product = allProducts.find(p => {
         const barcode = String(p.barcode || '').replace(/\.0$/, '').trim();
         return barcode === cleanValue || barcode === value;
     });
-    
+
     // If not found, try by ID
     if (!product) {
         product = allProducts.find(p => String(p.id || '').trim() === cleanValue);
     }
-    
+
     // If still not found, try by name
     if (!product) {
-        product = allProducts.find(p => 
+        product = allProducts.find(p =>
             (p.name || '').toLowerCase().includes(cleanValue.toLowerCase())
         );
     }
-    
+
     if (!product) {
         showToast('❌ Product not found: ' + value, 'error');
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         return false;
     }
-    
+
     // Check stock
     const stock = product.stock || 0;
     if (stock <= 0) {
         showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
         return false;
     }
-    
+
     // Add to cart
     const existing = posCart.find(item => item.id === product.id);
     if (existing) {
@@ -3908,21 +4364,21 @@ function handleBarcodeInput(value) {
         });
         showToast('✅ Added: ' + product.name, 'success');
     }
-    
+
     // Update UI
     updatePOSUI();
-    
+
     // Clear search box
     const searchInput = document.getElementById('posSearch');
     if (searchInput) searchInput.value = '';
-    
+
     // Vibrate feedback
     if (navigator.vibrate) navigator.vibrate(100);
-    
+
     console.log('✅ Product added to cart:', product.name);
     return true;
 }
-           
+
 // ============================================================
 // SEARCH BOX LISTENER - HANDLES USB SCANNERS (NO DUPLICATES)
 // ============================================================
@@ -3930,7 +4386,7 @@ function handleBarcodeInput(value) {
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('posSearch');
     if (!searchInput) return;
-    
+
     // Handle Enter key (most USB scanners send Enter)
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -3940,10 +4396,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // ✅ PREVENT DUPLICATE
                 if (isProcessingBarcode) return;
                 isProcessingBarcode = true;
-                
+
                 console.log('🔑 Enter detected with value:', value);
                 handleBarcodeInput(value);
-                
+
                 // Reset after processing
                 setTimeout(() => {
                     isProcessingBarcode = false;
@@ -3951,12 +4407,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     // Handle input (for scanners that don't send Enter)
     searchInput.addEventListener('input', function(e) {
         const value = this.value.trim();
         if (!value || value.length < 4) return;
-        
+
         // Only process if it looks like a barcode (numbers only)
         if (/^\d+$/.test(value)) {
             clearTimeout(barcodeTimer);
@@ -3964,17 +4420,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // ✅ PREVENT DUPLICATE
                 if (isProcessingBarcode) return;
                 isProcessingBarcode = true;
-                
+
                 console.log('⏱️ Auto-detect barcode:', value);
                 handleBarcodeInput(value);
-                
+
                 setTimeout(() => {
                     isProcessingBarcode = false;
                 }, 500);
             }, 300);
         }
     });
-    
+
     console.log('✅ USB Scanner listener ready (no duplicates)!');
 });
 
@@ -3987,19 +4443,19 @@ function openBarcodeScanner() {
     modal.classList.remove('hidden');
     document.getElementById('scannerResult').style.display = 'none';
     document.getElementById('scannedValue').textContent = '';
-    
+
     const btn = document.getElementById('startScannerBtn');
     btn.innerHTML = '▶ Start Camera';
     btn.disabled = false;
     btn.style.display = 'block';
     btn.onclick = startScanner;
-    
+
     if (html5QrCode) {
         try { html5QrCode.stop().catch(() => {}); } catch(e) {}
         html5QrCode = null;
     }
-    
-    document.getElementById('barcode-reader').innerHTML = 
+
+    document.getElementById('barcode-reader').innerHTML =
         '<div style="text-align:center;padding:40px 20px;color:var(--gray-400);">' +
         '<span style="font-size:3rem;display:block;margin-bottom:12px;">📷</span>' +
         '<p>Click "Start Camera" to scan</p>' +
@@ -4021,26 +4477,26 @@ function startScanner() {
         showToast('Scanner already running', 'info');
         return;
     }
-    
+
     const btn = document.getElementById('startScannerBtn');
     const readerDiv = document.getElementById('barcode-reader');
-    
+
     if (typeof Html5Qrcode === 'undefined') {
         showToast('⚠️ Scanner library not loaded - refreshing...', 'error');
         location.reload();
         return;
     }
-    
+
     btn.innerHTML = '⏳ Starting...';
     btn.disabled = true;
     readerDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);">📷 Starting camera...</div>';
-    
+
     html5QrCode = new Html5Qrcode("barcode-reader");
-    
+
     html5QrCode.start(
         { facingMode: "environment" },
-        { 
-            fps: 10, 
+        {
+            fps: 10,
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0
         },
@@ -4086,7 +4542,7 @@ function startScanner() {
         btn.innerHTML = '📷 Try Again';
         btn.disabled = false;
         btn.onclick = startScanner;
-        
+
         let msg = 'Camera error: ';
         if (err.message) {
             if (err.message.includes('Permission')) msg += 'Allow camera access';
@@ -4097,8 +4553,8 @@ function startScanner() {
             msg += 'Unknown error';
         }
         showToast('⚠️ ' + msg, 'error');
-        
-        readerDiv.innerHTML = 
+
+        readerDiv.innerHTML =
             '<div style="text-align:center;padding:30px;color:var(--gray-400);">' +
             '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
             '<p style="color:var(--danger);">' + msg + '</p>' +
@@ -4447,20 +4903,20 @@ window.connectUSBPrinter = async function() {
             showToast('⚠️ Use Chrome or Edge browser for USB printing', 'warning');
             return false;
         }
-        
+
         showToast('🔌 Select your USB printer...', 'info');
         const port = await navigator.serial.requestPort();
-        
+
         await port.open({ baudRate: 9600 });
-        
+
         window.thermalPrinter = port;
         window.printerConnected = true;
         localStorage.setItem('printer_connected', 'true');
-        
+
         showToast('✅ Printer connected!', 'success');
         console.log('✅ Printer connected');
         return true;
-        
+
     } catch(e) {
         if (e.message && e.message.includes('cancel')) {
             showToast('❌ Selection cancelled', 'warning');
@@ -4480,28 +4936,28 @@ window.printToUSBPrinter = async function(receiptText) {
             return;
         }
     }
-    
+
     try {
         const writer = window.thermalPrinter.writable.getWriter();
         const encoder = new TextEncoder();
-        
+
         // ESC/POS commands
         await writer.write(encoder.encode('\x1B\x40'));        // Init
         await writer.write(encoder.encode('\x1B\x21\x00'));    // Normal font
         await writer.write(encoder.encode('\x1B\x61\x01'));    // Center
-        
+
         const lines = receiptText.split('\n');
         for (const line of lines) {
             await writer.write(encoder.encode(line + '\n'));
         }
-        
+
         await writer.write(encoder.encode('\n\n\n'));
         await writer.write(encoder.encode('\x1D\x56\x00'));    // Cut paper
-        
+
         await writer.close();
         showToast('✅ Receipt printed!', 'success');
         console.log('✅ Receipt printed successfully');
-        
+
     } catch(e) {
         console.error('Print error:', e);
         window.printViaBrowser(receiptText);
@@ -4515,17 +4971,17 @@ window.printViaBrowser = function(receiptText) {
         showToast('⚠️ Allow popups for printing', 'warning');
         return;
     }
-    
+
     win.document.write(`
         <html>
         <head>
             <title>Receipt - PRICEPOINT</title>
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Courier New', monospace; 
-                    padding: 20px; 
-                    background: white; 
+                body {
+                    font-family: 'Courier New', monospace;
+                    padding: 20px;
+                    background: white;
                     color: black;
                     max-width: 80mm;
                     margin: 0 auto;
@@ -4605,10 +5061,10 @@ function printReceipt() {
         showToast('⚠️ No receipt to print', 'warning');
         return;
     }
-    
+
     const receiptText = content.textContent;
     console.log('🖨️ Printing receipt...');
-    
+
     // Use global printer functions
     window.printToUSBPrinter(receiptText);
 }
@@ -4620,10 +5076,10 @@ function printReceipt() {
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-reconnect after 2 seconds
     setTimeout(window.autoReconnect, 2000);
-    
+
     // Check if buttons already exist
     if (document.getElementById('printerButtons')) return;
-    
+
     const actions = document.querySelector('.cart-actions');
     if (actions) {
         const div = document.createElement('div');
@@ -4642,7 +5098,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         actions.insertBefore(div, actions.firstChild);
     }
-    
+
     console.log('✅ Global Printer module loaded');
     console.log('📱 Functions available:');
     console.log('  - window.connectUSBPrinter()');
