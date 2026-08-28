@@ -151,6 +151,12 @@
         <button onclick="refreshCreditData()" class="btn-outline text-sm py-1.5 px-3">
             <i class="fas fa-sync-alt"></i> Refresh
         </button>
+        <button onclick="window.printToUSBPrinter ? showToast('✅ Printer ready!', 'success') : showToast('⚠️ Printer not connected', 'warning')" class="btn-outline text-sm py-1.5 px-3" style="border-color: #7c3aed; color: #7c3aed;">
+            <i class="fas fa-print"></i> Check Printer
+        </button>
+        <button onclick="window.connectUSBPrinter ? window.connectUSBPrinter() : showToast('⚠️ USB printing not available', 'warning')" class="btn-gradient text-sm py-1.5 px-3" style="background: linear-gradient(135deg,#6366f1,#4f46e5);">
+            <i class="fas fa-plug"></i> Connect Printer
+        </button>
     </div>
 
     <!-- Search -->
@@ -1389,11 +1395,7 @@ function showCreditReceipt(customerName, total, result) {
 }
 
 // ============================================================
-// PRINT CREDIT RECEIPT - FIXED TO USE USB PRINTER
-// ============================================================
-
-// ============================================================
-// PRINT CREDIT RECEIPT - USES GLOBAL PRINTER FUNCTIONS
+// PRINT CREDIT RECEIPT - USES USB PRINTER (FIXED)
 // ============================================================
 
 function printCreditReceipt() {
@@ -1403,96 +1405,79 @@ function printCreditReceipt() {
         return;
     }
     
-    const content = modal.querySelector('.modal .bg-input') || modal.querySelector('.modal .space-y-4');
+    let content = modal.querySelector('.modal .bg-input');
+    if (!content) {
+        content = modal.querySelector('.modal > div:not(.title):not(.flex)');
+    }
     if (!content) {
         showToast('⚠️ No content found', 'warning');
         return;
     }
     
     let receiptText = content.textContent || '';
+    receiptText = receiptText.trim();
     
-    // Clean up the text
-    receiptText = receiptText
-        .replace(/PRICEPOINT POS/g, '══════════════════════════════════\n  PRICEPOINT POS\n══════════════════════════════════')
-        .replace(/📅 /g, 'Date: ')
-        .replace(/👤 /g, 'Customer: ')
-        .replace(/💳 /g, 'Payment: ')
-        .replace(/💰 /g, 'Total: ')
-        .replace(/📊 /g, 'Balance: ')
-        .replace(/✅ /g, '')
-        .replace(/Thank you for your business!/g, 'Thank you for your business! 😊');
-    
-    console.log('🖨️ Printing credit receipt...');
-    
-    // ✅ USE GLOBAL PRINTER FUNCTIONS
-    if (typeof window.printToUSBPrinter === 'function') {
-        window.printToUSBPrinter(receiptText);
-    } else {
-        // Fallback if global functions don't exist
-        if (typeof connectUSBPrinter === 'function') {
-            connectUSBPrinter().then(connected => {
-                if (connected && typeof printToUSBPrinter === 'function') {
-                    printToUSBPrinter(receiptText);
-                } else {
-                    printCreditViaBrowser(receiptText);
-                }
-            }).catch(() => {
-                printCreditViaBrowser(receiptText);
-            });
-        } else {
-            printCreditViaBrowser(receiptText);
-        }
-    }
-}
-
-function printCreditViaBrowser(receiptText) {
-    const win = window.open('', '_blank', 'width=400,height=600');
-    if (!win) {
-        showToast('⚠️ Allow popups for printing', 'warning');
+    if (!receiptText) {
+        showToast('⚠️ No receipt to print', 'warning');
         return;
     }
     
-    win.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Credit Receipt - PRICEPOINT</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
-                pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
-                .receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
-                .receipt-header .store { font-size: 14pt; font-weight: bold; }
-                .receipt-header .address { font-size: 9pt; color: #666; }
-                .receipt-footer { text-align: center; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; font-size: 9pt; color: #666; }
-                .receipt-line { border-top: 1px dashed #ccc; margin: 6px 0; }
-                @page { margin: 0; size: 80mm auto; }
-                @media print { body { padding: 10px; margin: 0; } }
-            </style>
-        </head>
-        <body>
-            <div class="receipt-header">
-                <div class="store">🏪 PRICEPOINT</div>
-                <div class="address">📍 Nairobi, Kenya</div>
-                <div class="address">📞 +254 700 000 000</div>
-            </div>
-            <pre>${receiptText}</pre>
-            <div class="receipt-line"></div>
-            <div class="receipt-footer">
-                <div>✅ CREDIT PURCHASE</div>
-                <div style="font-size:8pt;color:#999;">Thank you for your business 😊</div>
-            </div>
-            <script>
-                window.onload = function() {
-                    setTimeout(function() { window.print(); }, 500);
-                    setTimeout(function() { window.close(); }, 3000);
-                };
-            <\/script>
-        </body>
-        </html>
-    `);
-    win.document.close();
+    console.log('🖨️ Printing credit receipt...');
+    
+    // ✅ USE GLOBAL USB PRINTER FUNCTION
+    if (typeof window.printToUSBPrinter === 'function') {
+        window.printToUSBPrinter(receiptText);
+    } else {
+        // Fallback to browser print
+        console.log('⚠️ USB printer not available, using browser fallback');
+        const win = window.open('', '_blank', 'width=400,height=600');
+        if (!win) {
+            showToast('⚠️ Allow popups for printing', 'warning');
+            return;
+        }
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Credit Receipt - PRICEPOINT</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                    pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                    .receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
+                    .receipt-header .store { font-size: 14pt; font-weight: bold; }
+                    .receipt-header .address { font-size: 9pt; color: #666; }
+                    .receipt-footer { text-align: center; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; font-size: 9pt; color: #666; }
+                    .receipt-line { border-top: 1px dashed #ccc; margin: 6px 0; }
+                    @page { margin: 0; size: 80mm auto; }
+                    @media print { body { padding: 10px; margin: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-header">
+                    <div class="store">🏪 PRICEPOINT</div>
+                    <div class="address">📍 Nairobi, Kenya</div>
+                    <div class="address">📞 +254 700 000 000</div>
+                </div>
+                <pre>${receiptText}</pre>
+                <div class="receipt-line"></div>
+                <div class="receipt-footer">
+                    <div>✅ CREDIT PURCHASE</div>
+                    <div style="font-size:8pt;color:#999;">Thank you for your business 😊</div>
+                </div>
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() { window.print(); }, 500);
+                        setTimeout(function() { window.close(); }, 3000);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    }
 }
+
 // ============================================================
 // LOAD ON PAGE LOAD
 // ============================================================
