@@ -2881,7 +2881,7 @@
     }
 
     // ============================================================
-    // PROCESS CREDIT PURCHASE - EXACT WORKING VERSION
+    // PROCESS CREDIT PURCHASE - FIXED VERSION
     // ============================================================
     function processCreditPurchase(customerId, customerName, total) {
         const btn = document.getElementById('posPlaceOrderBtn');
@@ -2892,13 +2892,16 @@
         const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
         const notes = document.getElementById('orderNotes')?.value || '';
 
+        // 🔥 FIX: Use customerId as string (e.g., "CR-276DAB4D")
         const data = {
-            customer_id: customerId,
+            customer_id: String(customerId),  // Ensure it's a string
             items: itemsList,
             total_amount: total,
-            staff_name: '{{ session.user.name if session.user else "POS" }}',
+            staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
             notes: notes + ' (Credit purchase via POS)'
         };
+
+        console.log('📤 Sending credit purchase:', data);
 
         fetch('/admin/api/credit/purchase', {
             method: 'POST',
@@ -2907,6 +2910,9 @@
         })
         .then(r => r.json())
         .then(result => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
             if (result.success) {
                 posCart.forEach(item => {
                     const product = allProducts.find(p => String(p.id) === String(item.id));
@@ -2929,142 +2935,138 @@
                 loadCreditCustomers();
                 updateQuickSalesCount();
                 loadSalesStats();
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
             } else {
                 showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
             }
         })
         .catch(err => {
-            showToast('❌ Error: ' + err.message, 'error');
             btn.innerHTML = originalText;
             btn.disabled = false;
+            showToast('❌ Error: ' + err.message, 'error');
+            console.error('❌ Credit purchase error:', err);
         });
     }
 
     // ============================================================
-// CREDIT RECEIPT WITH THERMAL PRINTER
-// ============================================================
+    // CREDIT RECEIPT WITH THERMAL PRINTER
+    // ============================================================
 
-function showCreditReceipt(customerName, total, result) {
-    const existingModal = document.getElementById('creditReceiptModal');
-    if (existingModal) existingModal.remove();
+    function showCreditReceipt(customerName, total, result) {
+        const existingModal = document.getElementById('creditReceiptModal');
+        if (existingModal) existingModal.remove();
 
-    const date = new Date().toLocaleString();
-    const orderId = result.transaction_id || result.order_id || 'CREDIT-' + Date.now();
+        const date = new Date().toLocaleString();
+        const orderId = result.transaction_id || result.order_id || 'CREDIT-' + Date.now();
 
-    // Build receipt text
-    let receiptText = '';
-    receiptText += '╔══════════════════════════════════╗\n';
-    receiptText += '║       PRICEPOINT POS             ║\n';
-    receiptText += '║      📍 Nairobi, Kenya           ║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ 📅 ' + date.padEnd(32) + '║\n';
-    receiptText += '║ 💳 CREDIT PURCHASE               ║\n';
-    receiptText += '║ 📋 #' + orderId.padEnd(32) + '║\n';
-    receiptText += '║ 👤 ' + (customerName || 'Customer').padEnd(32) + '║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ Total:      KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
-    if (result.due_date) {
-        receiptText += '║ Due Date:   ' + (result.due_date || '').padEnd(12) + ' ║\n';
-    }
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ New Balance: KSh ' + (result.balance_after || 0).toLocaleString().padStart(12) + ' ║\n';
-    receiptText += '║ Available:   KSh ' + ((result.credit_limit || 0) - (result.balance_after || 0)).toLocaleString().padStart(12) + ' ║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║     ✅ Thank you for credit!     ║\n';
-    receiptText += '║    Have a great day! 😊          ║\n';
-    receiptText += '╚══════════════════════════════════╝\n';
+        // Build receipt text
+        let receiptText = '';
+        receiptText += '╔══════════════════════════════════╗\n';
+        receiptText += '║       PRICEPOINT POS             ║\n';
+        receiptText += '║      📍 Nairobi, Kenya           ║\n';
+        receiptText += '╠══════════════════════════════════╣\n';
+        receiptText += '║ 📅 ' + date.padEnd(32) + '║\n';
+        receiptText += '║ 💳 CREDIT PURCHASE               ║\n';
+        receiptText += '║ 📋 #' + orderId.padEnd(32) + '║\n';
+        receiptText += '║ 👤 ' + (customerName || 'Customer').padEnd(32) + '║\n';
+        receiptText += '╠══════════════════════════════════╣\n';
+        receiptText += '║ Total:      KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
+        if (result.due_date) {
+            receiptText += '║ Due Date:   ' + (result.due_date || '').padEnd(12) + ' ║\n';
+        }
+        receiptText += '╠══════════════════════════════════╣\n';
+        receiptText += '║ New Balance: KSh ' + (result.balance_after || 0).toLocaleString().padStart(12) + ' ║\n';
+        receiptText += '║ Available:   KSh ' + ((result.credit_limit || 0) - (result.balance_after || 0)).toLocaleString().padStart(12) + ' ║\n';
+        receiptText += '╠══════════════════════════════════╣\n';
+        receiptText += '║     ✅ Thank you for credit!     ║\n';
+        receiptText += '║    Have a great day! 😊          ║\n';
+        receiptText += '╚══════════════════════════════════╝\n';
 
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.id = 'creditReceiptModal';
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.id = 'creditReceiptModal';
 
-    modal.innerHTML = `
-        <div class="modal" style="max-width:450px;" onclick="event.stopPropagation()">
-            <button class="close" onclick="closeCreditReceipt()">✕</button>
-            <div class="title">🧾 Credit Purchase Receipt</div>
-            <pre id="creditReceiptContent" style="background:var(--bg-input);padding:16px;border-radius:8px;font-family:'Courier New',monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow-y:auto;margin:0;border:1px solid var(--border-color);">${receiptText}</pre>
-            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
-                <button onclick="printCreditReceiptUSB()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9);min-width:120px;">
-                    🖨️ USB Print
-                </button>
-                <button onclick="printCreditReceiptBrowser()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);min-width:120px;">
-                    🖨️ Browser Print
-                </button>
-                <button onclick="closeCreditReceipt()" class="btn-outline" style="flex:1;min-width:80px;">
-                    Close
-                </button>
+        modal.innerHTML = `
+            <div class="modal" style="max-width:450px;" onclick="event.stopPropagation()">
+                <button class="close" onclick="closeCreditReceipt()">✕</button>
+                <div class="title">🧾 Credit Purchase Receipt</div>
+                <pre id="creditReceiptContent" style="background:var(--bg-input);padding:16px;border-radius:8px;font-family:'Courier New',monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow-y:auto;margin:0;border:1px solid var(--border-color);">${receiptText}</pre>
+                <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+                    <button onclick="printCreditReceiptUSB()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9);min-width:120px;">
+                        🖨️ USB Print
+                    </button>
+                    <button onclick="printCreditReceiptBrowser()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);min-width:120px;">
+                        🖨️ Browser Print
+                    </button>
+                    <button onclick="closeCreditReceipt()" class="btn-outline" style="flex:1;min-width:80px;">
+                        Close
+                    </button>
+                </div>
+                <div style="margin-top:8px;text-align:center;font-size:0.6rem;color:var(--gray-400);">
+                    🔌 Printer Status: <span id="creditPrinterStatus">${window.printerConnected ? '✅ Connected' : '❌ Not connected'}</span>
+                </div>
             </div>
-            <div style="margin-top:8px;text-align:center;font-size:0.6rem;color:var(--gray-400);">
-                🔌 Printer Status: <span id="creditPrinterStatus">${window.printerConnected ? '✅ Connected' : '❌ Not connected'}</span>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-function printCreditReceiptUSB() {
-    const content = document.getElementById('creditReceiptContent');
-    if (!content) {
-        showToast('⚠️ No receipt content found', 'warning');
-        return;
+        `;
+        document.body.appendChild(modal);
     }
 
-    let receiptText = content.textContent || content.innerText || '';
-    receiptText = receiptText.trim();
+    function printCreditReceiptUSB() {
+        const content = document.getElementById('creditReceiptContent');
+        if (!content) {
+            showToast('⚠️ No receipt content found', 'warning');
+            return;
+        }
 
-    if (!receiptText) {
-        showToast('⚠️ No receipt to print', 'warning');
-        return;
+        let receiptText = content.textContent || content.innerText || '';
+        receiptText = receiptText.trim();
+
+        if (!receiptText) {
+            showToast('⚠️ No receipt to print', 'warning');
+            return;
+        }
+
+        if (typeof window.printToUSBPrinter === 'function') {
+            window.printToUSBPrinter(receiptText);
+        } else {
+            showToast('⚠️ USB printer not available', 'warning');
+            if (typeof window.printViaBrowser === 'function') {
+                window.printViaBrowser(receiptText);
+            }
+        }
     }
 
-    if (typeof window.printToUSBPrinter === 'function') {
-        window.printToUSBPrinter(receiptText);
-    } else {
-        showToast('⚠️ USB printer not available', 'warning');
-        // Fallback to browser print
+    function printCreditReceiptBrowser() {
+        const content = document.getElementById('creditReceiptContent');
+        if (!content) {
+            showToast('⚠️ No receipt to print', 'warning');
+            return;
+        }
+
+        let receiptText = content.textContent || content.innerText || '';
+        receiptText = receiptText.trim();
+
+        if (!receiptText) {
+            showToast('⚠️ No receipt to print', 'warning');
+            return;
+        }
+
         if (typeof window.printViaBrowser === 'function') {
             window.printViaBrowser(receiptText);
         }
     }
-}
 
-function printCreditReceiptBrowser() {
-    const content = document.getElementById('creditReceiptContent');
-    if (!content) {
-        showToast('⚠️ No receipt to print', 'warning');
-        return;
+    function closeCreditReceipt() {
+        const modal = document.getElementById('creditReceiptModal');
+        if (modal) modal.remove();
     }
 
-    let receiptText = content.textContent || content.innerText || '';
-    receiptText = receiptText.trim();
+    // Override old print function
+    window.printCreditReceipt = function() {
+        const modal = document.getElementById('creditReceiptModal');
+        if (modal) {
+            printCreditReceiptUSB();
+        }
+    };
 
-    if (!receiptText) {
-        showToast('⚠️ No receipt to print', 'warning');
-        return;
-    }
-
-    if (typeof window.printViaBrowser === 'function') {
-        window.printViaBrowser(receiptText);
-    }
-}
-
-function closeCreditReceipt() {
-    const modal = document.getElementById('creditReceiptModal');
-    if (modal) modal.remove();
-}
-
-// Override old print function
-window.printCreditReceipt = function() {
-    const modal = document.getElementById('creditReceiptModal');
-    if (modal) {
-        printCreditReceiptUSB();
-    }
-};
     // ============================================================
     // NORMAL ORDER PROCESSING
     // ============================================================
