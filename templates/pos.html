@@ -2945,10 +2945,8 @@
         });
     }
 
-    
-
-   // ============================================================
-// CREDIT RECEIPT WITH THERMAL PRINTER - REPLACEMENT CODE
+    // ============================================================
+// CREDIT RECEIPT WITH THERMAL PRINTER - ADD THESE NEW FUNCTIONS
 // ============================================================
 
 function generateCreditReceiptText(customerName, total, result) {
@@ -3035,13 +3033,9 @@ function printCreditReceiptUSB() {
         return;
     }
     
-    console.log('🖨️ Printing credit receipt via USB...');
-    showToast('🖨️ Printing credit receipt...', 'info');
-    
     if (typeof window.printToUSBPrinter === 'function') {
         window.printToUSBPrinter(receiptText);
     } else {
-        showToast('⚠️ USB printing not available, using browser', 'warning');
         printCreditReceiptBrowser();
     }
 }
@@ -3060,8 +3054,6 @@ function printCreditReceiptBrowser() {
         return;
     }
     
-    console.log('🖨️ Printing credit receipt via browser...');
-    
     if (typeof window.printViaBrowser === 'function') {
         window.printViaBrowser(receiptText);
     } else {
@@ -3070,48 +3062,24 @@ function printCreditReceiptBrowser() {
             showToast('⚠️ Allow popups for printing', 'warning');
             return;
         }
-        
         win.document.write(`
             <html>
             <head>
                 <title>Credit Receipt - PRICEPOINT</title>
                 <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { 
-                        font-family: 'Courier New', monospace; 
-                        padding: 20px; 
-                        background: white; 
-                        color: black;
-                        max-width: 80mm;
-                        margin: 0 auto;
-                    }
-                    pre {
-                        font-family: 'Courier New', monospace;
-                        font-size: 10pt;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                        margin: 0;
-                        line-height: 1.4;
-                    }
-                    @page {
-                        margin: 0;
-                        size: 80mm auto;
-                    }
-                    @media print {
-                        body { padding: 10px; margin: 0; }
-                    }
+                    body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                    pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                    @page { margin: 0; size: 80mm auto; }
+                    @media print { body { padding: 10px; margin: 0; } }
                 </style>
             </head>
             <body>
                 <pre>${receiptText}</pre>
                 <script>
                     window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
-                        setTimeout(function() {
-                            window.close();
-                        }, 3000);
+                        setTimeout(function() { window.print(); }, 500);
+                        setTimeout(function() { window.close(); }, 3000);
                     };
                 <\/script>
             </body>
@@ -3121,90 +3089,26 @@ function printCreditReceiptBrowser() {
     }
 }
 
-function updateCreditPrinterStatus() {
-    const statusEl = document.getElementById('creditPrinterStatus');
-    if (statusEl) {
-        statusEl.textContent = window.printerConnected ? '✅ Connected' : '❌ Not connected';
-        statusEl.style.color = window.printerConnected ? '#10b981' : '#ef4444';
-    }
-}
+    function printCreditReceipt() {
+        const modal = document.getElementById('creditReceiptModal');
+        if (!modal) return;
+        const content = modal.querySelector('.modal .bg-input');
+        if (!content) return;
 
-// ============================================================
-// UPDATED processCreditPurchase
-// ============================================================
-
-function processCreditPurchase(customerId, customerName, total) {
-    const btn = document.getElementById('posPlaceOrderBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Processing credit...';
-    btn.disabled = true;
-
-    const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
-    const notes = document.getElementById('orderNotes')?.value || '';
-
-    const data = {
-        customer_id: customerId,
-        items: itemsList,
-        total_amount: total,
-        staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
-        notes: notes + ' (Credit purchase via POS)'
-    };
-
-    fetch('/admin/api/credit/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(r => r.json())
-    .then(result => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        
-        if (result.success) {
-            posCart.forEach(item => {
-                const product = allProducts.find(p => String(p.id) === String(item.id));
-                if (product) {
-                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                }
-            });
-
-            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
-            
-            showCreditReceipt(customerName, total, result);
-
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-            updatePOSUI();
-            renderProducts();
-            loadCreditCustomers();
-            updateQuickSalesCount();
-            loadSalesStats();
-        } else {
-            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            showToast('⚠️ Please allow popups for printing', 'warning');
+            return;
         }
-    })
-    .catch(err => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        showToast('❌ Error: ' + err.message, 'error');
-    });
-}
-
-// Override print functions
-window.printCreditReceipt = function() {
-    const modal = document.getElementById('creditReceiptModal');
-    if (modal) {
-        printCreditReceiptUSB();
-    } else {
-        showToast('⚠️ No receipt to print', 'warning');
+        printWindow.document.write(
+            '<html><head><title>Credit Receipt</title>' +
+            '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}</style>' +
+            '</head><body><pre>' + content.textContent + '</pre>' +
+            '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
+            '</body></html>'
+        );
+        printWindow.document.close();
     }
-};
-
-console.log('✅ Credit receipt with thermal printer support loaded!');
 
     // ============================================================
     // NORMAL ORDER PROCESSING
