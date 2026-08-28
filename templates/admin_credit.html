@@ -403,7 +403,7 @@
 </div>
 
 <!-- ============================================================
-     JAVASCRIPT - FULLY WORKING
+     JAVASCRIPT - FIXED VERSION
      ============================================================ -->
 <script>
 // ============================================================
@@ -490,14 +490,10 @@ function renderCreditCustomers(customers) {
         const status = customer.account_status || 'active';
         
         let balanceClass = 'text-gray-400';
-        let badgeClass = 'badge-success';
-        
         if (balance > limit) {
             balanceClass = 'text-red-600 font-bold';
-            badgeClass = 'badge-danger';
         } else if (balance > limit * 0.8 && limit > 0) {
             balanceClass = 'text-amber-600 font-bold';
-            badgeClass = 'badge-warning';
         } else if (balance > 0) {
             balanceClass = 'text-blue-600 font-bold';
         }
@@ -551,10 +547,6 @@ function renderCreditCustomers(customers) {
                         <button onclick="sendWhatsAppReminder('${customer.customer_id}', '${customer.full_name}', '${balance}', '${customer.phone}')" 
                                 class="btn-success text-xs px-2 py-1" title="Send WhatsApp Reminder" style="background: #25D366;">
                             <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button onclick="sendWhatsAppStatement('${customer.customer_id}', '${customer.full_name}', '${balance}', '${customer.total_purchases || 0}', '${customer.total_payments || 0}', '${customer.phone}')" 
-                                class="btn-outline text-xs px-2 py-1 text-purple-600" title="Send Statement">
-                            <i class="fas fa-file-invoice"></i>
                         </button>
                     </div>
                 </td>
@@ -1009,7 +1001,7 @@ function saveCreditCustomer(event) {
         if (data.success) {
             showToast(editId ? 'Customer updated successfully' : 'Customer added successfully', 'success');
             closeCreditCustomerModal();
-            setTimeout(() => location.reload(), 1500);
+            setTimeout(() => loadCreditCustomers(), 500);
         } else {
             showToast('Error: ' + (data.message || 'Unknown error'), 'danger');
         }
@@ -1176,39 +1168,6 @@ Price Point Kenya
 📞 0712345678`;
     
     if (confirm(`Send WhatsApp reminder to ${customerName}?`)) {
-        if (openWhatsApp(phone, message)) {
-            showToast(`✅ Opening WhatsApp for ${customerName}`, 'success');
-        }
-    }
-}
-
-function sendWhatsAppStatement(customerId, customerName, balance, totalPurchases, totalPayments, phone) {
-    if (!phone || phone === 'None' || phone === '' || phone === 'N/A') {
-        showToast('❌ No phone number available for this customer', 'danger');
-        return;
-    }
-    
-    const message = `📊 *CREDIT STATEMENT* 📊
-
-Customer: *${customerName}*
-Date: ${new Date().toLocaleDateString()}
-
-━━━━━━━━━━━━━━━━━
-*SUMMARY*
-━━━━━━━━━━━━━━━━━
-Total Purchases: KSh ${parseFloat(totalPurchases || 0).toLocaleString()}
-Total Payments: KSh ${parseFloat(totalPayments || 0).toLocaleString()}
-Current Balance: KSh ${parseFloat(balance || 0).toLocaleString()}
-━━━━━━━━━━━━━━━━━
-
-Please review your statement and let us know if you have any questions.
-
-Thank you for your business! 🙏
--- 
-Price Point Kenya
-📞 0712345678`;
-    
-    if (confirm(`Send credit statement to ${customerName}?`)) {
         if (openWhatsApp(phone, message)) {
             showToast(`✅ Opening WhatsApp for ${customerName}`, 'success');
         }
