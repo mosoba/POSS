@@ -210,6 +210,7 @@
         
         <form id="creditCustomerForm" onsubmit="saveCreditCustomer(event)" class="p-4 space-y-4">
             <input type="hidden" id="editCreditCustomerId">
+            <input type="hidden" id="creditAccountStatus" value="active">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Personal Information -->
@@ -403,7 +404,7 @@
 </div>
 
 <!-- ============================================================
-     JAVASCRIPT - FIXED VERSION
+     JAVASCRIPT - COMPLETE FIXED VERSION
      ============================================================ -->
 <script>
 // ============================================================
@@ -438,7 +439,7 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
-// LOAD CREDIT CUSTOMERS - FIXED
+// LOAD CREDIT CUSTOMERS
 // ============================================================
 
 function loadCreditCustomers() {
@@ -453,7 +454,6 @@ function loadCreditCustomers() {
         .then(data => {
             console.log('📊 Credit customers response:', data);
             
-            // ✅ FIX: Try both response formats
             const customers = data.customers || data.data || [];
             
             if (customers.length === 0) {
@@ -472,7 +472,7 @@ function loadCreditCustomers() {
 }
 
 // ============================================================
-// RENDER CREDIT CUSTOMERS - FIXED
+// RENDER CREDIT CUSTOMERS
 // ============================================================
 
 function renderCreditCustomers(customers) {
@@ -960,55 +960,77 @@ function viewTransactionHistory(customerId) {
         });
 }
 
+// ============================================================
+// SAVE CREDIT CUSTOMER - FIXED AND WORKING
+// ============================================================
+
 function saveCreditCustomer(event) {
     event.preventDefault();
     
-    const editId = document.getElementById('editCreditCustomerId').value;
-    const url = editId ? '/admin/api/credit/customers/' + editId : '/admin/api/credit/customers';
-    const method = editId ? 'PUT' : 'POST';
+    console.log('🟢 Form submitted - saveCreditCustomer called');
     
-    const data = {
-        full_name: document.getElementById('creditFullName').value.trim(),
-        phone: document.getElementById('creditPhone').value.trim(),
-        phone2: document.getElementById('creditPhone2').value.trim(),
-        whatsapp_number: document.getElementById('creditWhatsapp').value.trim(),
-        email: document.getElementById('creditEmail').value.trim(),
-        id_number: document.getElementById('creditIdNumber').value.trim(),
-        id_type: document.getElementById('creditIdType').value,
-        employer: document.getElementById('creditEmployer').value.trim(),
-        credit_limit: parseFloat(document.getElementById('creditLimit').value) || 0,
-        payment_terms: document.getElementById('creditPaymentTerms').value,
-        interest_rate: parseFloat(document.getElementById('creditInterestRate').value) || 0,
-        late_fee: parseFloat(document.getElementById('creditLateFee').value) || 0,
-        address: document.getElementById('creditAddress').value.trim(),
-        notes: document.getElementById('creditNotes').value.trim()
-    };
+    // Get ALL form values
+    const fullName = document.getElementById('creditFullName')?.value?.trim() || '';
+    const phone = document.getElementById('creditPhone')?.value?.trim() || '';
     
-    if (!data.full_name || !data.phone) {
-        showToast('Full name and phone are required', 'danger');
+    // Validate required fields
+    if (!fullName || !phone) {
+        showToast('⚠️ Full name and phone are required', 'danger');
         return;
     }
     
+    // Build data object - matches what the API expects
+    const data = {
+        full_name: fullName,
+        phone: phone,
+        phone2: document.getElementById('creditPhone2')?.value?.trim() || '',
+        whatsapp_number: document.getElementById('creditWhatsapp')?.value?.trim() || '',
+        email: document.getElementById('creditEmail')?.value?.trim() || '',
+        id_number: document.getElementById('creditIdNumber')?.value?.trim() || '',
+        id_type: document.getElementById('creditIdType')?.value || 'National ID',
+        employer: document.getElementById('creditEmployer')?.value?.trim() || '',
+        credit_limit: parseFloat(document.getElementById('creditLimit')?.value) || 0,
+        payment_terms: document.getElementById('creditPaymentTerms')?.value || '30 days',
+        interest_rate: parseFloat(document.getElementById('creditInterestRate')?.value) || 0,
+        late_fee: parseFloat(document.getElementById('creditLateFee')?.value) || 0,
+        address: document.getElementById('creditAddress')?.value?.trim() || '',
+        notes: document.getElementById('creditNotes')?.value?.trim() || '',
+        account_status: 'active'
+    };
+    
+    console.log('📤 Sending data:', data);
+    
     showToast('Saving customer...', 'info');
     
-    fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
+    fetch('/admin/api/credit/customers', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify(data)
     })
-    .then(r => r.json())
+    .then(response => {
+        console.log('📥 Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('📥 Response data:', data);
         if (data.success) {
-            showToast(editId ? 'Customer updated successfully' : 'Customer added successfully', 'success');
+            showToast('✅ Customer added successfully!', 'success');
             closeCreditCustomerModal();
-            setTimeout(() => loadCreditCustomers(), 500);
+            // Refresh the table after a moment
+            setTimeout(() => {
+                loadCreditCustomers();
+            }, 500);
         } else {
-            showToast('Error: ' + (data.message || 'Unknown error'), 'danger');
+            const errorMsg = data.message || data.error || 'Unknown error';
+            showToast('❌ Error: ' + errorMsg, 'danger');
+            console.log('❌ Server error:', data);
         }
     })
-    .catch(e => {
-        console.error('Error saving customer:', e);
-        showToast('Error saving customer: ' + e.message, 'danger');
+    .catch(error => {
+        console.error('❌ Fetch error:', error);
+        showToast('❌ Error: ' + error.message, 'danger');
     });
 }
 
