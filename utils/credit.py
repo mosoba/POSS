@@ -103,27 +103,30 @@ def get_all_credit_customers():
 def get_credit_customer_by_id(customer_id):
     """Get a specific credit customer by ID - FIXED VERSION"""
     try:
-        print(f"🔍 get_credit_customer_by_id called with: '{customer_id}'")
+        customer_id = str(customer_id).strip()
+        print(f"🔍 get_credit_customer_by_id searching for: '{customer_id}'")
         
-        # Try by customer_id (string like "CR-F5A52413")
+        # Try by customer_id (string like "CR-276DAB4D")
         response = requests.get(
             f"{Config.SUPABASE_URL}/rest/v1/credit_customers?customer_id=eq.{customer_id}&select=*",
             headers=Config.SUPABASE_HEADERS,
             timeout=30
         )
         
+        print(f"📡 Response status: {response.status_code}")
+        
         if response.status_code == 200:
             customers = response.json()
-            print(f"   Response: {len(customers)} customers found")
+            print(f"📋 Found {len(customers)} customers")
             if customers:
                 customer = customers[0]
                 print(f"✅ Found customer: {customer.get('full_name')}")
-                print(f"   DB ID: {customer.get('id')}")
+                print(f"   customer_id: {customer.get('customer_id')}")
                 return customer
             else:
                 print(f"⚠️ No customer found with customer_id: {customer_id}")
         else:
-            print(f"❌ API error: {response.status_code} - {response.text}")
+            print(f"❌ API error: {response.status_code} - {response.text[:200]}")
         
         # If not found, try by database ID (integer)
         response = requests.get(
@@ -144,6 +147,8 @@ def get_credit_customer_by_id(customer_id):
             
     except Exception as e:
         print(f"❌ Error getting credit customer: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 def get_credit_customer_by_phone(phone):
@@ -252,9 +257,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             return {'success': False, 'message': 'Customer not found'}
         
         print(f"✅ Customer found: {customer.get('full_name')}")
-        print(f"   Customer DB ID (integer): {customer.get('id')}")
-        print(f"   Current balance: {customer.get('current_balance', 0)}")
-        print(f"   Credit limit: {customer.get('credit_limit', 0)}")
+        print(f"   customer_id: {customer.get('customer_id')}")
         
         current_balance = customer.get('current_balance', 0)
         current_total_purchases = customer.get('total_purchases', 0)
@@ -277,20 +280,11 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         
         transaction_id = generate_transaction_id()
         
-        # 🔥 CRITICAL FIX: Use the INTEGER ID from the customer table
-        # The credit_transactions.customer_id column expects an INTEGER
-        db_customer_id = customer.get('id')
-        
-        if not db_customer_id:
-            print(f"❌ No DB ID found for customer: {customer_id}")
-            return {'success': False, 'message': 'Customer has no database ID'}
-        
-        print(f"   Using DB customer_id: {db_customer_id} (integer)")
-        
-        # Build transaction data with INTEGER customer_id
+        # 🔥 CRITICAL: Use the STRING customer_id since Supabase won't return the integer id
+        # This matches the credit_transactions.customer_id column which is VARCHAR
         transaction_data = {
             'transaction_id': transaction_id,
-            'customer_id': db_customer_id,  # ← INTEGER ID, NOT the string!
+            'customer_id': customer_id,  # ← Use the STRING ID (e.g., "CR-276DAB4D")
             'transaction_type': 'purchase',
             'amount': float(total_amount),
             'balance_after': float(current_balance + total_amount),
@@ -302,7 +296,8 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             'created_at': datetime.utcnow().isoformat()
         }
         
-        print(f"📤 Inserting transaction: {transaction_data}")
+        print(f"📤 Inserting transaction with customer_id (string): {customer_id}")
+        print(f"📤 Transaction data: {transaction_data}")
         
         # Insert the transaction
         response = requests.post(
@@ -371,12 +366,11 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             }
         
         transaction_id = generate_transaction_id()
-        db_id = customer.get('id')
         
-        # Save transaction - use INTEGER customer_id
+        # 🔥 Use the STRING customer_id
         transaction_data = {
             'transaction_id': transaction_id,
-            'customer_id': db_id,  # ← INTEGER ID
+            'customer_id': customer_id,  # ← Use the STRING ID
             'transaction_type': 'payment',
             'amount': amount,
             'balance_after': current_balance - amount,
@@ -436,14 +430,9 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
 def get_customer_transactions(customer_id):
     """Get all transactions for a customer"""
     try:
-        customer = get_credit_customer_by_id(customer_id)
-        if not customer:
-            return []
-        
-        db_id = customer.get('id')
-        
+        # Use the STRING customer_id to find transactions
         response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?customer_id=eq.{db_id}&order=created_at.desc",
+            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?customer_id=eq.{customer_id}&order=created_at.desc",
             headers=Config.SUPABASE_HEADERS,
             timeout=30
         )
@@ -493,9 +482,10 @@ def get_all_credit_transactions():
         
         if response.status_code == 200:
             transactions = response.json()
+            # Get customer names for each transaction
             for t in transactions:
                 if t.get('customer_id'):
-                    customer = get_credit_customer_by_db_id(t.get('customer_id'))
+                    customer = get_credit_customer_by_id(t.get('customer_id'))
                     if customer:
                         t['customer_name'] = customer.get('full_name', 'Unknown')
                         t['customer_phone'] = customer.get('phone', '')
