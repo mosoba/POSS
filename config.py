@@ -19,10 +19,11 @@ class Config:
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
     # ===== SUPABASE CONFIGURATION =====
-    SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://hzqrdwerkgfmfaufabjr.supabase.co')
+    # ✅ UPDATED to NEW Supabase
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://haqqknmerdnfvwmsnath.supabase.co')
     
-    # ✅ FIX: Use the working key from environment
-    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld')
+    # ✅ UPDATED to NEW Supabase key
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA')
     
     # ✅ Debug: Print which key is being used
     print(f"🔑 Using Supabase key: {SUPABASE_KEY[:30]}...")
