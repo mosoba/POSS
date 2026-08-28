@@ -1392,6 +1392,10 @@ function showCreditReceipt(customerName, total, result) {
 // PRINT CREDIT RECEIPT - FIXED TO USE USB PRINTER
 // ============================================================
 
+// ============================================================
+// PRINT CREDIT RECEIPT - USES GLOBAL PRINTER FUNCTIONS
+// ============================================================
+
 function printCreditReceipt() {
     const modal = document.getElementById('creditReceiptModal');
     if (!modal) {
@@ -1399,17 +1403,15 @@ function printCreditReceipt() {
         return;
     }
     
-    // Find the content inside the modal
     const content = modal.querySelector('.modal .bg-input') || modal.querySelector('.modal .space-y-4');
     if (!content) {
         showToast('⚠️ No content found', 'warning');
         return;
     }
     
-    // Get the text content
     let receiptText = content.textContent || '';
     
-    // Clean up the text for better printing
+    // Clean up the text
     receiptText = receiptText
         .replace(/PRICEPOINT POS/g, '══════════════════════════════════\n  PRICEPOINT POS\n══════════════════════════════════')
         .replace(/📅 /g, 'Date: ')
@@ -1422,80 +1424,26 @@ function printCreditReceipt() {
     
     console.log('🖨️ Printing credit receipt...');
     
-    // ============================================================
-    // ✅ TRY USB PRINTER FIRST (SAME AS NORMAL ORDERS)
-    // ============================================================
-    
-    // Check if USB printer is connected
-    if (typeof printerConnected !== 'undefined' && printerConnected && thermalPrinter) {
-        printCreditToUSB(receiptText);
-        return;
-    }
-    
-    // Check if we can connect to USB printer
-    if (navigator.serial) {
-        // Try to connect and print
-        connectUSBPrinter().then(connected => {
-            if (connected) {
-                printCreditToUSB(receiptText);
-            } else {
-                // Fallback to browser print
+    // ✅ USE GLOBAL PRINTER FUNCTIONS
+    if (typeof window.printToUSBPrinter === 'function') {
+        window.printToUSBPrinter(receiptText);
+    } else {
+        // Fallback if global functions don't exist
+        if (typeof connectUSBPrinter === 'function') {
+            connectUSBPrinter().then(connected => {
+                if (connected && typeof printToUSBPrinter === 'function') {
+                    printToUSBPrinter(receiptText);
+                } else {
+                    printCreditViaBrowser(receiptText);
+                }
+            }).catch(() => {
                 printCreditViaBrowser(receiptText);
-            }
-        }).catch(() => {
+            });
+        } else {
             printCreditViaBrowser(receiptText);
-        });
-        return;
-    }
-    
-    // Fallback to browser print
-    printCreditViaBrowser(receiptText);
-}
-
-// ============================================================
-// PRINT CREDIT TO USB PRINTER
-// ============================================================
-
-async function printCreditToUSB(receiptText) {
-    if (!printerConnected || !thermalPrinter) {
-        const connected = await connectUSBPrinter();
-        if (!connected) {
-            printCreditViaBrowser(receiptText);
-            return;
         }
     }
-    
-    try {
-        const writer = thermalPrinter.writable.getWriter();
-        const encoder = new TextEncoder();
-        
-        // ESC/POS commands
-        await writer.write(encoder.encode('\x1B\x40'));        // Init
-        await writer.write(encoder.encode('\x1B\x21\x00'));    // Normal font
-        await writer.write(encoder.encode('\x1B\x61\x01'));    // Center
-        
-        const lines = receiptText.split('\n');
-        for (const line of lines) {
-            await writer.write(encoder.encode(line + '\n'));
-        }
-        
-        await writer.write(encoder.encode('\n\n\n'));
-        await writer.write(encoder.encode('\x1D\x56\x00'));    // Cut paper
-        
-        await writer.close();
-        showToast('✅ Credit receipt printed!', 'success');
-        console.log('✅ Credit receipt printed successfully');
-        
-    } catch(e) {
-        console.error('Print error:', e);
-        showToast('❌ Print failed: ' + e.message, 'error');
-        printCreditViaBrowser(receiptText);
-    }
 }
-
-// ============================================================
-// PRINT CREDIT VIA BROWSER (FALLBACK)
-// ============================================================
 
 function printCreditViaBrowser(receiptText) {
     const win = window.open('', '_blank', 'width=400,height=600');
@@ -1511,55 +1459,15 @@ function printCreditViaBrowser(receiptText) {
             <title>Credit Receipt - PRICEPOINT</title>
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Courier New', monospace; 
-                    padding: 20px; 
-                    background: white; 
-                    color: black;
-                    max-width: 80mm;
-                    margin: 0 auto;
-                }
-                pre {
-                    font-family: 'Courier New', monospace;
-                    font-size: 10pt;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    margin: 0;
-                    line-height: 1.4;
-                }
-                .receipt-header {
-                    text-align: center;
-                    border-bottom: 1px dashed #ccc;
-                    padding-bottom: 8px;
-                    margin-bottom: 8px;
-                }
-                .receipt-header .store {
-                    font-size: 14pt;
-                    font-weight: bold;
-                }
-                .receipt-header .address {
-                    font-size: 9pt;
-                    color: #666;
-                }
-                .receipt-footer {
-                    text-align: center;
-                    border-top: 1px dashed #ccc;
-                    padding-top: 8px;
-                    margin-top: 8px;
-                    font-size: 9pt;
-                    color: #666;
-                }
-                .receipt-line {
-                    border-top: 1px dashed #ccc;
-                    margin: 6px 0;
-                }
-                @page {
-                    margin: 0;
-                    size: 80mm auto;
-                }
-                @media print {
-                    body { padding: 10px; margin: 0; }
-                }
+                body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                .receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
+                .receipt-header .store { font-size: 14pt; font-weight: bold; }
+                .receipt-header .address { font-size: 9pt; color: #666; }
+                .receipt-footer { text-align: center; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; font-size: 9pt; color: #666; }
+                .receipt-line { border-top: 1px dashed #ccc; margin: 6px 0; }
+                @page { margin: 0; size: 80mm auto; }
+                @media print { body { padding: 10px; margin: 0; } }
             </style>
         </head>
         <body>
@@ -1576,12 +1484,8 @@ function printCreditViaBrowser(receiptText) {
             </div>
             <script>
                 window.onload = function() {
-                    setTimeout(function() {
-                        window.print();
-                    }, 500);
-                    setTimeout(function() {
-                        window.close();
-                    }, 3000);
+                    setTimeout(function() { window.print(); }, 500);
+                    setTimeout(function() { window.close(); }, 3000);
                 };
             <\/script>
         </body>
@@ -1589,7 +1493,6 @@ function printCreditViaBrowser(receiptText) {
     `);
     win.document.close();
 }
-
 // ============================================================
 // LOAD ON PAGE LOAD
 // ============================================================
