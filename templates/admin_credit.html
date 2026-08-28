@@ -34,19 +34,19 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="stat-card p-3">
             <p class="text-xs text-gray-500">Total Customers</p>
-            <p class="text-xl font-bold" id="totalCustomers">{{ summary.total_customers|default(0) }}</p>
+            <p class="text-xl font-bold" id="totalCustomers">0</p>
         </div>
         <div class="stat-card p-3">
             <p class="text-xs text-gray-500">Active Customers</p>
-            <p class="text-xl font-bold text-green-600" id="activeCustomers">{{ summary.active_customers|default(0) }}</p>
+            <p class="text-xl font-bold text-green-600" id="activeCustomers">0</p>
         </div>
         <div class="stat-card p-3">
             <p class="text-xs text-gray-500">Total Outstanding</p>
-            <p class="text-xl font-bold text-amber-600" id="totalBalance">KSh {{ summary.total_balance|default(0)|int|format_number }}</p>
+            <p class="text-xl font-bold text-amber-600" id="totalBalance">KSh 0</p>
         </div>
         <div class="stat-card p-3">
             <p class="text-xs text-gray-500">Overdue Accounts</p>
-            <p class="text-xl font-bold text-red-600" id="overdueCount">{{ overdue_count|default(0) }}</p>
+            <p class="text-xl font-bold text-red-600" id="overdueCount">0</p>
         </div>
     </div>
 
@@ -56,17 +56,17 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="stat-card p-3" style="border-left: 4px solid #7c3aed;">
             <p class="text-xs text-gray-500">💰 Total Credit Sales</p>
-            <p class="text-xl font-bold text-purple-600" id="totalCreditSales">KSh {{ summary.total_purchases|default(0)|int|format_number }}</p>
+            <p class="text-xl font-bold text-purple-600" id="totalCreditSales">KSh 0</p>
             <p class="text-xs text-gray-400">Lifetime credit sales</p>
         </div>
         <div class="stat-card p-3" style="border-left: 4px solid #059669;">
             <p class="text-xs text-gray-500">✅ Total Payments Received</p>
-            <p class="text-xl font-bold text-green-600" id="totalPaymentsReceived">KSh {{ summary.total_payments|default(0)|int|format_number }}</p>
+            <p class="text-xl font-bold text-green-600" id="totalPaymentsReceived">KSh 0</p>
             <p class="text-xs text-gray-400">Money collected from credit</p>
         </div>
         <div class="stat-card p-3" style="border-left: 4px solid #f59e0b;">
             <p class="text-xs text-gray-500">📊 Current Outstanding</p>
-            <p class="text-xl font-bold text-amber-600" id="currentOutstanding">KSh {{ summary.total_balance|default(0)|int|format_number }}</p>
+            <p class="text-xl font-bold text-amber-600" id="currentOutstanding">KSh 0</p>
             <p class="text-xs text-gray-400">Money still owed to you</p>
         </div>
         <div class="stat-card p-3" style="border-left: 4px solid #ef4444;">
@@ -81,25 +81,19 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">📈 Collection Rate</p>
-                <p class="text-2xl font-bold text-blue-600" id="collectionRate">
-                    {% if summary.total_purchases|default(0) > 0 %}
-                        {{ ((summary.total_payments|default(0) / summary.total_purchases|default(1)) * 100)|round(1) }}%
-                    {% else %}
-                        0%
-                    {% endif %}
-                </p>
+                <p class="text-2xl font-bold text-blue-600" id="collectionRate">0%</p>
             </div>
             <div class="text-right">
                 <p class="text-xs text-gray-500">Total Credit Sales</p>
-                <p class="font-bold" id="collectionTotalSales">KSh {{ summary.total_purchases|default(0)|int|format_number }}</p>
+                <p class="font-bold" id="collectionTotalSales">KSh 0</p>
             </div>
             <div class="text-right">
                 <p class="text-xs text-gray-500">Total Payments</p>
-                <p class="font-bold text-green-600" id="collectionTotalPayments">KSh {{ summary.total_payments|default(0)|int|format_number }}</p>
+                <p class="font-bold text-green-600" id="collectionTotalPayments">KSh 0</p>
             </div>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" id="collectionBar" style="width: {% if summary.total_purchases|default(0) > 0 %}{{ ((summary.total_payments|default(0) / summary.total_purchases|default(1)) * 100)|round(1) }}{% else %}0{% endif %}%"></div>
+            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" id="collectionBar" style="width: 0%"></div>
         </div>
     </div>
 
@@ -197,91 +191,11 @@
                     </tr>
                 </thead>
                 <tbody id="creditCustomersTableBody">
-                    {% for customer in customers %}
-                    <tr class="credit-row" 
-                        data-name="{{ customer.full_name }}" 
-                        data-phone="{{ customer.phone }}" 
-                        data-status="{{ customer.account_status }}" 
-                        data-balance="{{ customer.current_balance|default(0) }}" 
-                        data-limit="{{ customer.credit_limit|default(0) }}"
-                        data-customer-id="{{ customer.customer_id }}">
-                        <td>
-                            <div>
-                                <p class="font-semibold">{{ customer.full_name }}</p>
-                                <p class="text-xs text-gray-400 font-mono">{{ customer.customer_id }}</p>
-                            </div>
-                        </td>
-                        <td class="hidden sm:table-cell">
-                            <a href="tel:{{ customer.phone }}" class="text-blue-600 hover:underline">{{ customer.phone }}</a>
-                            {% if customer.whatsapp_number %}
-                            <br><small class="text-green-600"><i class="fab fa-whatsapp"></i> WhatsApp</small>
-                            {% endif %}
-                            <br>
-                            <button onclick="sendWhatsAppCustomMessage('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.phone }}')" 
-                                    class="text-xs text-green-600 hover:underline">
-                                <i class="fab fa-whatsapp"></i> Message
-                            </button>
-                        </td>
-                        <td class="hidden md:table-cell">KSh {{ customer.credit_limit|default(0)|int|format_number }}</td>
-                        <td class="text-center">
-                            {% if customer.current_balance|default(0) > customer.credit_limit|default(0) %}
-                                <span class="font-bold text-red-600">KSh {{ customer.current_balance|default(0)|int|format_number }}</span>
-                                <span class="badge badge-danger text-xs ml-1">Over Limit</span>
-                            {% elif customer.current_balance|default(0) > (customer.credit_limit|default(0) * 0.8) %}
-                                <span class="font-bold text-amber-600">KSh {{ customer.current_balance|default(0)|int|format_number }}</span>
-                                <span class="badge badge-warning text-xs ml-1">Near Limit</span>
-                            {% elif customer.current_balance|default(0) > 0 %}
-                                <span class="font-bold text-blue-600">KSh {{ customer.current_balance|default(0)|int|format_number }}</span>
-                            {% else %}
-                                <span class="text-gray-400">KSh 0</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center hidden lg:table-cell">
-                            {% if customer.account_status == 'active' %}
-                            <span class="badge badge-success">Active</span>
-                            {% else %}
-                            <span class="badge badge-danger">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="flex gap-1 justify-center flex-wrap">
-                                <button onclick="viewCreditCustomer('{{ customer.customer_id }}')" class="btn-outline text-xs px-2 py-1" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="editCreditCustomer('{{ customer.customer_id }}')" class="btn-outline text-xs px-2 py-1" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="openRecordPaymentModal('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.current_balance|default(0) }}')" class="btn-success text-xs px-2 py-1" title="Record Payment">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </button>
-                                <button onclick="viewTransactionHistory('{{ customer.customer_id }}')" class="btn-outline text-xs px-2 py-1 text-purple-600" title="History">
-                                    <i class="fas fa-history"></i>
-                                </button>
-                                <!-- WhatsApp Buttons -->
-                                <button onclick="sendWhatsAppReminder('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.current_balance|default(0) }}', '{{ customer.phone }}')" 
-                                        class="btn-success text-xs px-2 py-1" title="Send WhatsApp Reminder" style="background: #25D366;">
-                                    <i class="fab fa-whatsapp"></i>
-                                </button>
-                                <button onclick="sendWhatsAppStatement('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.current_balance|default(0) }}', '{{ customer.total_purchases|default(0) }}', '{{ customer.total_payments|default(0) }}', '{{ customer.phone }}')" 
-                                        class="btn-outline text-xs px-2 py-1 text-purple-600" title="Send Statement">
-                                    <i class="fas fa-file-invoice"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <tr><td colspan="6" class="text-center py-6 text-gray-400"><i class="fas fa-spinner fa-spin"></i> Loading customers...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
-
-    {% if not customers %}
-    <div class="text-center py-10 text-gray-400">
-        <i class="fas fa-hand-holding-usd text-4xl block mb-3"></i>
-        <p class="text-lg">No credit customers yet</p>
-        <p class="text-sm">Click "Add Credit Customer" to get started</p>
-    </div>
-    {% endif %}
 </div>
 
 <!-- ============================================================
@@ -395,7 +309,7 @@
 </div>
 
 <!-- ============================================================
-     RECORD PAYMENT MODAL - FIXED
+     RECORD PAYMENT MODAL
      ============================================================ -->
 <div id="paymentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl">
@@ -503,7 +417,6 @@ function showToast(message, type = 'info') {
         info: 'bg-blue-500'
     };
     
-    // Remove existing toasts
     const existingToasts = document.querySelectorAll('.custom-toast');
     existingToasts.forEach(t => t.remove());
     
@@ -525,8 +438,164 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
+// LOAD CREDIT CUSTOMERS - FIXED
+// ============================================================
+
+function loadCreditCustomers() {
+    const tbody = document.getElementById('creditCustomersTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400"><i class="fas fa-spinner fa-spin"></i> Loading customers...</td></tr>';
+    
+    fetch('/admin/api/credit/customers')
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            console.log('📊 Credit customers response:', data);
+            
+            // ✅ FIX: Try both response formats
+            const customers = data.customers || data.data || [];
+            
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">No credit customers found</td></tr>';
+                updateStats([]);
+                return;
+            }
+            
+            renderCreditCustomers(customers);
+            updateStats(customers);
+        })
+        .catch(err => {
+            console.error('Error loading credit customers:', err);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-400">Error loading customers: ${err.message}</td></tr>`;
+        });
+}
+
+// ============================================================
+// RENDER CREDIT CUSTOMERS - FIXED
+// ============================================================
+
+function renderCreditCustomers(customers) {
+    const tbody = document.getElementById('creditCustomersTableBody');
+    
+    if (!customers || customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">No credit customers found</td></tr>';
+        return;
+    }
+    
+    let html = '';
+    customers.forEach(customer => {
+        const balance = customer.current_balance || 0;
+        const limit = customer.credit_limit || 0;
+        const status = customer.account_status || 'active';
+        
+        let balanceClass = 'text-gray-400';
+        let badgeClass = 'badge-success';
+        
+        if (balance > limit) {
+            balanceClass = 'text-red-600 font-bold';
+            badgeClass = 'badge-danger';
+        } else if (balance > limit * 0.8 && limit > 0) {
+            balanceClass = 'text-amber-600 font-bold';
+            badgeClass = 'badge-warning';
+        } else if (balance > 0) {
+            balanceClass = 'text-blue-600 font-bold';
+        }
+        
+        html += `
+            <tr class="credit-row" 
+                data-name="${customer.full_name || ''}" 
+                data-phone="${customer.phone || ''}" 
+                data-status="${status}" 
+                data-balance="${balance}" 
+                data-limit="${limit}"
+                data-customer-id="${customer.customer_id || ''}">
+                <td>
+                    <div>
+                        <p class="font-semibold">${customer.full_name || 'N/A'}</p>
+                        <p class="text-xs text-gray-400 font-mono">${customer.customer_id || 'N/A'}</p>
+                    </div>
+                </td>
+                <td class="hidden sm:table-cell">
+                    <a href="tel:${customer.phone}" class="text-blue-600 hover:underline">${customer.phone || 'N/A'}</a>
+                    ${customer.whatsapp_number ? `<br><small class="text-green-600"><i class="fab fa-whatsapp"></i> WhatsApp</small>` : ''}
+                    <br>
+                    <button onclick="sendWhatsAppCustomMessage('${customer.customer_id}', '${customer.full_name}', '${customer.phone}')" 
+                            class="text-xs text-green-600 hover:underline">
+                        <i class="fab fa-whatsapp"></i> Message
+                    </button>
+                </td>
+                <td class="hidden md:table-cell">KSh ${(limit || 0).toLocaleString()}</td>
+                <td class="text-center">
+                    <span class="${balanceClass}">KSh ${(balance).toLocaleString()}</span>
+                    ${balance > limit ? '<span class="badge badge-danger text-xs ml-1">Over Limit</span>' : ''}
+                    ${balance > limit * 0.8 && balance <= limit && limit > 0 ? '<span class="badge badge-warning text-xs ml-1">Near Limit</span>' : ''}
+                </td>
+                <td class="text-center hidden lg:table-cell">
+                    <span class="badge ${status === 'active' ? 'badge-success' : 'badge-danger'}">${status || 'Unknown'}</span>
+                </td>
+                <td>
+                    <div class="flex gap-1 justify-center flex-wrap">
+                        <button onclick="viewCreditCustomer('${customer.customer_id}')" class="btn-outline text-xs px-2 py-1" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editCreditCustomer('${customer.customer_id}')" class="btn-outline text-xs px-2 py-1" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="openRecordPaymentModal('${customer.customer_id}', '${customer.full_name}', '${balance}')" class="btn-success text-xs px-2 py-1" title="Record Payment">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </button>
+                        <button onclick="viewTransactionHistory('${customer.customer_id}')" class="btn-outline text-xs px-2 py-1 text-purple-600" title="History">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button onclick="sendWhatsAppReminder('${customer.customer_id}', '${customer.full_name}', '${balance}', '${customer.phone}')" 
+                                class="btn-success text-xs px-2 py-1" title="Send WhatsApp Reminder" style="background: #25D366;">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button onclick="sendWhatsAppStatement('${customer.customer_id}', '${customer.full_name}', '${balance}', '${customer.total_purchases || 0}', '${customer.total_payments || 0}', '${customer.phone}')" 
+                                class="btn-outline text-xs px-2 py-1 text-purple-600" title="Send Statement">
+                            <i class="fas fa-file-invoice"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+// ============================================================
+// UPDATE STATS
+// ============================================================
+
+function updateStats(customers) {
+    const active = customers.filter(c => c.account_status === 'active').length;
+    const totalBalance = customers.reduce((sum, c) => sum + (c.current_balance || 0), 0);
+    const totalPurchases = customers.reduce((sum, c) => sum + (c.total_purchases || 0), 0);
+    const totalPayments = customers.reduce((sum, c) => sum + (c.total_payments || 0), 0);
+    const overdue = customers.filter(c => c.current_balance > c.credit_limit * 0.5).length;
+    
+    document.getElementById('totalCustomers').textContent = customers.length;
+    document.getElementById('activeCustomers').textContent = active;
+    document.getElementById('totalBalance').textContent = 'KSh ' + totalBalance.toLocaleString();
+    document.getElementById('overdueCount').textContent = overdue;
+    
+    document.getElementById('totalCreditSales').textContent = 'KSh ' + totalPurchases.toLocaleString();
+    document.getElementById('totalPaymentsReceived').textContent = 'KSh ' + totalPayments.toLocaleString();
+    document.getElementById('currentOutstanding').textContent = 'KSh ' + totalBalance.toLocaleString();
+    
+    const collectionRate = totalPurchases > 0 ? ((totalPayments / totalPurchases) * 100) : 0;
+    document.getElementById('collectionRate').textContent = collectionRate.toFixed(1) + '%';
+    document.getElementById('collectionTotalSales').textContent = 'KSh ' + totalPurchases.toLocaleString();
+    document.getElementById('collectionTotalPayments').textContent = 'KSh ' + totalPayments.toLocaleString();
+    document.getElementById('collectionBar').style.width = Math.min(collectionRate, 100) + '%';
+}
+
+// ============================================================
 // MONTHLY CREDIT REPORT
 // ============================================================
+
 function loadMonthlyReport() {
     const year = document.getElementById('reportYear')?.value || new Date().getFullYear();
     
@@ -582,98 +651,6 @@ function loadMonthlyReport() {
 }
 
 // ============================================================
-// OPEN RECORD PAYMENT MODAL - FIXED
-// ============================================================
-function openRecordPaymentModal(customerId, customerName, currentBalance) {
-    // If called without parameters, try to get from URL or show empty modal
-    if (!customerId) {
-        // Try to get from the row data if available
-        const row = document.querySelector('.credit-row');
-        if (row) {
-            customerId = row.dataset.customerId || '';
-            customerName = row.dataset.name || 'Customer';
-            currentBalance = row.dataset.balance || '0';
-        }
-    }
-    
-    if (!customerId) {
-        showToast('Please select a customer first', 'warning');
-        return;
-    }
-    
-    document.getElementById('paymentCustomerId').value = customerId;
-    document.getElementById('paymentCustomerName').textContent = customerName || 'Customer';
-    document.getElementById('paymentCurrentBalance').textContent = 'Current Balance: KSh ' + parseFloat(currentBalance || 0).toLocaleString();
-    document.getElementById('paymentAmount').value = '';
-    document.getElementById('paymentNotes').value = '';
-    document.getElementById('paymentModal').classList.remove('hidden');
-}
-
-// ============================================================
-// RECORD PAYMENT - FIXED
-// ============================================================
-function savePayment(event) {
-    event.preventDefault();
-    
-    const customerId = document.getElementById('paymentCustomerId').value;
-    const amount = parseFloat(document.getElementById('paymentAmount').value);
-    const paymentMethod = document.getElementById('paymentMethodSelect').value;
-    const notes = document.getElementById('paymentNotes').value.trim();
-    
-    if (!customerId) {
-        showToast('No customer selected', 'danger');
-        return;
-    }
-    
-    if (!amount || amount <= 0) {
-        showToast('Please enter a valid amount', 'danger');
-        return;
-    }
-    
-    const data = {
-        customer_id: customerId,
-        amount: amount,
-        staff_name: 'Admin',
-        payment_method: paymentMethod,
-        notes: notes || 'Payment via ' + paymentMethod
-    };
-    
-    console.log('📤 Sending payment data:', data);
-    
-    showToast('Processing payment...', 'info');
-    
-    fetch('/admin/api/credit/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || `HTTP ${response.status}`);
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            showToast(data.message || '✅ Payment recorded successfully!', 'success');
-            document.getElementById('paymentModal').classList.add('hidden');
-            // Refresh the page after a moment
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            showToast('❌ ' + (data.message || 'Failed to record payment'), 'danger');
-        }
-    })
-    .catch(err => {
-        console.error('❌ Payment error:', err);
-        showToast('❌ Error recording payment: ' + err.message, 'danger');
-    });
-}
-
-// ============================================================
 // CREDIT CUSTOMER CRUD FUNCTIONS
 // ============================================================
 
@@ -702,6 +679,93 @@ function closeHistoryModal() {
 
 function closeOverdueModal() {
     document.getElementById('overdueModal').classList.add('hidden');
+}
+
+// ============================================================
+// OPEN RECORD PAYMENT MODAL
+// ============================================================
+
+function openRecordPaymentModal(customerId, customerName, currentBalance) {
+    if (!customerId) {
+        const row = document.querySelector('.credit-row');
+        if (row) {
+            customerId = row.dataset.customerId || '';
+            customerName = row.dataset.name || 'Customer';
+            currentBalance = row.dataset.balance || '0';
+        }
+    }
+    
+    if (!customerId) {
+        showToast('Please select a customer first', 'warning');
+        return;
+    }
+    
+    document.getElementById('paymentCustomerId').value = customerId;
+    document.getElementById('paymentCustomerName').textContent = customerName || 'Customer';
+    document.getElementById('paymentCurrentBalance').textContent = 'Current Balance: KSh ' + parseFloat(currentBalance || 0).toLocaleString();
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('paymentNotes').value = '';
+    document.getElementById('paymentModal').classList.remove('hidden');
+}
+
+// ============================================================
+// RECORD PAYMENT
+// ============================================================
+
+function savePayment(event) {
+    event.preventDefault();
+    
+    const customerId = document.getElementById('paymentCustomerId').value;
+    const amount = parseFloat(document.getElementById('paymentAmount').value);
+    const paymentMethod = document.getElementById('paymentMethodSelect').value;
+    const notes = document.getElementById('paymentNotes').value.trim();
+    
+    if (!customerId) {
+        showToast('No customer selected', 'danger');
+        return;
+    }
+    
+    if (!amount || amount <= 0) {
+        showToast('Please enter a valid amount', 'danger');
+        return;
+    }
+    
+    const data = {
+        customer_id: customerId,
+        amount: amount,
+        staff_name: 'Admin',
+        payment_method: paymentMethod,
+        notes: notes || 'Payment via ' + paymentMethod
+    };
+    
+    showToast('Processing payment...', 'info');
+    
+    fetch('/admin/api/credit/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || `HTTP ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || '✅ Payment recorded successfully!', 'success');
+            document.getElementById('paymentModal').classList.add('hidden');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('❌ ' + (data.message || 'Failed to record payment'), 'danger');
+        }
+    })
+    .catch(err => {
+        console.error('❌ Payment error:', err);
+        showToast('❌ Error recording payment: ' + err.message, 'danger');
+    });
 }
 
 function editCreditCustomer(customerId) {
@@ -945,9 +1009,7 @@ function saveCreditCustomer(event) {
         if (data.success) {
             showToast(editId ? 'Customer updated successfully' : 'Customer added successfully', 'success');
             closeCreditCustomerModal();
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
+            setTimeout(() => location.reload(), 1500);
         } else {
             showToast('Error: ' + (data.message || 'Unknown error'), 'danger');
         }
@@ -1060,9 +1122,8 @@ function filterCreditCustomers() {
 
 function refreshCreditData() {
     loadMonthlyReport();
-    setTimeout(() => {
-        location.reload();
-    }, 500);
+    loadCreditCustomers();
+    showToast('✅ Data refreshed!', 'success');
 }
 
 // ============================================================
@@ -1308,6 +1369,7 @@ Price Point Kenya
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📊 Credit page loaded');
+    loadCreditCustomers();
     loadMonthlyReport();
 });
 </script>
