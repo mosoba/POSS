@@ -2945,60 +2945,266 @@
         });
     }
 
-    // ============================================================
-    // SHOW CREDIT RECEIPT
-    // ============================================================
-    function showCreditReceipt(customerName, total, result) {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.id = 'creditReceiptModal';
-        modal.innerHTML = `
-            <div class="modal" style="max-width:450px;" onclick="event.stopPropagation()">
-                <button class="close" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                <div class="title">🧾 Credit Purchase Receipt</div>
-                <div style="background:var(--bg-input);padding:16px;border-radius:8px;font-family:'Courier New',monospace;font-size:0.7rem;">
-                    <div style="text-align:center;font-weight:700;font-size:0.9rem;">PRICEPOINT POS</div>
-                    <div style="text-align:center;color:var(--gray-500);">${new Date().toLocaleString()}</div>
-                    <hr style="border-color:var(--border-color);margin:8px 0;">
-                    <div>👤 Customer: <strong>${customerName}</strong></div>
-                    <div>💳 Payment: <strong>CREDIT</strong></div>
-                    <div>💰 Total: <strong style="color:#7c3aed;">KSh ${total.toLocaleString()}</strong></div>
-                    ${result.due_date ? `<div>📅 Due Date: <strong>${result.due_date}</strong></div>` : ''}
-                    <hr style="border-color:var(--border-color);margin:8px 0;">
-                    <div>📊 New Balance: <strong style="color:#7c3aed;">KSh ${(result.balance_after || 0).toLocaleString()}</strong></div>
-                    ${result.transaction_id ? `<div style="font-size:0.6rem;color:var(--gray-400);">📋 TXN: ${result.transaction_id}</div>` : ''}
-                    <hr style="border-color:var(--border-color);margin:8px 0;">
-                    <div style="text-align:center;color:var(--gray-500);font-size:0.6rem;">✅ Thank you for your business!</div>
-                </div>
-                <div style="display:flex;gap:10px;margin-top:12px;">
-                    <button onclick="printCreditReceipt()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9);">🖨️ Print</button>
-                    <button onclick="this.closest('.modal-overlay').remove()" class="btn-outline" style="flex:1;">Close</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
+    
+
+   // ============================================================
+// CREDIT RECEIPT WITH THERMAL PRINTER - REPLACEMENT CODE
+// ============================================================
+
+function generateCreditReceiptText(customerName, total, result) {
+    const date = new Date().toLocaleString();
+    const orderId = result.transaction_id || result.order_id || 'CREDIT-' + Date.now();
+    
+    let receipt = '';
+    receipt += '╔══════════════════════════════════╗\n';
+    receipt += '║       PRICEPOINT POS             ║\n';
+    receipt += '║      📍 Nairobi, Kenya           ║\n';
+    receipt += '╠══════════════════════════════════╣\n';
+    receipt += '║ 📅 ' + date.padEnd(32) + '║\n';
+    receipt += '║ 💳 CREDIT PURCHASE               ║\n';
+    receipt += '║ 📋 #' + orderId.padEnd(32) + '║\n';
+    receipt += '║ 👤 ' + (customerName || 'Customer').padEnd(32) + '║\n';
+    receipt += '╠══════════════════════════════════╣\n';
+    receipt += '║ Total:      KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
+    if (result.due_date) {
+        receipt += '║ Due Date:   ' + (result.due_date || '').padEnd(12) + ' ║\n';
     }
+    receipt += '╠══════════════════════════════════╣\n';
+    receipt += '║ New Balance: KSh ' + (result.balance_after || 0).toLocaleString().padStart(12) + ' ║\n';
+    receipt += '║ Available:   KSh ' + ((result.credit_limit || 0) - (result.balance_after || 0)).toLocaleString().padStart(12) + ' ║\n';
+    receipt += '╠══════════════════════════════════╣\n';
+    receipt += '║     ✅ Thank you for credit!     ║\n';
+    receipt += '║    Have a great day! 😊          ║\n';
+    receipt += '╚══════════════════════════════════╝\n';
+    
+    return receipt;
+}
 
-    function printCreditReceipt() {
-        const modal = document.getElementById('creditReceiptModal');
-        if (!modal) return;
-        const content = modal.querySelector('.modal .bg-input');
-        if (!content) return;
+function showCreditReceipt(customerName, total, result) {
+    const existingModal = document.getElementById('creditReceiptModal');
+    if (existingModal) existingModal.remove();
+    
+    const receiptText = generateCreditReceiptText(customerName, total, result);
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'creditReceiptModal';
+    
+    modal.innerHTML = `
+        <div class="modal" style="max-width:450px;" onclick="event.stopPropagation()">
+            <button class="close" onclick="closeCreditReceipt()">✕</button>
+            <div class="title">🧾 Credit Purchase Receipt</div>
+            <div id="creditReceiptContent" style="background:var(--bg-input);padding:16px;border-radius:8px;font-family:'Courier New',monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow-y:auto;">
+                ${receiptText}
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+                <button onclick="printCreditReceiptUSB()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9);min-width:120px;">
+                    🖨️ USB Print
+                </button>
+                <button onclick="printCreditReceiptBrowser()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);min-width:120px;">
+                    🖨️ Browser Print
+                </button>
+                <button onclick="closeCreditReceipt()" class="btn-outline" style="flex:1;min-width:80px;">
+                    Close
+                </button>
+            </div>
+            <div style="margin-top:8px;text-align:center;font-size:0.6rem;color:var(--gray-400);">
+                🔌 Printer Status: <span id="creditPrinterStatus">${window.printerConnected ? '✅ Connected' : '❌ Not connected'}</span>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
 
-        const printWindow = window.open('', '_blank', 'width=400,height=600');
-        if (!printWindow) {
-            showToast('⚠️ Please allow popups for printing', 'warning');
+function closeCreditReceipt() {
+    const modal = document.getElementById('creditReceiptModal');
+    if (modal) modal.remove();
+}
+
+function printCreditReceiptUSB() {
+    const content = document.getElementById('creditReceiptContent');
+    if (!content) {
+        showToast('⚠️ No receipt content found', 'warning');
+        return;
+    }
+    
+    const receiptText = content.textContent || content.innerText || '';
+    
+    if (!receiptText.trim()) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
+    }
+    
+    console.log('🖨️ Printing credit receipt via USB...');
+    showToast('🖨️ Printing credit receipt...', 'info');
+    
+    if (typeof window.printToUSBPrinter === 'function') {
+        window.printToUSBPrinter(receiptText);
+    } else {
+        showToast('⚠️ USB printing not available, using browser', 'warning');
+        printCreditReceiptBrowser();
+    }
+}
+
+function printCreditReceiptBrowser() {
+    const content = document.getElementById('creditReceiptContent');
+    if (!content) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
+    }
+    
+    const receiptText = content.textContent || content.innerText || '';
+    
+    if (!receiptText.trim()) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
+    }
+    
+    console.log('🖨️ Printing credit receipt via browser...');
+    
+    if (typeof window.printViaBrowser === 'function') {
+        window.printViaBrowser(receiptText);
+    } else {
+        const win = window.open('', '_blank', 'width=400,height=600');
+        if (!win) {
+            showToast('⚠️ Allow popups for printing', 'warning');
             return;
         }
-        printWindow.document.write(
-            '<html><head><title>Credit Receipt</title>' +
-            '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}</style>' +
-            '</head><body><pre>' + content.textContent + '</pre>' +
-            '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
-            '</body></html>'
-        );
-        printWindow.document.close();
+        
+        win.document.write(`
+            <html>
+            <head>
+                <title>Credit Receipt - PRICEPOINT</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Courier New', monospace; 
+                        padding: 20px; 
+                        background: white; 
+                        color: black;
+                        max-width: 80mm;
+                        margin: 0 auto;
+                    }
+                    pre {
+                        font-family: 'Courier New', monospace;
+                        font-size: 10pt;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        margin: 0;
+                        line-height: 1.4;
+                    }
+                    @page {
+                        margin: 0;
+                        size: 80mm auto;
+                    }
+                    @media print {
+                        body { padding: 10px; margin: 0; }
+                    }
+                </style>
+            </head>
+            <body>
+                <pre>${receiptText}</pre>
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                        setTimeout(function() {
+                            window.close();
+                        }, 3000);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        win.document.close();
     }
+}
+
+function updateCreditPrinterStatus() {
+    const statusEl = document.getElementById('creditPrinterStatus');
+    if (statusEl) {
+        statusEl.textContent = window.printerConnected ? '✅ Connected' : '❌ Not connected';
+        statusEl.style.color = window.printerConnected ? '#10b981' : '#ef4444';
+    }
+}
+
+// ============================================================
+// UPDATED processCreditPurchase
+// ============================================================
+
+function processCreditPurchase(customerId, customerName, total) {
+    const btn = document.getElementById('posPlaceOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Processing credit...';
+    btn.disabled = true;
+
+    const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
+    const notes = document.getElementById('orderNotes')?.value || '';
+
+    const data = {
+        customer_id: customerId,
+        items: itemsList,
+        total_amount: total,
+        staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
+        notes: notes + ' (Credit purchase via POS)'
+    };
+
+    fetch('/admin/api/credit/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (result.success) {
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                }
+            });
+
+            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+            
+            showCreditReceipt(customerName, total, result);
+
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            updatePOSUI();
+            renderProducts();
+            loadCreditCustomers();
+            updateQuickSalesCount();
+            loadSalesStats();
+        } else {
+            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showToast('❌ Error: ' + err.message, 'error');
+    });
+}
+
+// Override print functions
+window.printCreditReceipt = function() {
+    const modal = document.getElementById('creditReceiptModal');
+    if (modal) {
+        printCreditReceiptUSB();
+    } else {
+        showToast('⚠️ No receipt to print', 'warning');
+    }
+};
+
+console.log('✅ Credit receipt with thermal printer support loaded!');
 
     // ============================================================
     // NORMAL ORDER PROCESSING
