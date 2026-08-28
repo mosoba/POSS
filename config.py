@@ -19,12 +19,15 @@ class Config:
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
 
     # ===== SUPABASE CONFIGURATION =====
-    SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://hzqrdwerkgfmfaufabjr.supabase.co')
+    # ✅ NO FALLBACK - Must be set in environment variables
+    SUPABASE_URL = os.environ.get('SUPABASE_URL')
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
     
-    # ✅ FIX: Use the working key from environment
-    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld')
+    # ✅ Check if environment variables are set
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise ValueError("❌ SUPABASE_URL and SUPABASE_KEY must be set in environment variables!")
     
-    # ✅ Debug: Print which key is being used
+    print(f"🔑 Using Supabase URL: {SUPABASE_URL}")
     print(f"🔑 Using Supabase key: {SUPABASE_KEY[:30]}...")
     
     SUPABASE_HEADERS = {
