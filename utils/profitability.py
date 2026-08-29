@@ -3,7 +3,7 @@ import json
 import requests
 from datetime import datetime
 
-# 🔥 HARDCODE SUPABASE CONFIG (temporary fix for Vercel)
+# 🔥 HARDCODE SUPABASE CONFIG
 SUPABASE_URL = "https://haqqknmerdnfvwmsnath.supabase.co"
 SUPABASE_KEY = "sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA"
 
@@ -44,6 +44,7 @@ def get_paid_sales():
                     total_orders += float(order.get('total', 0))
         else:
             print(f"❌ Orders API error: {orders_response.status_code}")
+            print(f"📄 Response: {orders_response.text}")
         
         print(f"💰 Total Orders Revenue: {total_orders}")
         
@@ -73,6 +74,7 @@ def get_paid_sales():
                     print(f"  💳 Credit Payment: +KSh {amount}")
         else:
             print(f"❌ Credit API error: {credit_response.status_code}")
+            print(f"📄 Response: {credit_response.text}")
         
         print(f"💰 Total Credit Sales: {total_credit_sales}")
         print(f"💰 Total Credit Payments: {total_credit_paid}")
