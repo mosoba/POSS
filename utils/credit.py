@@ -67,7 +67,7 @@ def add_credit_customer(customer_data):
             }
             
     except Exception as e:
-        print(f"❌ Error adding credit customer: {e}")
+        print(f"❌ Error adding credit customer: {e}")  
         return {'success': False, 'message': str(e)}
 
 def get_all_credit_customers():
@@ -347,11 +347,11 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         return {'success': False, 'message': str(e)}
 
 # ============================================================
-# FIXED: record_credit_payment - ONLY USES COLUMNS THAT EXIST
+# FIXED: record_credit_payment - WITH REVENUE ORDER CREATION
 # ============================================================
 
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
-    """Record a credit payment - FIXED"""
+    """Record a credit payment - FIXED with revenue order creation"""
     try:
         customer = get_credit_customer_by_id(customer_id)
         if not customer:
@@ -369,7 +369,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         
         new_balance = current_balance - amount
         
-        # 🔥 FIX: ONLY USE COLUMNS THAT EXIST
+        # 🔥 Save payment transaction
         transaction_data = {
             'customer_id': customer_id,
             'transaction_type': 'payment',
@@ -396,7 +396,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         
         print(f"✅ Payment saved")
         
-        # 🔥 FIX: ONLY UPDATE COLUMNS THAT EXIST
+        # 🔥 UPDATE CUSTOMER BALANCE
         update_data = {
             'current_balance': new_balance,
             'total_payments': current_total_payments + amount,
@@ -415,6 +415,68 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'success': False,
                 'message': f'Payment recorded but failed to update balance: {update_response.status_code}'
             }
+        
+        # 🔥🔥🔥 CREATE ORDER ENTRY FOR REVENUE TRACKING
+        try:
+            order_id = f'CREDIT-PAY-{uuid.uuid4().hex[:8].upper()}'
+            customer_name = customer.get('full_name', 'Customer')
+            
+            order_data = {
+                'order_id': order_id,
+                'items': [{
+                    'name': f'💳 Credit Payment from {customer_name}',
+                    'quantity': 1,
+                    'price': amount,
+                    'total': amount,
+                    'type': 'credit_payment'
+                }],
+                'subtotal': amount,
+                'shipping': 0,
+                'total': amount,
+                'status': 'confirmed',
+                'source': 'pos',
+                'created_at': datetime.utcnow().isoformat(),
+                'customer_name': customer_name,
+                'customer_email': customer.get('email', 'N/A'),
+                'customer_phone': customer.get('phone', 'N/A'),
+                'customer_address': 'Credit Payment',
+                'customer': {
+                    'name': customer_name,
+                    'email': customer.get('email', 'N/A'),
+                    'phone': customer.get('phone', 'N/A'),
+                    'address': 'Credit Payment'
+                },
+                'user_id': 'credit_payment',
+                'user_name': staff_name,
+                'user_role': 'pos',
+                'staff_name': staff_name,
+                'payment_method': 'credit_payment',
+                'notes': f'Credit payment from {customer_name}: {notes}'
+            }
+            
+            print(f"📤 Creating revenue order for credit payment: {order_id}")
+            
+            order_response = requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/orders",
+                headers=Config.SUPABASE_HEADERS,
+                json=order_data,
+                timeout=15
+            )
+            
+            if order_response.status_code in [200, 201]:
+                print(f"✅ Revenue order created: {order_id}")
+                # Clear cache so revenue updates
+                try:
+                    import utils.data
+                    utils.data.orders_cache = []
+                except:
+                    pass
+            else:
+                print(f"⚠️ Failed to create revenue order: {order_response.status_code}")
+                print(f"📄 Response: {order_response.text}")
+                
+        except Exception as e:
+            print(f"⚠️ Error creating revenue order: {e}")
         
         return {
             'success': True,
