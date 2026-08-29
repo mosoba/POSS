@@ -1,7 +1,6 @@
 import os
 import json
 import uuid
-import re
 import requests
 from datetime import datetime, timedelta
 from config import Config
@@ -131,6 +130,25 @@ def get_credit_customer_by_id(customer_id):
         traceback.print_exc()
         return None
 
+def get_credit_customer_by_phone(phone):
+    """Find a credit customer by phone number"""
+    try:
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?phone=eq.{phone}&select=*",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            customers = response.json()
+            return customers[0] if customers else None
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error finding customer by phone: {e}")
+        return None
+
 def update_credit_customer(customer_id, update_data):
     """Update a credit customer"""
     try:
@@ -164,48 +182,11 @@ def delete_credit_customer(customer_id):
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
 # ============================================================
-# GET AVERAGE COST PERCENTAGE FROM PRODUCTS
-# ============================================================
-
-def get_average_cost_percentage():
-    """Calculate average cost percentage from ALL products"""
-    try:
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/products?select=price,cost_price",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            products = response.json()
-            total_ratio = 0
-            count = 0
-            
-            for p in products:
-                price = float(p.get('price', 0))
-                cost = float(p.get('cost_price', 0))
-                if price > 0 and cost > 0:
-                    ratio = cost / price
-                    total_ratio += ratio
-                    count += 1
-            
-            if count > 0:
-                avg_cost_percentage = total_ratio / count
-                print(f"📊 Average cost percentage: {avg_cost_percentage * 100:.1f}%")
-                return avg_cost_percentage
-        
-        return 0.65
-        
-    except Exception as e:
-        print(f"❌ Error calculating average cost: {e}")
-        return 0.65
-
-# ============================================================
-# FIXED: record_credit_purchase - STORES ITEMS WITH COST
+# record_credit_purchase - PREVIOUS WORKING VERSION
 # ============================================================
 
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
-    """Record a credit purchase transaction - STORES ITEMS WITH COST"""
+    """Record a credit purchase transaction - PREVIOUS WORKING VERSION"""
     try:
         print(f"🔍 record_credit_purchase called with customer_id: '{customer_id}'")
         print(f"💰 Amount: {total_amount}")
@@ -242,71 +223,14 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         
         new_balance = current_balance + total_amount
         
-        # 🔥🔥🔥 CALCULATE REAL COST FOR EACH ITEM
-        total_cost = 0
-        items_list = []
-        
-        # Parse items string: "Dasani x1, Fanta Passion x2"
-        item_parts = items.split(', ')
-        for item_str in item_parts:
-            match = re.match(r'(.+?) x(\d+)$', item_str.strip())
-            if match:
-                product_name = match.group(1).strip()
-                quantity = int(match.group(2))
-                
-                # Get product cost from database
-                prod_response = requests.get(
-                    f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25&select=name,price,cost_price",
-                    headers=Config.SUPABASE_HEADERS,
-                    timeout=10
-                )
-                
-                if prod_response.status_code == 200:
-                    products = prod_response.json()
-                    if products:
-                        product = products[0]
-                        price = float(product.get('price', 0))
-                        cost = float(product.get('cost_price', 0))
-                        
-                        # If no cost_price, use 70% fallback
-                        if cost == 0:
-                            cost = price * 0.7
-                        
-                        item_total = price * quantity
-                        item_cost = cost * quantity
-                        total_cost += item_cost
-                        
-                        items_list.append({
-                            'name': product_name,
-                            'price': price,
-                            'cost': cost,
-                            'quantity': quantity,
-                            'total': item_total,
-                            'total_cost': item_cost
-                        })
-                        
-                        print(f"  📦 {product_name}: Price={price}, Cost={cost}, Qty={quantity}, Total Cost={item_cost}")
-                    else:
-                        print(f"  ⚠️ Product not found: {product_name}")
-                        total_cost += total_amount * 0.7
-                else:
-                    print(f"  ⚠️ Error fetching product: {product_name}")
-                    total_cost += total_amount * 0.7
-        
-        # Calculate cost percentage
-        cost_percentage = total_cost / total_amount if total_amount > 0 else 0.7
-        
-        # 🔥 SAVE WITH ALL COLUMNS
+        # 🔥 SIMPLE TRANSACTION - NO NEW COLUMNS
         transaction_data = {
             'customer_id': customer_id,
             'transaction_type': 'purchase',
             'amount': total_amount,
             'description': f'Credit purchase: {items} | Staff: {staff_name} | Notes: {notes}',
             'staff_name': staff_name,
-            'created_at': datetime.utcnow().isoformat(),
-            'items_json': json.dumps(items_list),
-            'total_cost': total_cost,
-            'cost_percentage': cost_percentage
+            'created_at': datetime.utcnow().isoformat()
         }
         
         print(f"📤 Inserting transaction: {transaction_data}")
@@ -319,6 +243,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         )
         
         print(f"📥 Response status: {response.status_code}")
+        print(f"📥 Response: {response.text}")
         
         if response.status_code not in [200, 201]:
             return {
@@ -346,20 +271,18 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         print(f"📥 Customer update status: {update_response.status_code}")
         
         if update_response.status_code not in [200, 204]:
+            print(f"⚠️ Failed to update customer balance: {update_response.status_code}")
             return {
                 'success': False,
                 'message': f'Transaction saved but failed to update balance: {update_response.status_code}'
             }
         
         print(f"✅ Customer balance updated to: {new_balance}")
-        print(f"✅ Total cost: {total_cost}, Cost %: {cost_percentage * 100:.1f}%")
         
         return {
             'success': True,
             'balance_after': new_balance,
             'customer_name': customer.get('full_name'),
-            'total_cost': total_cost,
-            'cost_percentage': cost_percentage,
             'message': f'Credit purchase recorded. New balance: KSh {new_balance:,.2f}'
         }
         
@@ -370,11 +293,11 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         return {'success': False, 'message': str(e)}
 
 # ============================================================
-# FIXED: record_credit_payment - USES STORED COST PERCENTAGE
+# record_credit_payment - PREVIOUS WORKING VERSION
 # ============================================================
 
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
-    """Record a credit payment - USES STORED COST PERCENTAGE"""
+    """Record a credit payment - PREVIOUS WORKING VERSION"""
     try:
         customer = get_credit_customer_by_id(customer_id)
         if not customer:
@@ -392,51 +315,14 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         
         new_balance = current_balance - amount
         
-        # 🔥 GET STORED COST PERCENTAGE FROM PURCHASES
-        transactions = get_customer_transactions(customer_id)
-        
-        total_purchases = 0
-        total_cost = 0
-        cost_percentage = 0.70
-        
-        for tx in transactions:
-            if tx.get('transaction_type') == 'purchase':
-                tx_amount = float(tx.get('amount', 0))
-                total_purchases += tx_amount
-                
-                tx_cost = float(tx.get('total_cost', 0))
-                if tx_cost > 0:
-                    total_cost += tx_cost
-                
-                if tx.get('cost_percentage'):
-                    cost_percentage = float(tx.get('cost_percentage', 0.7))
-        
-        # Calculate exact cost percentage for this customer
-        if total_purchases > 0 and total_cost > 0:
-            cost_percentage = total_cost / total_purchases
-        elif cost_percentage == 0:
-            cost_percentage = get_average_cost_percentage()
-        
-        # Calculate cost and profit for this payment
-        cost_of_goods = amount * cost_percentage
-        profit = amount - cost_of_goods
-        
-        print(f"💰 Payment: {amount}")
-        print(f"📦 Cost %: {cost_percentage * 100:.1f}%")
-        print(f"📦 Cost: {cost_of_goods:.2f}")
-        print(f"💵 Profit: {profit:.2f}")
-        
-        # 🔥 SAVE PAYMENT WITH COST AND PROFIT
+        # 🔥 SIMPLE PAYMENT - NO NEW COLUMNS
         transaction_data = {
             'customer_id': customer_id,
             'transaction_type': 'payment',
             'amount': amount,
             'description': f'Payment: {notes} | Staff: {staff_name}',
             'staff_name': staff_name,
-            'created_at': datetime.utcnow().isoformat(),
-            'cost_percentage': cost_percentage,
-            'cost_of_goods': cost_of_goods,
-            'profit': profit
+            'created_at': datetime.utcnow().isoformat()
         }
         
         print(f"📤 Inserting payment: {transaction_data}")
@@ -488,8 +374,8 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                     'quantity': 1,
                     'price': amount,
                     'total': amount,
-                    'cost_price': cost_of_goods,
-                    'profit': profit,
+                    'cost_price': amount * 0.7,
+                    'profit': amount * 0.3,
                     'type': 'credit_payment'
                 }],
                 'subtotal': amount,
@@ -514,8 +400,8 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'staff_name': staff_name,
                 'payment_method': 'credit_payment',
                 'notes': f'Credit payment from {customer_name}: {notes}',
-                'total_cost': cost_of_goods,
-                'profit': profit
+                'total_cost': amount * 0.7,
+                'profit': amount * 0.3
             }
             
             order_response = requests.post(
@@ -542,8 +428,6 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             'success': True,
             'balance_after': new_balance,
             'customer_name': customer.get('full_name'),
-            'cost': cost_of_goods,
-            'profit': profit,
             'message': f'Payment recorded. New balance: KSh {new_balance:,.2f}'
         }
         
