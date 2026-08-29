@@ -1038,31 +1038,6 @@
         [data-theme="dark"] .quick-btn.sync { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
         [data-theme="dark"] .quick-btn.sync:hover { background: #3b82f6; color: white; }
                                                    
-        <!-- ===== CHANGE CALCULATOR ===== -->
-<div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
-            💰 Change Calculator
-        </label>
-        <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Amount Paid</label>
-        <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
-    </div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-        <button onclick="setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 500</button>
-        <button onclick="setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 1,000</button>
-        <button onclick="setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 2,000</button>
-        <button onclick="setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 5,000</button>
-        <button onclick="setQuickAmount(10000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 10,000</button>
-        <button onclick="document.getElementById('amountPaid').value = ''; calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
-        <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
-        <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
-    </div>
-</div>
 
         /* ============================================================
            ADVANCED FEATURES TOGGLE
@@ -1552,7 +1527,7 @@
     <header class="header">
         <div class="header-brand">
             <div class="logo">💰</div>
-            <span>Price<span class="highlight">Point</span> POS</span>
+            <span>ACACIA<span class="highlight">MART</span> POS</span>
             <span class="badge" id="onlineBadge">● LIVE</span>
             {% if session.user %}
             <span class="user-tag" style="font-size:0.55rem;color:var(--gray-400);margin-left:4px;border-left:1px solid rgba(255,255,255,0.08);padding-left:8px;">
@@ -1767,6 +1742,32 @@
                         <div class="tip-display">
                             <span>Tip Added:</span>
                             <span class="value" id="tipDisplay">KSh 0</span>
+                        </div>
+                    </div>
+                                 
+                                          <!-- ===== CHANGE CALCULATOR ===== -->
+                    <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
+                                💰 Change Calculator
+                            </label>
+                            <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Amount Paid</label>
+                            <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
+                        </div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                            <button onclick="setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 500</button>
+                            <button onclick="setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 1,000</button>
+                            <button onclick="setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 2,000</button>
+                            <button onclick="setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 5,000</button>
+                            <button onclick="setQuickAmount(10000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 10,000</button>
+                            <button onclick="document.getElementById('amountPaid').value = ''; calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
+                            <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
+                            <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
                         </div>
                     </div>
 
@@ -5198,6 +5199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         actions.insertBefore(div, actions.firstChild);
     }
+
 
     console.log('✅ Global Printer module loaded');
     console.log('📱 Functions available:');
