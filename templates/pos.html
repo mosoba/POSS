@@ -396,6 +396,22 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* ============================================================
+   CHANGE CALCULATOR
+   ============================================================ */
+.change-calculator input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(5,150,105,0.08) !important;
+}
+.change-calculator .change-result .amount.negative {
+    color: var(--danger) !important;
+}
+.change-calculator button:hover {
+    background: var(--primary-bg) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+        /* ============================================================
            STATS BAR
            ============================================================ */
         .stats-bar {
@@ -1021,6 +1037,32 @@
         .quick-btn.sync:hover { background: #2563eb; color: white; }
         [data-theme="dark"] .quick-btn.sync { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
         [data-theme="dark"] .quick-btn.sync:hover { background: #3b82f6; color: white; }
+                                                   
+        <!-- ===== CHANGE CALCULATOR ===== -->
+<div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
+            💰 Change Calculator
+        </label>
+        <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Amount Paid</label>
+        <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+        <button onclick="setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 500</button>
+        <button onclick="setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 1,000</button>
+        <button onclick="setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 2,000</button>
+        <button onclick="setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 5,000</button>
+        <button onclick="setQuickAmount(10000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 10,000</button>
+        <button onclick="document.getElementById('amountPaid').value = ''; calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
+        <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
+        <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
+    </div>
+</div>
 
         /* ============================================================
            ADVANCED FEATURES TOGGLE
@@ -5074,6 +5116,58 @@ function printReceipt() {
     // Use global printer functions
     window.printToUSBPrinter(receiptText);
 }
+
+        // ============================================================
+// CHANGE CALCULATOR FUNCTIONS
+// ============================================================
+
+function calculateChange() {
+    const totalEl = document.getElementById('posTotal');
+    const paidEl = document.getElementById('amountPaid');
+    const changeEl = document.getElementById('changeAmount');
+    const totalDisplay = document.getElementById('changeTotalDisplay');
+    
+    let total = 0;
+    if (totalEl) {
+        const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+        total = parseFloat(totalText) || 0;
+    }
+    
+    if (totalDisplay) {
+        totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+    }
+    
+    const paid = parseFloat(paidEl.value) || 0;
+    
+    if (paid <= 0) {
+        changeEl.textContent = 'KSh 0';
+        changeEl.className = '';
+        changeEl.style.color = 'var(--primary)';
+        return;
+    }
+    
+    const change = paid - total;
+    
+    if (change < 0) {
+        changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+        changeEl.style.color = 'var(--danger)';
+    } else {
+        changeEl.textContent = 'KSh ' + change.toLocaleString();
+        changeEl.style.color = 'var(--primary)';
+    }
+}
+
+function setQuickAmount(amount) {
+    document.getElementById('amountPaid').value = amount;
+    calculateChange();
+}
+
+// Auto-update change calculator when cart changes
+const origUpdatePOSUI = updatePOSUI;
+updatePOSUI = function() {
+    origUpdatePOSUI();
+    setTimeout(calculateChange, 50);
+};
 
 // ============================================================
 // ADD PRINTER BUTTONS
