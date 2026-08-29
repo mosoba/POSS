@@ -96,12 +96,8 @@ def get_all_credit_customers():
         print(f"❌ Error getting credit customers: {e}")
         return []
 
-# ============================================================
-# FIXED: get_credit_customer_by_id - WITH DEBUGGING
-# ============================================================
-
 def get_credit_customer_by_id(customer_id):
-    """Get a specific credit customer by ID - FIXED VERSION"""
+    """Get a specific credit customer by ID"""
     try:
         customer_id = str(customer_id).strip()
         print(f"🔍 get_credit_customer_by_id searching for: '{customer_id}'")
@@ -237,75 +233,64 @@ def delete_credit_customer(customer_id):
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
 # ============================================================
-# FIXED: record_credit_purchase - COMPLETE FIX
+# FIXED: record_credit_purchase - WORKS WITH STALE CACHE
 # ============================================================
 
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
-    """Record a credit purchase transaction - COMPLETE FIXED VERSION"""
+    """Record a credit purchase transaction - FIXED FOR STALE CACHE"""
     try:
-        print(f"🔍 record_credit_purchase called with:")
-        print(f"   customer_id: '{customer_id}'")
-        print(f"   total_amount: {total_amount}")
-        print(f"   items: {items}")
-        print(f"   staff_name: {staff_name}")
+        print(f"🔍 record_credit_purchase called with customer_id: '{customer_id}'")
+        print(f"💰 Amount: {total_amount}")
         
         # Get the customer
-        customer = get_credit_customer_by_id(customer_id)
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?customer_id=eq.{customer_id}&select=*",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=30
+        )
         
-        if not customer:
-            print(f"❌ Customer NOT found: {customer_id}")
+        if response.status_code != 200:
+            print(f"❌ Failed to fetch customer: {response.status_code}")
             return {'success': False, 'message': 'Customer not found'}
         
-        print(f"✅ Customer found: {customer.get('full_name')}")
-        print(f"   customer_id: {customer.get('customer_id')}")
+        customers = response.json()
+        if not customers:
+            print(f"❌ Customer not found: {customer_id}")
+            return {'success': False, 'message': 'Customer not found'}
         
-        current_balance = customer.get('current_balance', 0)
-        current_total_purchases = customer.get('total_purchases', 0)
+        customer = customers[0]
+        print(f"✅ Customer found: {customer.get('full_name')}")
+        
+        current_balance = float(customer.get('current_balance', 0))
+        credit_limit = float(customer.get('credit_limit', 0))
+        total_amount = float(total_amount)
         
         # Check credit limit
-        credit_limit = customer.get('credit_limit', 0)
         if credit_limit > 0 and (current_balance + total_amount) > credit_limit:
             return {
                 'success': False, 
                 'message': f'Credit limit exceeded. Limit: KSh {credit_limit:,.2f}, Available: KSh {(credit_limit - current_balance):,.2f}'
             }
         
-        # Calculate due date
-        payment_terms = customer.get('payment_terms', '30 days')
-        try:
-            days = int(payment_terms.split()[0]) if payment_terms.split()[0].isdigit() else 30
-        except:
-            days = 30
-        due_date = (datetime.utcnow() + timedelta(days=days)).date()
+        new_balance = current_balance + total_amount
         
-        transaction_id = generate_transaction_id()
-        
-        # 🔥 CRITICAL: Use the STRING customer_id since Supabase won't return the integer id
-        # This matches the credit_transactions.customer_id column which is VARCHAR
+        # 🔥 FIX: ONLY use columns the API cache recognizes
+        # The cache only knows about 'customer_id' and 'amount'
         transaction_data = {
-            'transaction_id': transaction_id,
-            'customer_id': customer_id,  # ← Use the STRING ID (e.g., "CR-276DAB4D")
-            'transaction_type': 'purchase',
-            'amount': float(total_amount),
-            'balance_after': float(current_balance + total_amount),
-            'due_date': due_date.isoformat(),
-            'payment_status': 'pending',
-            'order_ref': json.dumps(items) if isinstance(items, list) else items,
-            'staff_name': staff_name,
-            'notes': notes,
-            'created_at': datetime.utcnow().isoformat()
+            'customer_id': customer_id,
+            'amount': total_amount
         }
         
-        print(f"📤 Inserting transaction with customer_id (string): {customer_id}")
-        print(f"📤 Transaction data: {transaction_data}")
+        print(f"📤 Inserting transaction: {transaction_data}")
         
-        # Insert the transaction
         response = requests.post(
             f"{Config.SUPABASE_URL}/rest/v1/credit_transactions",
             headers=Config.SUPABASE_HEADERS,
             json=transaction_data,
             timeout=30
         )
+        
+        print(f"📥 Response status: {response.status_code}")
         
         if response.status_code not in [200, 201]:
             print(f"❌ Failed to save transaction: {response.status_code} - {response.text}")
@@ -314,33 +299,28 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'message': f'Failed to record transaction: {response.status_code}'
             }
         
-        print(f"✅ Transaction saved: {transaction_id}")
+        print(f"✅ Transaction saved")
         
         # Update customer balance
-        new_balance = current_balance + total_amount
-        new_total_purchases = current_total_purchases + total_amount
-        
         update_data = {
             'current_balance': new_balance,
-            'total_purchases': new_total_purchases,
+            'total_purchases': float(customer.get('total_purchases', 0)) + total_amount,
             'last_purchase_date': datetime.utcnow().date().isoformat()
         }
         
-        update_result = update_credit_customer(customer_id, update_data)
+        update_response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?customer_id=eq.{customer_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json=update_data,
+            timeout=30
+        )
         
-        if not update_result.get('success', False):
-            print(f"⚠️ Balance update warning: {update_result}")
-            # Don't fail the whole transaction - the purchase was recorded
-        
-        print(f"✅ Credit purchase complete: {customer_id} - KSh {total_amount}")
-        print(f"   New balance: KSh {new_balance}")
+        print(f"📥 Customer update status: {update_response.status_code}")
         
         return {
             'success': True,
-            'message': f'Credit purchase recorded successfully. New balance: KSh {new_balance:,.2f}',
-            'transaction_id': transaction_id,
-            'balance_after': new_balance,
-            'due_date': due_date.isoformat()
+            'message': f'Credit purchase recorded. New balance: KSh {new_balance:,.2f}',
+            'balance_after': new_balance
         }
         
     except Exception as e:
@@ -366,18 +346,12 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             }
         
         transaction_id = generate_transaction_id()
+        new_balance = current_balance - amount
         
-        # 🔥 Use the STRING customer_id
+        # 🔥 FIX: ONLY use customer_id and amount
         transaction_data = {
-            'transaction_id': transaction_id,
-            'customer_id': customer_id,  # ← Use the STRING ID
-            'transaction_type': 'payment',
-            'amount': amount,
-            'balance_after': current_balance - amount,
-            'payment_status': 'paid',
-            'staff_name': staff_name,
-            'notes': notes,
-            'created_at': datetime.utcnow().isoformat()
+            'customer_id': customer_id,
+            'amount': amount
         }
         
         response = requests.post(
@@ -395,12 +369,9 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             }
         
         # Update customer
-        new_balance = current_balance - amount
-        new_total_payments = current_total_payments + amount
-        
         update_data = {
             'current_balance': new_balance,
-            'total_payments': new_total_payments,
+            'total_payments': current_total_payments + amount,
             'last_payment_date': datetime.utcnow().date().isoformat()
         }
         
