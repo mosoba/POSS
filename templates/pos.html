@@ -1772,6 +1772,78 @@
                     </div>
 
                     <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
+                                 
+                    <script>
+// ============================================================
+// CHANGE CALCULATOR - DIRECT FIX
+// ============================================================
+
+// Define functions globally
+window.calculateChange = function() {
+    console.log('🔄 Calculating change...');
+    
+    const totalEl = document.getElementById('posTotal');
+    const paidEl = document.getElementById('amountPaid');
+    const changeEl = document.getElementById('changeAmount');
+    const totalDisplay = document.getElementById('changeTotalDisplay');
+    
+    if (!totalEl || !paidEl || !changeEl) {
+        console.log('❌ Elements not found!');
+        return;
+    }
+    
+    // Get total from cart
+    let total = 0;
+    const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+    total = parseFloat(totalText) || 0;
+    console.log('💰 Cart Total:', total);
+    
+    // Update total display
+    if (totalDisplay) {
+        totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+    }
+    
+    // Get amount paid
+    const paidValue = paidEl.value;
+    const paid = parseFloat(paidValue) || 0;
+    console.log('💰 Amount Paid:', paid);
+    
+    if (paid <= 0) {
+        changeEl.textContent = 'KSh 0';
+        changeEl.style.color = '#059669';
+        return;
+    }
+    
+    const change = paid - total;
+    console.log('💰 Change:', change);
+    
+    if (change < 0) {
+        changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+        changeEl.style.color = '#ef4444';
+    } else {
+        changeEl.textContent = 'KSh ' + change.toLocaleString();
+        changeEl.style.color = '#059669';
+    }
+};
+
+window.setQuickAmount = function(amount) {
+    console.log('💰 Quick amount clicked:', amount);
+    const paidEl = document.getElementById('amountPaid');
+    if (paidEl) {
+        paidEl.value = amount;
+        window.calculateChange();
+    }
+};
+
+console.log('✅ Change Calculator loaded!');
+console.log('🔍 Type check:', typeof window.calculateChange);
+</script>
+
+<div class="row total">
+    <span>Total</span>
+    <span class="amount" id="posTotal">KSh 0</span>
+</div>
+
 
                     <!-- ===== ORDER NOTES ===== -->
                     <div class="order-notes">
