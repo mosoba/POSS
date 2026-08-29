@@ -131,25 +131,6 @@ def get_credit_customer_by_id(customer_id):
         traceback.print_exc()
         return None
 
-def get_credit_customer_by_phone(phone):
-    """Find a credit customer by phone number"""
-    try:
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?phone=eq.{phone}&select=*",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            customers = response.json()
-            return customers[0] if customers else None
-        else:
-            return None
-            
-    except Exception as e:
-        print(f"❌ Error finding customer by phone: {e}")
-        return None
-
 def update_credit_customer(customer_id, update_data):
     """Update a credit customer"""
     try:
@@ -312,9 +293,10 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                     print(f"  ⚠️ Error fetching product: {product_name}")
                     total_cost += total_amount * 0.7
         
-        # Save transaction with items and cost
+        # Calculate cost percentage
         cost_percentage = total_cost / total_amount if total_amount > 0 else 0.7
         
+        # 🔥 SAVE WITH ALL COLUMNS
         transaction_data = {
             'customer_id': customer_id,
             'transaction_type': 'purchase',
@@ -410,7 +392,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         
         new_balance = current_balance - amount
         
-        # 🔥🔥🔥 GET STORED COST PERCENTAGE FROM PURCHASES
+        # 🔥 GET STORED COST PERCENTAGE FROM PURCHASES
         transactions = get_customer_transactions(customer_id)
         
         total_purchases = 0
@@ -425,10 +407,9 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 tx_cost = float(tx.get('total_cost', 0))
                 if tx_cost > 0:
                     total_cost += tx_cost
-                elif tx.get('cost_percentage'):
+                
+                if tx.get('cost_percentage'):
                     cost_percentage = float(tx.get('cost_percentage', 0.7))
-                else:
-                    cost_percentage = get_average_cost_percentage()
         
         # Calculate exact cost percentage for this customer
         if total_purchases > 0 and total_cost > 0:
@@ -445,7 +426,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         print(f"📦 Cost: {cost_of_goods:.2f}")
         print(f"💵 Profit: {profit:.2f}")
         
-        # Save payment transaction
+        # 🔥 SAVE PAYMENT WITH COST AND PROFIT
         transaction_data = {
             'customer_id': customer_id,
             'transaction_type': 'payment',
@@ -495,7 +476,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'message': f'Payment recorded but failed to update balance: {update_response.status_code}'
             }
         
-        # Create order for revenue
+        # 🔥 CREATE ORDER FOR REVENUE
         try:
             order_id = f'CREDIT-PAY-{uuid.uuid4().hex[:8].upper()}'
             customer_name = customer.get('full_name', 'Customer')
@@ -509,8 +490,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                     'total': amount,
                     'cost_price': cost_of_goods,
                     'profit': profit,
-                    'type': 'credit_payment',
-                    'cost_percentage': cost_percentage
+                    'type': 'credit_payment'
                 }],
                 'subtotal': amount,
                 'shipping': 0,
