@@ -2995,50 +2995,32 @@ console.log('🔍 Type check:', typeof window.calculateChange);
         processNormalOrder();
     }
 
-    // ============================================================
-// PROCESS CREDIT PURCHASE - FIXED VERSION (STOCK DEDUCTION FIRST)
+   // ============================================================
+// PROCESS CREDIT PURCHASE - FIXED VERSION
 // ============================================================
 function processCreditPurchase(customerId, customerName, total) {
+    console.log('🔄 processCreditPurchase called (FIXED VERSION)');
+    
     const btn = document.getElementById('posPlaceOrderBtn');
     const originalText = btn.innerHTML;
     btn.innerHTML = '⏳ Processing credit...';
     btn.disabled = true;
 
-    // 🔥 DEDUCT STOCK FIRST - BEFORE API CALL
-    console.log('📦 Deducting stock for credit purchase...');
-    let stockDeducted = true;
-    
+    // ✅ STEP 1: Deduct stock EXACTLY like normal order
+    console.log('📦 Deducting stock (same as normal order)...');
     posCart.forEach(item => {
         const product = allProducts.find(p => String(p.id) === String(item.id));
         if (product) {
-            const currentStock = product.stock || 0;
-            if (currentStock < item.quantity) {
-                stockDeducted = false;
-                showToast('⚠️ Not enough stock for ' + item.name, 'warning');
-                return;
-            }
-            // Deduct stock
-            const before = currentStock;
+            const before = product.stock || 0;
             product.stock = Math.max(0, before - item.quantity);
             console.log('  ✅ ' + product.name + ': ' + before + ' → ' + product.stock);
-            
-            // Also update in filteredProducts
-            const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
-            if (filtered) {
-                filtered.stock = product.stock;
-            }
         }
     });
 
-    if (!stockDeducted) {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        return;
-    }
-
-    // ✅ Force UI update after stock deduction
-    renderProducts();
+    // ✅ STEP 2: Update display IMMEDIATELY (like normal order)
     updatePOSUI();
+    renderProducts();
+    console.log('✅ UI updated immediately!');
 
     const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
     const notes = document.getElementById('orderNotes')?.value || '';
@@ -3067,7 +3049,6 @@ function processCreditPurchase(customerId, customerName, total) {
             showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
             showCreditReceipt(customerName, total, result);
 
-            // Clear cart
             posCart = [];
             discountValue = 0;
             tipAmount = 0;
@@ -3075,23 +3056,19 @@ function processCreditPurchase(customerId, customerName, total) {
             document.getElementById('tipDisplay').textContent = 'KSh 0';
             if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
             
-            // ✅ Refresh everything
-            renderProducts();
             updatePOSUI();
+            renderProducts();
             loadCreditCustomers();
             updateQuickSalesCount();
             loadSalesStats();
+            
+            console.log('✅ Credit order complete! Stock should be updated.');
         } else {
-            // ❌ If API fails, RESTORE stock
             console.log('🔄 Restoring stock due to API error...');
             posCart.forEach(item => {
                 const product = allProducts.find(p => String(p.id) === String(item.id));
                 if (product) {
                     product.stock = (product.stock || 0) + item.quantity;
-                    const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
-                    if (filtered) {
-                        filtered.stock = product.stock;
-                    }
                 }
             });
             renderProducts();
@@ -3102,16 +3079,11 @@ function processCreditPurchase(customerId, customerName, total) {
         btn.innerHTML = originalText;
         btn.disabled = false;
         
-        // ❌ If network error, RESTORE stock
         console.log('🔄 Restoring stock due to network error...');
         posCart.forEach(item => {
             const product = allProducts.find(p => String(p.id) === String(item.id));
             if (product) {
                 product.stock = (product.stock || 0) + item.quantity;
-                const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
-                if (filtered) {
-                    filtered.stock = product.stock;
-                }
             }
         });
         renderProducts();
