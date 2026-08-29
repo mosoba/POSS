@@ -2996,72 +2996,129 @@ console.log('🔍 Type check:', typeof window.calculateChange);
     }
 
     // ============================================================
-    // PROCESS CREDIT PURCHASE - FIXED VERSION
-    // ============================================================
-    function processCreditPurchase(customerId, customerName, total) {
-        const btn = document.getElementById('posPlaceOrderBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Processing credit...';
-        btn.disabled = true;
+// PROCESS CREDIT PURCHASE - FIXED VERSION (STOCK DEDUCTION FIRST)
+// ============================================================
+function processCreditPurchase(customerId, customerName, total) {
+    const btn = document.getElementById('posPlaceOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Processing credit...';
+    btn.disabled = true;
 
-        const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
-        const notes = document.getElementById('orderNotes')?.value || '';
-
-        // 🔥 FIX: Use customerId as string (e.g., "CR-276DAB4D")
-        const data = {
-            customer_id: String(customerId),  // Ensure it's a string
-            items: itemsList,
-            total_amount: total,
-            staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
-            notes: notes + ' (Credit purchase via POS)'
-        };
-
-        console.log('📤 Sending credit purchase:', data);
-
-        fetch('/admin/api/credit/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(r => r.json())
-        .then(result => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            
-            if (result.success) {
-                posCart.forEach(item => {
-                    const product = allProducts.find(p => String(p.id) === String(item.id));
-                    if (product) {
-                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                    }
-                });
-
-                showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
-                showCreditReceipt(customerName, total, result);
-
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                updatePOSUI();
-                renderProducts();
-                loadCreditCustomers();
-                updateQuickSalesCount();
-                loadSalesStats();
-            } else {
-                showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+    // 🔥 DEDUCT STOCK FIRST - BEFORE API CALL
+    console.log('📦 Deducting stock for credit purchase...');
+    let stockDeducted = true;
+    
+    posCart.forEach(item => {
+        const product = allProducts.find(p => String(p.id) === String(item.id));
+        if (product) {
+            const currentStock = product.stock || 0;
+            if (currentStock < item.quantity) {
+                stockDeducted = false;
+                showToast('⚠️ Not enough stock for ' + item.name, 'warning');
+                return;
             }
-        })
-        .catch(err => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            showToast('❌ Error: ' + err.message, 'error');
-            console.error('❌ Credit purchase error:', err);
-        });
+            // Deduct stock
+            const before = currentStock;
+            product.stock = Math.max(0, before - item.quantity);
+            console.log('  ✅ ' + product.name + ': ' + before + ' → ' + product.stock);
+            
+            // Also update in filteredProducts
+            const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
+            if (filtered) {
+                filtered.stock = product.stock;
+            }
+        }
+    });
+
+    if (!stockDeducted) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
     }
 
+    // ✅ Force UI update after stock deduction
+    renderProducts();
+    updatePOSUI();
+
+    const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
+    const notes = document.getElementById('orderNotes')?.value || '';
+
+    const data = {
+        customer_id: String(customerId),
+        items: itemsList,
+        total_amount: total,
+        staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
+        notes: notes + ' (Credit purchase via POS)'
+    };
+
+    console.log('📤 Sending credit purchase:', data);
+
+    fetch('/admin/api/credit/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (result.success) {
+            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+            showCreditReceipt(customerName, total, result);
+
+            // Clear cart
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            
+            // ✅ Refresh everything
+            renderProducts();
+            updatePOSUI();
+            loadCreditCustomers();
+            updateQuickSalesCount();
+            loadSalesStats();
+        } else {
+            // ❌ If API fails, RESTORE stock
+            console.log('🔄 Restoring stock due to API error...');
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = (product.stock || 0) + item.quantity;
+                    const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
+                    if (filtered) {
+                        filtered.stock = product.stock;
+                    }
+                }
+            });
+            renderProducts();
+            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // ❌ If network error, RESTORE stock
+        console.log('🔄 Restoring stock due to network error...');
+        posCart.forEach(item => {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product) {
+                product.stock = (product.stock || 0) + item.quantity;
+                const filtered = filteredProducts.find(p => String(p.id) === String(item.id));
+                if (filtered) {
+                    filtered.stock = product.stock;
+                }
+            }
+        });
+        renderProducts();
+        showToast('❌ Error: ' + err.message, 'error');
+        console.error('❌ Credit purchase error:', err);
+    });
+}
     
                   
       // ============================================================
