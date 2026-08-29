@@ -233,14 +233,15 @@ def delete_credit_customer(customer_id):
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
 # ============================================================
-# FIXED: record_credit_purchase - WORKS WITH STALE CACHE
+# FIXED: record_credit_purchase - WITH ALL REQUIRED FIELDS
 # ============================================================
 
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
-    """Record a credit purchase transaction - FIXED FOR STALE CACHE"""
+    """Record a credit purchase transaction - FIXED WITH ALL FIELDS"""
     try:
         print(f"🔍 record_credit_purchase called with customer_id: '{customer_id}'")
         print(f"💰 Amount: {total_amount}")
+        print(f"📦 Items: {items}")
         
         # Get the customer
         response = requests.get(
@@ -264,21 +265,38 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         current_balance = float(customer.get('current_balance', 0))
         credit_limit = float(customer.get('credit_limit', 0))
         total_amount = float(total_amount)
+        new_balance = current_balance + total_amount
         
         # Check credit limit
-        if credit_limit > 0 and (current_balance + total_amount) > credit_limit:
+        if credit_limit > 0 and new_balance > credit_limit:
             return {
                 'success': False, 
                 'message': f'Credit limit exceeded. Limit: KSh {credit_limit:,.2f}, Available: KSh {(credit_limit - current_balance):,.2f}'
             }
         
-        new_balance = current_balance + total_amount
+        # Calculate due date
+        payment_terms = customer.get('payment_terms', '30 days')
+        try:
+            days = int(payment_terms.split()[0])
+        except:
+            days = 30
+        due_date = (datetime.utcnow() + timedelta(days=days)).date().isoformat()
         
-        # 🔥 FIX: ONLY use columns the API cache recognizes
-        # The cache only knows about 'customer_id' and 'amount'
+        # 🔥 FIX: Include ALL required fields
+        transaction_id = generate_transaction_id()
         transaction_data = {
+            'transaction_id': transaction_id,
             'customer_id': customer_id,
-            'amount': total_amount
+            'transaction_type': 'purchase',
+            'amount': total_amount,
+            'balance_after': new_balance,
+            'interest_charges': 0,
+            'due_date': due_date,
+            'payment_status': 'pending',
+            'order_ref': f'POS-{uuid.uuid4().hex[:6].upper()}',
+            'staff_name': staff_name,
+            'notes': notes + f' | Items: {items}',
+            'created_at': datetime.utcnow().isoformat()
         }
         
         print(f"📤 Inserting transaction: {transaction_data}")
@@ -299,7 +317,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'message': f'Failed to record transaction: {response.status_code}'
             }
         
-        print(f"✅ Transaction saved")
+        print(f"✅ Transaction saved: {transaction_id}")
         
         # Update customer balance
         update_data = {
@@ -315,12 +333,25 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             timeout=30
         )
         
-        print(f"📥 Customer update status: {update_response.status_code}")
+        if update_response.status_code not in [200, 204]:
+            print(f"⚠️ Failed to update customer balance: {update_response.status_code}")
+            return {
+                'success': False,
+                'message': 'Transaction saved but failed to update customer balance'
+            }
+        
+        print(f"✅ Customer balance updated: {current_balance} → {new_balance}")
         
         return {
             'success': True,
-            'message': f'Credit purchase recorded. New balance: KSh {new_balance:,.2f}',
-            'balance_after': new_balance
+            'transaction_id': transaction_id,
+            'customer_id': customer_id,
+            'customer_name': customer.get('full_name'),
+            'total_amount': total_amount,
+            'balance_after': new_balance,
+            'credit_limit': credit_limit,
+            'due_date': due_date,
+            'message': f'Credit purchase recorded successfully! New balance: KSh {new_balance:,.2f}'
         }
         
     except Exception as e:
@@ -329,15 +360,20 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         traceback.print_exc()
         return {'success': False, 'message': str(e)}
 
+# ============================================================
+# FIXED: record_credit_payment - WITH ALL REQUIRED FIELDS
+# ============================================================
+
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
-    """Record a credit payment from customer"""
+    """Record a credit payment from customer - FIXED WITH ALL FIELDS"""
     try:
         customer = get_credit_customer_by_id(customer_id)
         if not customer:
             return {'success': False, 'message': 'Customer not found'}
         
-        current_balance = customer.get('current_balance', 0)
-        current_total_payments = customer.get('total_payments', 0)
+        current_balance = float(customer.get('current_balance', 0))
+        current_total_payments = float(customer.get('total_payments', 0))
+        amount = float(amount)
         
         if amount > current_balance:
             return {
@@ -348,11 +384,23 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         transaction_id = generate_transaction_id()
         new_balance = current_balance - amount
         
-        # 🔥 FIX: ONLY use customer_id and amount
+        # 🔥 FIX: Include ALL required fields
         transaction_data = {
+            'transaction_id': transaction_id,
             'customer_id': customer_id,
-            'amount': amount
+            'transaction_type': 'payment',
+            'amount': amount,
+            'balance_after': new_balance,
+            'interest_charges': 0,
+            'due_date': None,
+            'payment_status': 'paid',
+            'order_ref': '',
+            'staff_name': staff_name,
+            'notes': notes,
+            'created_at': datetime.utcnow().isoformat()
         }
+        
+        print(f"📤 Inserting payment: {transaction_data}")
         
         response = requests.post(
             f"{Config.SUPABASE_URL}/rest/v1/credit_transactions",
@@ -368,6 +416,8 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'message': f'Failed to record payment: {response.status_code}'
             }
         
+        print(f"✅ Payment saved: {transaction_id}")
+        
         # Update customer
         update_data = {
             'current_balance': new_balance,
@@ -375,21 +425,29 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             'last_payment_date': datetime.utcnow().date().isoformat()
         }
         
-        update_result = update_credit_customer(customer_id, update_data)
+        update_response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?customer_id=eq.{customer_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json=update_data,
+            timeout=30
+        )
         
-        if not update_result.get('success', False):
+        if update_response.status_code not in [200, 204]:
             return {
                 'success': False,
                 'message': 'Payment recorded but failed to update balance'
             }
         
-        print(f"✅ Credit payment: {customer_id} - KSh {amount}")
+        print(f"✅ Customer balance updated: {current_balance} → {new_balance}")
         
         return {
             'success': True,
-            'message': f'Payment recorded successfully. New balance: KSh {new_balance:,.2f}',
             'transaction_id': transaction_id,
-            'balance_after': new_balance
+            'customer_id': customer_id,
+            'customer_name': customer.get('full_name'),
+            'amount': amount,
+            'balance_after': new_balance,
+            'message': f'Payment recorded successfully. New balance: KSh {new_balance:,.2f}'
         }
         
     except Exception as e:
@@ -401,7 +459,6 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
 def get_customer_transactions(customer_id):
     """Get all transactions for a customer"""
     try:
-        # Use the STRING customer_id to find transactions
         response = requests.get(
             f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?customer_id=eq.{customer_id}&order=created_at.desc",
             headers=Config.SUPABASE_HEADERS,
@@ -482,19 +539,25 @@ def get_full_credit_summary():
         overdue_balance = 0
         overdue_count = 0
         
+        # Get totals from customers
         for c in customers:
             total_credit_sales += c.get('total_purchases', 0)
             total_payments_received += c.get('total_payments', 0)
             current_outstanding += c.get('current_balance', 0)
             
+            # Check overdue
             if c.get('account_status') == 'active' and c.get('current_balance', 0) > 0:
                 txs = get_customer_transactions(c.get('customer_id'))
                 if txs and txs[0].get('due_date'):
-                    due_date = datetime.fromisoformat(txs[0]['due_date']).date()
-                    if due_date < datetime.utcnow().date():
-                        overdue_balance += c.get('current_balance', 0)
-                        overdue_count += 1
+                    try:
+                        due_date = datetime.fromisoformat(txs[0]['due_date']).date()
+                        if due_date < datetime.utcnow().date():
+                            overdue_balance += c.get('current_balance', 0)
+                            overdue_count += 1
+                    except:
+                        pass
         
+        # Also check transactions table for accurate totals
         transactions = get_all_credit_transactions()
         tx_sales = 0
         tx_payments = 0
@@ -507,6 +570,7 @@ def get_full_credit_summary():
             else:
                 tx_sales += tx_amount
         
+        # Use transaction totals if they're higher (more accurate)
         if tx_sales > total_credit_sales:
             total_credit_sales = tx_sales
         if tx_payments > total_payments_received:
@@ -554,21 +618,24 @@ def get_overdue_customers_with_details():
             
             txs = get_customer_transactions(c.get('customer_id'))
             if txs and txs[0].get('due_date'):
-                due_date = datetime.fromisoformat(txs[0]['due_date']).date()
-                days_overdue = (datetime.utcnow().date() - due_date).days
-                
-                if days_overdue > 0:
-                    overdue_list.append({
-                        'customer_id': c.get('customer_id'),
-                        'full_name': c.get('full_name'),
-                        'phone': c.get('phone'),
-                        'balance': c.get('current_balance', 0),
-                        'credit_limit': c.get('credit_limit', 0),
-                        'due_date': due_date.isoformat(),
-                        'days_overdue': days_overdue,
-                        'last_payment_date': c.get('last_payment_date'),
-                        'total_purchases': c.get('total_purchases', 0)
-                    })
+                try:
+                    due_date = datetime.fromisoformat(txs[0]['due_date']).date()
+                    days_overdue = (datetime.utcnow().date() - due_date).days
+                    
+                    if days_overdue > 0:
+                        overdue_list.append({
+                            'customer_id': c.get('customer_id'),
+                            'full_name': c.get('full_name'),
+                            'phone': c.get('phone'),
+                            'balance': c.get('current_balance', 0),
+                            'credit_limit': c.get('credit_limit', 0),
+                            'due_date': due_date.isoformat(),
+                            'days_overdue': days_overdue,
+                            'last_payment_date': c.get('last_payment_date'),
+                            'total_purchases': c.get('total_purchases', 0)
+                        })
+                except:
+                    pass
         
         overdue_list.sort(key=lambda x: x['days_overdue'], reverse=True)
         return overdue_list
@@ -578,18 +645,18 @@ def get_overdue_customers_with_details():
         return []
 
 def get_monthly_credit_report(year=None):
-    """Get monthly credit report using customer data"""
+    """Get monthly credit report using transactions"""
     try:
         if not year:
             year = datetime.utcnow().year
         
-        customers = get_all_credit_customers()
+        transactions = get_all_credit_transactions()
         
         months = {}
         
-        for c in customers:
+        for tx in transactions:
             tx_date = None
-            date_str = c.get('created_at', '')
+            date_str = tx.get('created_at', '')
             
             if date_str:
                 try:
@@ -622,8 +689,14 @@ def get_monthly_credit_report(year=None):
                     'transactions_count': 0
                 }
             
-            months[month_key]['total_credit_sales'] += c.get('total_purchases', 0)
-            months[month_key]['total_payments'] += c.get('total_payments', 0)
+            tx_type = tx.get('transaction_type', 'purchase').lower()
+            tx_amount = float(tx.get('amount', 0))
+            
+            if tx_type == 'payment':
+                months[month_key]['total_payments'] += tx_amount
+            else:
+                months[month_key]['total_credit_sales'] += tx_amount
+            
             months[month_key]['transactions_count'] += 1
         
         report = list(months.values())
@@ -743,3 +816,35 @@ def get_credit_dashboard_data():
             'monthly_report': [],
             'total_transactions': 0
         }
+
+# ============================================================
+# FIX: EXISTING TRANSACTIONS - ADD TRANSACTION TYPE
+# ============================================================
+
+def fix_existing_transactions():
+    """Add transaction_type to existing transactions"""
+    try:
+        transactions = get_all_credit_transactions()
+        fixed_count = 0
+        
+        for tx in transactions:
+            tx_id = tx.get('id')
+            if tx_id and not tx.get('transaction_type'):
+                # Determine type from amount
+                amount = float(tx.get('amount', 0))
+                tx_type = 'payment' if amount < 0 else 'purchase'
+                
+                response = requests.patch(
+                    f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?id=eq.{tx_id}",
+                    headers=Config.SUPABASE_HEADERS,
+                    json={'transaction_type': tx_type},
+                    timeout=30
+                )
+                if response.status_code in [200, 204]:
+                    fixed_count += 1
+                    print(f"✅ Fixed transaction {tx_id} - type: {tx_type}")
+        
+        return {'success': True, 'fixed': fixed_count}
+    except Exception as e:
+        print(f"❌ Error fixing transactions: {e}")
+        return {'success': False, 'error': str(e)}
