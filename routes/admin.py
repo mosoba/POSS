@@ -1056,6 +1056,24 @@ def api_profitability_summary():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+  
+
+  # ============================================================
+# ✅ ADD CLEAR CACHE HERE
+# ============================================================
+
+@admin_bp.route('/admin/api/clear-cache', methods=['GET'])
+@admin_required
+def clear_cache():
+    """Force clear all data caches"""
+    try:
+        import utils.data
+        utils.data.orders_cache = []
+        utils.data.products_cache = []
+        return jsonify({'success': True, 'message': 'Cache cleared successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
 # ============================================================
