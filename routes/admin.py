@@ -1029,6 +1029,34 @@ def api_get_credit_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+  
+  # ============================================================
+# PROFITABILITY API - COMBINES ALL PAID SALES    <-- ADD THIS
+# ============================================================
+
+@admin_bp.route('/admin/api/profitability/summary', methods=['GET'])
+@admin_required
+def api_profitability_summary():
+    """Get combined profitability from PAID sales only"""
+    try:
+        from utils.profitability import get_profitability_summary, get_monthly_profitability
+        
+        summary = get_profitability_summary()
+        monthly = get_monthly_profitability()
+        
+        return jsonify({
+            'success': True,
+            'summary': summary,
+            'monthly': monthly
+        })
+        
+    except Exception as e:
+        print(f"❌ Profitability API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
 # ============================================================
 # SUPPLIER MANAGEMENT ROUTES
