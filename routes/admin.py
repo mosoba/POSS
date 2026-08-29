@@ -872,15 +872,16 @@ def api_get_credit_transactions(customer_id):
 
 
 # ============================================================
-# FIXED: CREDIT PURCHASE ROUTE
+# FIXED: CREDIT PURCHASE ROUTE WITH STOCK DEDUCTION
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/purchase', methods=['POST'])
 @admin_required
 def api_record_credit_purchase():
-    """Record a credit purchase - FIXED API endpoint"""
+    """Record a credit purchase - FIXED with stock deduction"""
     try:
         from utils.credit import record_credit_purchase
+        import re
         
         data = request.get_json()
         if not data:
@@ -894,6 +895,58 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
+        # 🔥 STOCK DEDUCTION - FIXED VERSION
+        items_str = data.get('items', '')
+        print(f"📦 Items string: {items_str}")
+        
+        if items_str:
+            # Parse items from string: "Product Name x1, Product2 x2"
+            items_list = items_str.split(', ')
+            for item_str in items_list:
+                match = re.match(r'(.+?) x(\d+)$', item_str.strip())
+                if match:
+                    product_name = match.group(1).strip()
+                    quantity = int(match.group(2))
+                    
+                    print(f"📦 Searching for product: '{product_name}'")
+                    
+                    # Find product by name (partial match)
+                    response = requests.get(
+                        f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
+                        headers=Config.SUPABASE_HEADERS,
+                        timeout=10
+                    )
+                    
+                    if response.status_code == 200:
+                        products = response.json()
+                        if products and len(products) > 0:
+                            # Use the first match
+                            product = products[0]
+                            current_stock = product.get('stock', 0)
+                            new_stock = max(0, current_stock - quantity)
+                            
+                            print(f"📦 {product_name}: {current_stock} → {new_stock}")
+                            
+                            # Update stock in database
+                            update_response = requests.patch(
+                                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product.get('id')}",
+                                headers=Config.SUPABASE_HEADERS,
+                                json={'stock': new_stock},
+                                timeout=10
+                            )
+                            
+                            if update_response.status_code in [200, 204]:
+                                print(f"✅ Stock updated for: {product_name}")
+                            else:
+                                print(f"⚠️ Failed to update stock: {update_response.status_code}")
+                        else:
+                            print(f"⚠️ Product not found: {product_name}")
+                    else:
+                        print(f"⚠️ Error fetching product: {response.status_code}")
+                else:
+                    print(f"⚠️ Could not parse item: {item_str}")
+        
+        # Record the credit purchase
         result = record_credit_purchase(
             customer_id=data['customer_id'],
             items=data['items'],
