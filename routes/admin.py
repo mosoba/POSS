@@ -895,12 +895,11 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # 🔥 STOCK DEDUCTION - FIXED VERSION
+        # 🔥 STOCK DEDUCTION
         items_str = data.get('items', '')
         print(f"📦 Items string: {items_str}")
         
         if items_str:
-            # Parse items from string: "Product Name x1, Product2 x2"
             items_list = items_str.split(', ')
             for item_str in items_list:
                 match = re.match(r'(.+?) x(\d+)$', item_str.strip())
@@ -910,7 +909,6 @@ def api_record_credit_purchase():
                     
                     print(f"📦 Searching for product: '{product_name}'")
                     
-                    # Find product by name (partial match)
                     response = requests.get(
                         f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
                         headers=Config.SUPABASE_HEADERS,
@@ -920,14 +918,12 @@ def api_record_credit_purchase():
                     if response.status_code == 200:
                         products = response.json()
                         if products and len(products) > 0:
-                            # Use the first match
                             product = products[0]
                             current_stock = product.get('stock', 0)
                             new_stock = max(0, current_stock - quantity)
                             
                             print(f"📦 {product_name}: {current_stock} → {new_stock}")
                             
-                            # Update stock in database
                             update_response = requests.patch(
                                 f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product.get('id')}",
                                 headers=Config.SUPABASE_HEADERS,
@@ -946,7 +942,6 @@ def api_record_credit_purchase():
                 else:
                     print(f"⚠️ Could not parse item: {item_str}")
         
-        # Record the credit purchase
         result = record_credit_purchase(
             customer_id=data['customer_id'],
             items=data['items'],
