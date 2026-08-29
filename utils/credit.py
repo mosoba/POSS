@@ -67,7 +67,7 @@ def add_credit_customer(customer_data):
             }
             
     except Exception as e:
-        print(f"❌ Error adding credit customer: {e}")  
+        print(f"❌ Error adding credit customer: {e}")
         return {'success': False, 'message': str(e)}
 
 def get_all_credit_customers():
@@ -347,11 +347,49 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         return {'success': False, 'message': str(e)}
 
 # ============================================================
-# FIXED: record_credit_payment - WITH REVENUE ORDER CREATION
+# NEW: GET AVERAGE COST PERCENTAGE FROM PRODUCTS
+# ============================================================
+
+def get_average_cost_percentage():
+    """Calculate average cost percentage from ALL products"""
+    try:
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/products?select=price,cost_price",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            products = response.json()
+            total_ratio = 0
+            count = 0
+            
+            for p in products:
+                price = float(p.get('price', 0))
+                cost = float(p.get('cost_price', 0))
+                if price > 0 and cost > 0:
+                    ratio = cost / price
+                    total_ratio += ratio
+                    count += 1
+            
+            if count > 0:
+                avg_cost_percentage = total_ratio / count
+                print(f"📊 Average cost percentage: {avg_cost_percentage * 100:.1f}%")
+                return avg_cost_percentage
+        
+        # Fallback: use 65% average from your products
+        return 0.65
+        
+    except Exception as e:
+        print(f"❌ Error calculating average cost: {e}")
+        return 0.65
+
+# ============================================================
+# FIXED: record_credit_payment - WITH REAL COST AND REVENUE ORDER
 # ============================================================
 
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
-    """Record a credit payment - FIXED with revenue order creation"""
+    """Record a credit payment - FIXED with real product costs"""
     try:
         customer = get_credit_customer_by_id(customer_id)
         if not customer:
@@ -416,8 +454,16 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'message': f'Payment recorded but failed to update balance: {update_response.status_code}'
             }
         
-        # 🔥🔥🔥 CREATE ORDER ENTRY FOR REVENUE TRACKING
+        # 🔥🔥🔥 CALCULATE REAL COST FROM PRODUCTS
         try:
+            # Calculate average cost percentage from products
+            cost_percentage = get_average_cost_percentage()
+            cost_of_goods = amount * cost_percentage
+            profit = amount - cost_of_goods
+            
+            print(f"💰 Payment: {amount}, Cost %: {cost_percentage * 100:.1f}%, Cost: {cost_of_goods:.2f}, Profit: {profit:.2f}")
+            
+            # Create order for revenue
             order_id = f'CREDIT-PAY-{uuid.uuid4().hex[:8].upper()}'
             customer_name = customer.get('full_name', 'Customer')
             
@@ -428,6 +474,8 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                     'quantity': 1,
                     'price': amount,
                     'total': amount,
+                    'cost_price': cost_of_goods,
+                    'profit': profit,
                     'type': 'credit_payment'
                 }],
                 'subtotal': amount,
@@ -451,7 +499,9 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
                 'user_role': 'pos',
                 'staff_name': staff_name,
                 'payment_method': 'credit_payment',
-                'notes': f'Credit payment from {customer_name}: {notes}'
+                'notes': f'Credit payment from {customer_name}: {notes}',
+                'total_cost': cost_of_goods,
+                'profit': profit
             }
             
             print(f"📤 Creating revenue order for credit payment: {order_id}")
@@ -465,7 +515,6 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
             
             if order_response.status_code in [200, 201]:
                 print(f"✅ Revenue order created: {order_id}")
-                # Clear cache so revenue updates
                 try:
                     import utils.data
                     utils.data.orders_cache = []
