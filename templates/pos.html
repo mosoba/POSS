@@ -5252,5 +5252,89 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('  - window.checkPrinterStatus()');
 });
 </script>
+    <script>
+// ============================================================
+// LOAD CATEGORIES DYNAMICALLY FROM DATABASE
+// ============================================================
+
+function loadCategories() {
+    console.log('🔄 Loading categories dynamically...');
+    
+    const container = document.getElementById('categoryFilters');
+    if (!container) {
+        console.log('❌ Category container not found');
+        return;
+    }
+    
+    // Keep only "All" button
+    container.innerHTML = '';
+    
+    // Create "All" button
+    const allBtn = document.createElement('span');
+    allBtn.className = 'category-pill active';
+    allBtn.dataset.category = 'all';
+    allBtn.textContent = 'All';
+    allBtn.onclick = function() { filterByCategory('all', this); };
+    container.appendChild(allBtn);
+    
+    // Fetch categories from Supabase
+    const SUPABASE_URL = 'https://haqqknmerdnfvwmsnath.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA';
+    
+    fetch(`${SUPABASE_URL}/rest/v1/products?select=category`, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+    })
+    .then(r => r.json())
+    .then(products => {
+        // Get unique categories
+        const categories = {};
+        products.forEach(p => {
+            const cat = p.category || 'Uncategorized';
+            // Skip unwanted/test categories
+            if (cat && !['Uncategorized', 'category', 'Test', 'gaming', 'phones', 'Phones'].includes(cat)) {
+                categories[cat] = (categories[cat] || 0) + 1;
+            }
+        });
+        
+        // Sort categories alphabetically
+        const sortedCategories = Object.keys(categories).sort();
+        console.log('📊 Categories loaded:', sortedCategories);
+        
+        // Add category pills
+        sortedCategories.forEach(cat => {
+            const pill = document.createElement('span');
+            pill.className = 'category-pill';
+            pill.dataset.category = cat;
+            pill.textContent = cat + ' (' + categories[cat] + ')';
+            pill.onclick = function() { filterByCategory(cat, this); };
+            container.appendChild(pill);
+        });
+        
+        console.log('✅ Categories loaded: ' + sortedCategories.length);
+    })
+    .catch(err => {
+        console.error('❌ Error loading categories:', err);
+        // Fallback: use hardcoded clean categories if fetch fails
+        const fallback = ['Beverages', 'Accessories', 'Household', 'Personal Care', 'School Supplies'];
+        fallback.forEach(cat => {
+            const pill = document.createElement('span');
+            pill.className = 'category-pill';
+            pill.dataset.category = cat;
+            pill.textContent = cat;
+            pill.onclick = function() { filterByCategory(cat, this); };
+            container.appendChild(pill);
+        });
+    });
+}
+
+// Call on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for the page to load
+    setTimeout(loadCategories, 300);
+});
+</script>
 </body>
 </html>
