@@ -2,7 +2,17 @@ import os
 import json
 import requests
 from datetime import datetime
-from config import Config
+
+# 🔥 HARDCODE SUPABASE CONFIG (temporary fix for Vercel)
+SUPABASE_URL = "https://haqqknmerdnfvwmsnath.supabase.co"
+SUPABASE_KEY = "sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA"
+
+SUPABASE_HEADERS = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': f'Bearer {SUPABASE_KEY}',
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+}
 
 # ============================================================
 # PROFITABILITY TRACKING - ONLY PAID SALES
@@ -16,55 +26,79 @@ def get_paid_sales():
     - Credit outstanding = NOT counted (not yet paid)
     """
     try:
+        print("📊 get_paid_sales() called")
+        
         # 1. Get orders (Cash + POS - already paid)
         orders_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/orders?select=total,status",
-            headers=Config.SUPABASE_HEADERS,
+            f"{SUPABASE_URL}/rest/v1/orders?select=total,status",
+            headers=SUPABASE_HEADERS,
             timeout=30
         )
         
         total_orders = 0
         if orders_response.status_code == 200:
             orders = orders_response.json()
+            print(f"📦 Found {len(orders)} orders")
             for order in orders:
                 if order.get('status') != 'cancelled':
                     total_orders += float(order.get('total', 0))
+        else:
+            print(f"❌ Orders API error: {orders_response.status_code}")
+        
+        print(f"💰 Total Orders Revenue: {total_orders}")
         
         # 2. Get credit PAYMENTS (money actually received from credit customers)
         credit_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type",
-            headers=Config.SUPABASE_HEADERS,
+            f"{SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type",
+            headers=SUPABASE_HEADERS,
             timeout=30
         )
         
         total_credit_paid = 0
         total_credit_sales = 0
+        
         if credit_response.status_code == 200:
             transactions = credit_response.json()
+            print(f"💳 Found {len(transactions)} credit transactions")
+            
             for tx in transactions:
                 tx_type = tx.get('transaction_type', '').lower()
                 amount = float(tx.get('amount', 0))
+                
                 if tx_type == 'purchase':
                     total_credit_sales += amount
+                    print(f"  📦 Credit Purchase: +KSh {amount}")
                 elif tx_type == 'payment':
                     total_credit_paid += amount
+                    print(f"  💳 Credit Payment: +KSh {amount}")
+        else:
+            print(f"❌ Credit API error: {credit_response.status_code}")
+        
+        print(f"💰 Total Credit Sales: {total_credit_sales}")
+        print(f"💰 Total Credit Payments: {total_credit_paid}")
         
         # 3. Calculate totals
-        # ✅ Only PAID sales count towards profit
         total_paid_sales = total_orders + total_credit_paid
         outstanding_credit = total_credit_sales - total_credit_paid
         
-        return {
+        collection_rate = round((total_credit_paid / total_credit_sales * 100) if total_credit_sales > 0 else 0, 2)
+        
+        result = {
             'total_paid_sales': total_paid_sales,
             'cash_pos_sales': total_orders,
             'credit_payments_received': total_credit_paid,
             'total_credit_sales': total_credit_sales,
             'outstanding_credit': outstanding_credit,
-            'collection_rate': round((total_credit_paid / total_credit_sales * 100) if total_credit_sales > 0 else 0, 2)
+            'collection_rate': collection_rate
         }
+        
+        print(f"📊 Result: {result}")
+        return result
         
     except Exception as e:
         print(f"❌ Error getting paid sales: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             'total_paid_sales': 0,
             'cash_pos_sales': 0,
@@ -77,15 +111,18 @@ def get_paid_sales():
 def get_profitability_summary():
     """Get profitability based ONLY on PAID sales"""
     try:
-        sales_data = get_paid_sales()
+        print("📊 get_profitability_summary() called")
         
-        # ✅ Cost is based on PAID sales only
+        sales_data = get_paid_sales()
+        print(f"📊 Sales data: {sales_data}")
+        
+        # Cost is 70% of paid revenue
         cost_of_goods = sales_data['total_paid_sales'] * 0.7
         total_profit = sales_data['total_paid_sales'] - cost_of_goods
         profit_margin = round((total_profit / sales_data['total_paid_sales'] * 100) if sales_data['total_paid_sales'] > 0 else 0, 2)
         
-        return {
-            'total_revenue': sales_data['total_paid_sales'],           # ✅ Only paid sales
+        result = {
+            'total_revenue': sales_data['total_paid_sales'],
             'cash_pos_revenue': sales_data['cash_pos_sales'],
             'credit_payments_received': sales_data['credit_payments_received'],
             'total_credit_sales': sales_data['total_credit_sales'],
@@ -96,8 +133,13 @@ def get_profitability_summary():
             'profit_margin': profit_margin
         }
         
+        print(f"📊 Profitability result: {result}")
+        return result
+        
     except Exception as e:
         print(f"❌ Error getting profitability: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             'total_revenue': 0,
             'cash_pos_revenue': 0,
@@ -118,15 +160,15 @@ def get_monthly_profitability(year=None):
         
         # Get orders (Cash + POS)
         orders_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/orders?select=total,created_at,status",
-            headers=Config.SUPABASE_HEADERS,
+            f"{SUPABASE_URL}/rest/v1/orders?select=total,created_at,status",
+            headers=SUPABASE_HEADERS,
             timeout=30
         )
         
         # Get credit transactions
         credit_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type,created_at",
-            headers=Config.SUPABASE_HEADERS,
+            f"{SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type,created_at",
+            headers=SUPABASE_HEADERS,
             timeout=30
         )
         
@@ -216,10 +258,9 @@ def get_monthly_profitability(year=None):
         
         # Calculate totals and profit for each month
         for key in months:
-            # ✅ Only PAID sales count
             months[key]['total_paid_sales'] = months[key]['cash_pos_sales'] + months[key]['credit_payments']
             months[key]['outstanding'] = months[key]['credit_sales'] - months[key]['credit_payments']
-            months[key]['profit'] = months[key]['total_paid_sales'] * 0.3  # 30% profit margin
+            months[key]['profit'] = months[key]['total_paid_sales'] * 0.3
             months[key]['margin'] = round((months[key]['profit'] / months[key]['total_paid_sales'] * 100) if months[key]['total_paid_sales'] > 0 else 0, 2)
         
         report = list(months.values())
@@ -229,4 +270,6 @@ def get_monthly_profitability(year=None):
         
     except Exception as e:
         print(f"❌ Error getting monthly profitability: {e}")
+        import traceback
+        traceback.print_exc()
         return []
