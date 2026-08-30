@@ -2736,3 +2736,138 @@ def static_files(filename):
     except Exception as e:
         print(f"❌ Error serving static file: {e}")
         return "File not found", 404
+
+
+        # ============================================================
+# ✅ OFFLINE STATUS API
+# ============================================================
+
+@admin_bp.route('/api/offline-status', methods=['GET'])
+def api_offline_status():
+    """Check offline status - returns count of offline orders/payments"""
+    try:
+        from utils.storage import load_json_data
+        json_data = load_json_data()
+        
+        credit_queue = json_data.get('credit_order_queue', [])
+        payment_queue = json_data.get('credit_payment_queue', [])
+        order_queue = json_data.get('order_queue', [])
+        
+        return jsonify({
+            'success': True,
+            'credit_order_queue': credit_queue,
+            'credit_payment_queue': payment_queue,
+            'order_queue': order_queue,
+            'total_offline': len(credit_queue) + len(payment_queue) + len(order_queue)
+        })
+    except Exception as e:
+        print(f"❌ Offline status error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ SYNC OFFLINE CREDIT ORDERS
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/sync-offline', methods=['GET', 'POST'])
+@admin_required
+def api_sync_credit_offline():
+    """Sync offline credit orders and payments"""
+    try:
+        from utils.credit import sync_credit_orders_offline
+        from utils.storage import load_json_data, save_json_data
+        
+        print("🔄 Syncing offline credit orders...")
+        
+        # 1. Sync credit orders
+        order_result = sync_credit_orders_offline()
+        
+        # 2. Sync offline payments
+        json_data = load_json_data()
+        payment_queue = json_data.get('credit_payment_queue', [])
+        
+        synced_payments = 0
+        failed_payments = 0
+        
+        if payment_queue:
+            from utils.credit import record_credit_payment
+            
+            for payment in payment_queue:
+                try:
+                    result = record_credit_payment(
+                        customer_id=payment.get('customer_id'),
+                        amount=float(payment.get('amount')),
+                        staff_name=payment.get('staff_name', 'System'),
+                        notes=payment.get('notes', 'Offline payment')
+                    )
+                    if result.get('success'):
+                        synced_payments += 1
+                        print(f"✅ Synced payment for: {payment.get('customer_id')}")
+                    else:
+                        failed_payments += 1
+                        print(f"⚠️ Failed to sync payment for: {payment.get('customer_id')}")
+                except Exception as e:
+                    failed_payments += 1
+                    print(f"❌ Error syncing payment: {e}")
+            
+            # Update queue - remove synced payments
+            json_data['credit_payment_queue'] = [p for p in payment_queue if p.get('payment_id') not in synced_payments]
+            save_json_data(json_data)
+        
+        return jsonify({
+            'success': True,
+            'orders_synced': order_result.get('synced', 0),
+            'orders_failed': order_result.get('failed', 0),
+            'payments_synced': synced_payments,
+            'payments_failed': failed_payments,
+            'message': f"Orders: {order_result.get('synced', 0)} synced, {order_result.get('failed', 0)} failed. Payments: {synced_payments} synced, {failed_payments} failed."
+        })
+        
+    except Exception as e:
+        print(f"❌ Sync error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ CREDIT PROFIT API ROUTES
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/profit/<customer_id>', methods=['GET'])
+@admin_required
+def api_credit_profit_details(customer_id):
+    """Get profit details for a specific customer"""
+    try:
+        from utils.credit import get_customer_profit_summary, get_customer_transactions
+        
+        summary = get_customer_profit_summary(customer_id)
+        transactions = get_customer_transactions(customer_id)
+        
+        if summary.get('success'):
+            return jsonify({
+                'success': True,
+                'summary': summary,
+                'transactions': transactions[:20]
+            })
+        else:
+            return jsonify({'success': False, 'message': summary.get('message', 'Customer not found')}), 404
+            
+    except Exception as e:
+        print(f"❌ Profit details error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/profit/summary', methods=['GET'])
+@admin_required
+def api_credit_profit_summary():
+    """Get overall credit profit summary"""
+    try:
+        from utils.credit import get_all_credit_profit_summary
+        
+        summary = get_all_credit_profit_summary()
+        return jsonify({'success': True, 'summary': summary})
+        
+    except Exception as e:
+        print(f"❌ Profit summary error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
