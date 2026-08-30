@@ -181,13 +181,12 @@ def delete_credit_customer(customer_id):
     """Soft delete a credit customer"""
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
-# ============================================================
-# record_credit_purchase - PREVIOUS WORKING VERSION
-# ============================================================
-
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
-    """Record a credit purchase transaction - PREVIOUS WORKING VERSION"""
+    """Record a credit purchase transaction"""
     try:
+        import json
+        import uuid
+        
         print(f"🔍 record_credit_purchase called with customer_id: '{customer_id}'")
         print(f"💰 Amount: {total_amount}")
         print(f"📦 Items: {items}")
@@ -223,13 +222,30 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         
         new_balance = current_balance + total_amount
         
-        # 🔥 SIMPLE TRANSACTION - NO NEW COLUMNS
+        # Convert items to JSON string if it's a list or object
+        if isinstance(items, list):
+            items_json = json.dumps(items)
+        elif isinstance(items, dict):
+            items_json = json.dumps(items)
+        elif isinstance(items, str):
+            items_json = items
+        else:
+            items_json = str(items)
+        
+        # Generate transaction ID
+        transaction_id = f'TXN-{uuid.uuid4().hex[:8].upper()}'
+        
+        # ✅ FIX: Use correct column names for your table
         transaction_data = {
+            'transaction_id': transaction_id,
             'customer_id': customer_id,
             'transaction_type': 'purchase',
             'amount': total_amount,
-            'description': f'Credit purchase: {items} | Staff: {staff_name} | Notes: {notes}',
+            'balance_after': new_balance,
+            'items_json': items_json,
             'staff_name': staff_name,
+            'notes': notes or '',
+            'payment_status': 'pending',
             'created_at': datetime.utcnow().isoformat()
         }
         
@@ -283,6 +299,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             'success': True,
             'balance_after': new_balance,
             'customer_name': customer.get('full_name'),
+            'transaction_id': transaction_id,
             'message': f'Credit purchase recorded. New balance: KSh {new_balance:,.2f}'
         }
         
