@@ -2990,7 +2990,7 @@ console.log('🔍 Type check:', typeof window.calculateChange);
     }
 
 // ============================================================
-// PROCESS CREDIT PURCHASE - FIXED VERSION (SENDS PRODUCT_ID)
+// PROCESS CREDIT PURCHASE - FIXED VERSION
 // ============================================================
 
 function processCreditPurchase(customerId, customerName, total) {
@@ -3017,9 +3017,9 @@ function processCreditPurchase(customerId, customerName, total) {
     renderProducts();
     console.log('✅ UI updated immediately!');
 
-    // ✅ FIX: Send items WITH product_id like normal order!
+    // ✅ STEP 3: Send items WITH product_id like normal order!
     const itemsWithIds = posCart.map(item => ({
-        product_id: item.id,        // ← ADD THIS!
+        product_id: item.id,
         name: item.name,
         quantity: item.quantity,
         price: item.price
@@ -3027,11 +3027,26 @@ function processCreditPurchase(customerId, customerName, total) {
 
     const notes = document.getElementById('orderNotes')?.value || '';
 
+    // ✅ FIX: Clean staff name - remove emojis, newlines, and extra spaces
+    function getCleanStaffName() {
+        const userTag = document.querySelector('.user-tag');
+        if (userTag) {
+            const text = userTag.textContent || '';
+            // Remove emoji and extra whitespace, keep only the name
+            const clean = text.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+            // Extract just the name (before the role)
+            const match = clean.match(/^([^\s(]+)/);
+            if (match) return match[1];
+            return 'POS';
+        }
+        return 'POS';
+    }
+
     const data = {
         customer_id: String(customerId),
-        items: itemsWithIds,        // ← Send array with product_id!
+        items: itemsWithIds,
         total_amount: total,
-        staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
+        staff_name: getCleanStaffName(),  // ← CLEAN STAFF NAME!
         notes: notes + ' (Credit purchase via POS)'
     };
 
