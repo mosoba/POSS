@@ -2989,9 +2989,6 @@ console.log('🔍 Type check:', typeof window.calculateChange);
         processNormalOrder();
     }
 
-// ============================================================
-// PROCESS CREDIT PURCHASE - FIXED VERSION
-// ============================================================
 function processCreditPurchase(customerId, customerName, total) {
     console.log('🔄 processCreditPurchase called (FIXED VERSION)');
     
@@ -3016,18 +3013,82 @@ function processCreditPurchase(customerId, customerName, total) {
     renderProducts();
     console.log('✅ UI updated immediately!');
 
-    const itemsList = posCart.map(item => item.name + ' x' + item.quantity).join(', ');
+    // ✅ FIX: Send items WITH product_id like normal order!
+    const itemsWithIds = posCart.map(item => ({
+        product_id: item.id,        // ← ADD THIS!
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+    }));
+
     const notes = document.getElementById('orderNotes')?.value || '';
 
     const data = {
         customer_id: String(customerId),
-        items: itemsList,
+        items: itemsWithIds,        // ← Send array with product_id!
         total_amount: total,
         staff_name: document.querySelector('.user-tag')?.textContent?.trim() || 'POS',
         notes: notes + ' (Credit purchase via POS)'
     };
 
-    console.log('📤 Sending credit purchase:', data);
+    console.log('📤 Sending credit purchase with product_id:', data);
+
+    fetch('/admin/api/credit/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (result.success) {
+            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+            showCreditReceipt(customerName, total, result);
+
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            
+            updatePOSUI();
+            renderProducts();
+            loadCreditCustomers();
+            updateQuickSalesCount();
+            loadSalesStats();
+            
+            console.log('✅ Credit order complete! Stock should be updated.');
+        } else {
+            console.log('🔄 Restoring stock due to API error...');
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = (product.stock || 0) + item.quantity;
+                }
+            });
+            renderProducts();
+            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        console.log('🔄 Restoring stock due to network error...');
+        posCart.forEach(item => {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product) {
+                product.stock = (product.stock || 0) + item.quantity;
+            }
+        });
+        renderProducts();
+        showToast('❌ Error: ' + err.message, 'error');
+        console.error('❌ Credit purchase error:', err);
+    });
+}
 
     fetch('/admin/api/credit/purchase', {
         method: 'POST',
