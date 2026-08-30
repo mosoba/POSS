@@ -232,33 +232,38 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         else:
             item_list = [{'name': str(items), 'quantity': 1, 'price': total_amount}]
         
-        # Process each item
+        # Process each item - SAME APPROACH AS NORMAL ORDERS
         for item in item_list:
             product_name = item.get('name', 'Unknown')
             quantity = int(item.get('quantity', 1))
             price = float(item.get('price', 0))
             
-            # Get cost price
-            cost_price = item.get('cost_price', 0)
+            # ✅ ALWAYS FETCH CURRENT COST FROM PRODUCT TABLE - SAME AS NORMAL ORDER
+            cost_price = 0
             
-            if cost_price == 0:
-                # Try to fetch from products table
-                try:
-                    prod_response = requests.get(
-                        f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
-                        headers=Config.SUPABASE_HEADERS,
-                        timeout=10
-                    )
-                    if prod_response.status_code == 200:
-                        products = prod_response.json()
-                        if products:
-                            cost_price = float(products[0].get('cost_price', price * 0.7))
-                except:
-                    cost_price = price * 0.7  # Default 70% cost if not found
+            try:
+                # Try to find product by name (SAME AS POS NORMAL ORDER)
+                prod_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+                if prod_response.status_code == 200:
+                    products = prod_response.json()
+                    if products:
+                        # ✅ USE CURRENT COST FROM PRODUCT TABLE - SAME AS POS
+                        cost_price = float(products[0].get('cost_price', 0))
+                        print(f"✅ Found product: {product_name}, Current Cost: KSh {cost_price}")
+            except Exception as e:
+                print(f"⚠️ Error fetching product cost: {e}")
             
             # If still 0, estimate at 70%
             if cost_price == 0:
                 cost_price = price * 0.7
+                print(f"⚠️ No cost found, using estimate: KSh {cost_price}")
+            
+            # ✅ OVERRIDE with current cost from product table (SAME AS POS)
+            item['cost_price'] = cost_price
             
             item_cost = cost_price * quantity
             item_profit = (price - cost_price) * quantity
