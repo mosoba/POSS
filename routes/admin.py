@@ -2254,6 +2254,10 @@ def api_update_product(product_id):
         if not data:
             return jsonify({'success': False, 'message': 'No data provided'}), 400
         
+        # Ensure barcode is included
+        if 'barcode' not in data:
+            data['barcode'] = ''
+        
         try:
             requests.get(
                 f"{Config.SUPABASE_URL}/rest/v1/",
@@ -2288,7 +2292,6 @@ def api_update_product(product_id):
         }), 503
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-
 
 @admin_bp.route('/admin/api/product/<product_id>', methods=['DELETE'])
 @admin_required
@@ -2591,56 +2594,34 @@ def admin_products():
                 'badge': request.form.get('badge', '').strip(),
                 'stock': int(request.form.get('stock', 0) or 0),
                 'original_price': float(request.form.get('original_price', 0) or 0) or None,
-                'specs': [s.strip() for s in request.form.get('specs', '').split(',') if s.strip()]
+                'specs': [s.strip() for s in request.form.get('specs', '').split(',') if s.strip()],
+                'barcode': request.form.get('barcode', '').strip() or ''
             }
 
         product_id = data.get('id', '').strip()
         if not product_id:
             return jsonify({'success': False, 'message': 'Product ID is required'}), 400
 
-        # ✅ DIRECTLY CHECK SUPABASE - DON'T USE CACHED load_products()
-        check_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+        # Save directly to Supabase
+        response = requests.post(
+            f"{Config.SUPABASE_URL}/rest/v1/products",
             headers=Config.SUPABASE_HEADERS,
-            timeout=5
+            json=data,
+            timeout=10,
         )
-        
-        if check_response.status_code == 200:
-            existing_products = check_response.json()
-        else:
-            existing_products = []
 
-        if existing_products and len(existing_products) > 0:
-            # Update existing
-            response = requests.patch(
-                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
-                headers=Config.SUPABASE_HEADERS,
-                json=data,
-                timeout=10,
-            )
-        else:
-            # Insert new
-            response = requests.post(
-                f"{Config.SUPABASE_URL}/rest/v1/products",
-                headers=Config.SUPABASE_HEADERS,
-                json=data,
-                timeout=10,
-            )
-
-        if response.status_code in [200, 201, 204]:
+        if response.status_code in [200, 201]:
             import utils.data
-            utils.data.products_cache = []  # Clear cache
+            utils.data.products_cache = []
             return jsonify({
                 'success': True,
                 'message': 'Product saved successfully!',
                 'product': data
             })
         else:
-            print(f"❌ Supabase error: {response.status_code} - {response.text}")
             return jsonify({
                 'success': False,
-                'message': f'Error saving product: {response.status_code}',
-                'error': response.text[:200]
+                'message': f'Error saving product: {response.status_code}'
             }), 500
 
     except Exception as exc:
