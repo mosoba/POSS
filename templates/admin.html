@@ -2609,23 +2609,82 @@ function loadAnalyticsData() {
 // ============================================================
 // FILTER FUNCTIONS
 // ============================================================
+
+// ✅ NEW: Search ALL products in database (not just current page)
+let searchTimeout = null;
+
 function filterProductsTable(searchTerm) {
-    const rows = document.querySelectorAll('#productsTableBody .product-row');
-    const term = searchTerm.toLowerCase().trim();
+    const term = searchTerm.trim();
     
-    rows.forEach(row => {
-        const name = (row.dataset.name || '').toLowerCase();
-        const category = (row.dataset.category || '').toLowerCase();
-        const id = (row.dataset.id || '').toLowerCase();
-        
-        if (name.includes(term) || category.includes(term) || id.includes(term)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+    // If search is empty, reload first page
+    if (!term) {
+        loadProductsPage(1);
+        return;
+    }
+    
+    // Debounce search to avoid too many requests
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        searchAllProducts(term);
+    }, 300);
 }
 
+async function searchAllProducts(term) {
+    console.log('🔍 Searching for:', term);
+    
+    try {
+        // Fetch ALL products from database
+        const response = await fetch(`/admin/api/products?per_page=1000&t=${Date.now()}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const allProducts = data.products || [];
+            
+            // Filter by search term
+            const filtered = allProducts.filter(product => {
+                const name = (product.name || '').toLowerCase();
+                const category = (product.category || '').toLowerCase();
+                const id = (product.id || '').toLowerCase();
+                const barcode = (product.barcode || '').toLowerCase();
+                
+                return name.includes(term) || 
+                       category.includes(term) || 
+                       id.includes(term) || 
+                       barcode.includes(term);
+            });
+            
+            // Display results
+            renderProductsTable(filtered);
+            
+            // Update count
+            const totalEl = document.getElementById('productsTotal');
+            if (totalEl) totalEl.textContent = filtered.length;
+            
+            const endEl = document.getElementById('productsEnd');
+            if (endEl) endEl.textContent = filtered.length;
+            
+            const startEl = document.getElementById('productsStart');
+            if (startEl) startEl.textContent = filtered.length > 0 ? '1' : '0';
+            
+            // Show search results message
+            const paginationLinks = document.getElementById('productsPaginationLinks');
+            if (paginationLinks) {
+                if (filtered.length > 0) {
+                    paginationLinks.innerHTML = `<span class="text-xs text-blue-600">🔍 Found ${filtered.length} results for "${term}"</span>`;
+                } else {
+                    paginationLinks.innerHTML = `<span class="text-xs text-red-500">❌ No products found for "${term}"</span>`;
+                }
+            }
+            
+            showToast(`✅ Found ${filtered.length} products matching "${term}"`, 'info');
+        }
+    } catch (error) {
+        console.error('❌ Search error:', error);
+        showToast('❌ Search failed', 'error');
+    }
+}
+
+// Keep these functions as they are (they work fine)
 function filterCreditCustomers(searchTerm) {
     const rows = document.querySelectorAll('#creditCustomersTableBody .credit-row');
     const term = (searchTerm || document.getElementById('searchCreditCustomers')?.value || '').toLowerCase().trim();
@@ -2679,7 +2738,6 @@ function clearSupplierFilters() {
     document.getElementById('categoryFilter').value = 'all';
     filterSuppliers('');
 }
-
 // ============================================================
 // CREDIT CUSTOMER CRUD FUNCTIONS
 // ============================================================
