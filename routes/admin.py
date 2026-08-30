@@ -1,4 +1,4 @@
-import sys
+=import sys
 import os
 import json
 
@@ -2598,43 +2598,53 @@ def admin_products():
         if not product_id:
             return jsonify({'success': False, 'message': 'Product ID is required'}), 400
 
-        existing_products = load_products()
-        product_exists = False
-        for p in existing_products:
-            if p.get('id') == product_id:
-                product_exists = True
-                break
+        # ✅ DIRECTLY CHECK SUPABASE - DON'T USE CACHED load_products()
+        check_response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=5
+        )
+        
+        if check_response.status_code == 200:
+            existing_products = check_response.json()
+        else:
+            existing_products = []
 
-        if product_exists:
+        if existing_products and len(existing_products) > 0:
+            # Update existing
             response = requests.patch(
                 f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
                 headers=Config.SUPABASE_HEADERS,
                 json=data,
                 timeout=10,
             )
-            if response.status_code in [200, 204]:
-                import utils.data
-                utils.data.products_cache = []
-                return jsonify({'success': True, 'message': 'Product updated successfully!', 'product': data})
-            else:
-                return jsonify({'success': False, 'message': f'Error updating product: {response.status_code}'}), 500
-
-        response = requests.post(
-            f"{Config.SUPABASE_URL}/rest/v1/products",
-            headers=Config.SUPABASE_HEADERS,
-            json=data,
-            timeout=10,
-        )
-
-        if response.status_code in [200, 201]:
-            import utils.data
-            utils.data.products_cache = []
-            return jsonify({'success': True, 'message': 'Product saved successfully!', 'product': data})
         else:
-            return jsonify({'success': False, 'message': f'Error saving product: {response.status_code}'}), 500
+            # Insert new
+            response = requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/products",
+                headers=Config.SUPABASE_HEADERS,
+                json=data,
+                timeout=10,
+            )
+
+        if response.status_code in [200, 201, 204]:
+            import utils.data
+            utils.data.products_cache = []  # Clear cache
+            return jsonify({
+                'success': True,
+                'message': 'Product saved successfully!',
+                'product': data
+            })
+        else:
+            print(f"❌ Supabase error: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'message': f'Error saving product: {response.status_code}',
+                'error': response.text[:200]
+            }), 500
 
     except Exception as exc:
-        print(f'Product save error: {exc}')
+        print(f'❌ Product save error: {exc}')
         traceback.print_exc()
         return jsonify({'success': False, 'message': str(exc)}), 500
 
