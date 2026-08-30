@@ -897,56 +897,78 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # STOCK DEDUCTION
-        items_str = data.get('items', '')
-        print(f"📦 Items string: {items_str}")
+        # ✅ FIX: Check if items is a list or string
+        items_data = data.get('items', '')
+        print(f"📦 Items type: {type(items_data)}")
+        print(f"📦 Items: {items_data}")
         
-        if items_str:
-            items_list = items_str.split(', ')
-            for item_str in items_list:
+        # ✅ If items is a list, use it directly
+        if isinstance(items_data, list):
+            items_list = items_data
+            print(f"📦 Items is a LIST: {items_list}")
+        else:
+            # If it's a string, parse it
+            items_str = items_data
+            items_list = []
+            for item_str in items_str.split(', '):
                 match = re.match(r'(.+?) x(\d+)$', item_str.strip())
                 if match:
                     product_name = match.group(1).strip()
                     quantity = int(match.group(2))
                     
-                    print(f"📦 Searching for product: '{product_name}'")
-                    
-                    response = requests.get(
+                    # Find product in database
+                    prod_response = requests.get(
                         f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
                         headers=Config.SUPABASE_HEADERS,
                         timeout=10
                     )
-                    
-                    if response.status_code == 200:
-                        products = response.json()
-                        if products and len(products) > 0:
-                            product = products[0]
-                            current_stock = product.get('stock', 0)
-                            new_stock = max(0, current_stock - quantity)
-                            
-                            print(f"📦 {product_name}: {current_stock} → {new_stock}")
-                            
-                            update_response = requests.patch(
-                                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product.get('id')}",
-                                headers=Config.SUPABASE_HEADERS,
-                                json={'stock': new_stock},
-                                timeout=10
-                            )
-                            
-                            if update_response.status_code in [200, 204]:
-                                print(f"✅ Stock updated for: {product_name}")
-                            else:
-                                print(f"⚠️ Failed to update stock: {update_response.status_code}")
-                        else:
-                            print(f"⚠️ Product not found: {product_name}")
-                    else:
-                        print(f"⚠️ Error fetching product: {response.status_code}")
-                else:
-                    print(f"⚠️ Could not parse item: {item_str}")
+                    if prod_response.status_code == 200:
+                        products = prod_response.json()
+                        if products:
+                            items_list.append({
+                                'product_id': products[0].get('id'),
+                                'name': product_name,
+                                'quantity': quantity,
+                                'price': float(products[0].get('price', 0))
+                            })
         
+        # ✅ STOCK DEDUCTION
+        print(f"📦 Processing {len(items_list)} items for stock deduction...")
+        
+        for item in items_list:
+            product_id = item.get('product_id')
+            quantity = int(item.get('quantity', 1))
+            
+            if not product_id:
+                print(f"⚠️ No product_id for item: {item.get('name')}")
+                continue
+            
+            response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+                headers=Config.SUPABASE_HEADERS,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                products = response.json()
+                if products:
+                    product = products[0]
+                    current_stock = product.get('stock', 0)
+                    new_stock = max(0, current_stock - quantity)
+                    
+                    print(f"📦 {item.get('name')}: {current_stock} → {new_stock}")
+                    
+                    update_response = requests.patch(
+                        f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+                        headers=Config.SUPABASE_HEADERS,
+                        json={'stock': new_stock},
+                        timeout=10
+                    )
+        
+        # ✅ Record credit purchase
         result = record_credit_purchase(
             customer_id=data['customer_id'],
-            items=data['items'],
+            items=items_list,  # ← Send the processed list
             total_amount=float(data['total_amount']),
             staff_name=data['staff_name'],
             notes=data.get('notes', '')
@@ -960,7 +982,6 @@ def api_record_credit_purchase():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
-
 
 @admin_bp.route('/admin/api/credit/payment', methods=['POST'])
 @admin_required
