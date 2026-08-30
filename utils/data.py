@@ -634,12 +634,20 @@ def get_sample_products():
     ]
 
 
+# ============================================================
+# LOAD ORDERS - WITH OFFLINE SUPPORT
+# ============================================================
+
 def load_orders():
-    """Load orders - try Supabase first, fallback to local"""
+    """Load orders - try Supabase first, fallback to local for offline"""
     global orders_cache
     
     # Force refresh - clear cache
     orders_cache = []
+    
+    # First, try to load from local cache (for offline)
+    json_data = load_json_data()
+    local_orders = json_data.get('orders', [])
     
     try:
         print("🔄 Attempting to load orders from Supabase...")
@@ -699,8 +707,8 @@ def load_orders():
                 
                 orders_cache = processed_orders
                 
+                # Update local cache with latest orders
                 try:
-                    json_data = load_json_data()
                     json_data['orders'] = processed_orders
                     save_json_data(json_data)
                 except Exception as e:
@@ -713,48 +721,44 @@ def load_orders():
             print(f"⚠️ Failed to load from Supabase: {response.status_code}")
             print(f"Response: {response.text[:200]}")
         
-        print("📂 Trying to load from local cache...")
-        json_data = load_json_data()
-        orders_cache = json_data.get('orders', [])
-        print(f"📂 Loaded {len(orders_cache)} orders from local cache")
-        return orders_cache
+        # If we get here, Supabase failed - use local cache
+        print(f"📂 Using local cache: {len(local_orders)} orders")
+        orders_cache = local_orders
+        return local_orders
         
     except requests.exceptions.ConnectionError as e:
         print(f"❌ Connection error loading orders: {e}")
-        try:
-            json_data = load_json_data()
-            orders_cache = json_data.get('orders', [])
-            print(f"📂 Loaded {len(orders_cache)} orders from local cache (connection error)")
-            return orders_cache
-        except:
-            return []
+        print(f"📂 Using local cache: {len(local_orders)} orders (offline mode)")
+        orders_cache = local_orders
+        return local_orders
     except Exception as exc:
         print(f'❌ Error loading orders: {exc}')
         traceback.print_exc()
-        try:
-            json_data = load_json_data()
-            orders_cache = json_data.get('orders', [])
-            print(f"📂 Loaded {len(orders_cache)} orders from local cache (fallback)")
-            return orders_cache
-        except:
-            return []
+        print(f"📂 Using local cache: {len(local_orders)} orders (fallback)")
+        orders_cache = local_orders
+        return local_orders
 
+
+# ============================================================
+# LOAD PRODUCTS - ONLY FROM SUPABASE, NO OFFLINE CACHE
+# ============================================================
 
 def load_products():
-    """Load products - ALWAYS from Supabase first"""
+    """Load products - ONLY from Supabase, NO offline cache"""
     global products_cache
     
-    # Force refresh - clear cache
+    # Clear cache to force fresh load
     products_cache = []
     
     try:
-        print("🔄 Attempting to load products from Supabase...")
+        print("🔄 Loading products from Supabase...")
         
         response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/products?select=*",
+            f"{Config.SUPABASE_URL}/rest/v1/products?select=*&order=name.asc",
             headers=Config.SUPABASE_HEADERS,
-            timeout=5,
+            timeout=10,
         )
+        
         if response.status_code == 200:
             data = response.json()
             if isinstance(data, list):
@@ -762,66 +766,137 @@ def load_products():
                 for product in data:
                     if 'barcode' not in product:
                         product['barcode'] = ''
+                
                 products_cache = data
-                try:
-                    json_data = load_json_data()
-                    json_data['products'] = data
-                    save_json_data(json_data)
-                except Exception as e:
-                    print(f"⚠️ Could not update local cache: {e}")
                 print(f"✅ Loaded {len(data)} products from Supabase")
                 return data
-        
-        print(f"⚠️ Failed to load products from Supabase: {response.status_code}")
-        
-        if products_cache:
-            print(f"⚠️ Using cached products ({len(products_cache)})")
-            return products_cache
-        
-        json_data = load_json_data()
-        products = json_data.get('products', [])
-        if products:
-            products_cache = products
-            print(f"⚠️ Using local cache ({len(products)})")
-            return products
-        
-        print("⚠️ Using sample products")
-        return get_sample_products()
+            else:
+                print(f"⚠️ Response is not a list: {type(data)}")
+        else:
+            print(f"⚠️ Failed to load from Supabase: {response.status_code}")
+            print(f"Response: {response.text[:200]}")
+            
+    except requests.exceptions.ConnectionError as e:
+        print(f"❌ Connection error: {e}")
     except Exception as exc:
-        print(f'Error loading products: {exc}')
-        return products_cache if products_cache else get_sample_products()
+        print(f'❌ Error loading products: {exc}')
+        traceback.print_exc()
+    
+    # ⚠️ Fallback: Return sample products (43 products)
+    # This ONLY happens when Supabase is unreachable
+    # offline_data.json is NOT used for products
+    print("⚠️ Returning sample products (database unavailable)")
+    return get_sample_products()
 
 
-def load_bundles():
+# ============================================================
+# SAVE ORDER - WITH OFFLINE SUPPORT
+# ============================================================
+
+def save_order_to_supabase(order_data):
+    """Save order - try Supabase, fallback to local for offline"""
     try:
-        if has_internet():
-            response = requests.get(
-                f"{Config.SUPABASE_URL}/rest/v1/bundles?select=*",
+        print(f"💾 Saving order: {order_data.get('order_id')}")
+        
+        # Always save locally first
+        json_data = load_json_data()
+        json_data.setdefault('orders', [])
+        
+        existing_order = None
+        for order in json_data['orders']:
+            if order.get('order_id') == order_data.get('order_id'):
+                existing_order = order
+                break
+        
+        if existing_order:
+            for key, value in order_data.items():
+                existing_order[key] = value
+        else:
+            json_data['orders'].append(order_data)
+        
+        save_json_data(json_data)
+        
+        # Clear cache so orders reload fresh
+        global orders_cache
+        orders_cache = []
+        
+        # Try to save to Supabase
+        try:
+            supabase_order = {
+                'order_id': order_data.get('order_id'),
+                'items': order_data.get('items', []),
+                'subtotal': float(order_data.get('subtotal', 0)),
+                'shipping': float(order_data.get('shipping', 0)),
+                'total': float(order_data.get('total', 0)),
+                'status': order_data.get('status', 'pending'),
+                'source': order_data.get('source', 'web'),
+                'created_at': order_data.get('created_at', datetime.utcnow().isoformat()),
+                'customer': order_data.get('customer', {}),
+                'customer_name': order_data.get('customer_name', ''),
+                'customer_email': order_data.get('customer_email', ''),
+                'customer_phone': order_data.get('customer_phone', ''),
+                'customer_address': order_data.get('customer_address', '')
+            }
+            
+            response = requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/orders",
                 headers=Config.SUPABASE_HEADERS,
-                timeout=5,
+                json=supabase_order,
+                timeout=10,
             )
-            if response.status_code == 200:
-                data = response.json()
-                if isinstance(data, list):
-                    return data
-        return []
-    except Exception:
-        return []
+            
+            if response.status_code in [200, 201, 204]:
+                print(f"✅ Order saved to Supabase: {order_data.get('order_id')}")
+                # Mark as synced
+                json_data = load_json_data()
+                for order in json_data.get('orders', []):
+                    if order.get('order_id') == order_data.get('order_id'):
+                        order['synced'] = True
+                        order['synced_at'] = datetime.utcnow().isoformat()
+                save_json_data(json_data)
+                return {'success': True, 'synced': True, 'queued': False, 'message': 'Order saved successfully.'}
+            else:
+                print(f"⚠️ Supabase save failed: {response.status_code}")
+                # Queue for later sync
+                queue = json_data.get('order_queue', [])
+                if order_data.get('order_id') not in [q.get('order_id') for q in queue]:
+                    queue.append({**order_data, 'queued_at': datetime.utcnow().isoformat()})
+                    json_data['order_queue'] = queue
+                    save_json_data(json_data)
+                return {'success': True, 'synced': False, 'queued': True, 'message': 'Order saved locally. Will sync when internet returns.'}
+                
+        except Exception as e:
+            print(f"❌ Error saving to Supabase: {e}")
+            # Queue for later sync
+            queue = json_data.get('order_queue', [])
+            if order_data.get('order_id') not in [q.get('order_id') for q in queue]:
+                queue.append({**order_data, 'queued_at': datetime.utcnow().isoformat()})
+                json_data['order_queue'] = queue
+                save_json_data(json_data)
+            return {'success': True, 'synced': False, 'queued': True, 'message': 'Order saved locally. Will sync when internet returns.'}
+        
+    except Exception as exc:
+        print(f'Error saving order: {exc}')
+        traceback.print_exc()
+        return {'success': False, 'synced': False, 'queued': False, 'message': str(exc)}
 
 
-def sync_products_from_supabase():
-    return load_products()
-
+# ============================================================
+# SYNC QUEUED ORDERS
+# ============================================================
 
 def sync_queued_orders():
     """Sync queued orders when internet is back"""
     try:
         if not has_internet():
+            print("⚠️ No internet, cannot sync orders")
             return False
         
+        print("🔄 Syncing queued orders...")
         json_data = load_json_data()
         queue = json_data.get('order_queue', [])
         if not queue:
+            print("✅ No orders to sync")
             return True
         
         synced = []
@@ -870,91 +945,35 @@ def sync_queued_orders():
 
 
 def sync_pending_data_if_possible():
+    """Sync pending data if internet is available"""
     if has_internet():
         return sync_queued_orders()
     return False
 
 
-def save_order_to_supabase(order_data):
-    """Save order - try Supabase, fallback to local"""
+# ============================================================
+# REST OF YOUR FUNCTIONS (keep everything else the same)
+# ============================================================
+
+def load_bundles():
     try:
-        print(f"💾 Saving order: {order_data.get('order_id')}")
-        
-        json_data = load_json_data()
-        json_data.setdefault('orders', [])
-        
-        existing_order = None
-        for order in json_data['orders']:
-            if order.get('order_id') == order_data.get('order_id'):
-                existing_order = order
-                break
-        
-        if existing_order:
-            for key, value in order_data.items():
-                existing_order[key] = value
-        else:
-            json_data['orders'].append(order_data)
-        
-        save_json_data(json_data)
-        
-        global orders_cache
-        orders_cache = []
-        
-        try:
-            supabase_order = {
-                'order_id': order_data.get('order_id'),
-                'items': order_data.get('items', []),
-                'subtotal': float(order_data.get('subtotal', 0)),
-                'shipping': float(order_data.get('shipping', 0)),
-                'total': float(order_data.get('total', 0)),
-                'status': order_data.get('status', 'pending'),
-                'source': order_data.get('source', 'web'),
-                'created_at': order_data.get('created_at', datetime.utcnow().isoformat()),
-                'customer': order_data.get('customer', {}),
-                'customer_name': order_data.get('customer_name', ''),
-                'customer_email': order_data.get('customer_email', ''),
-                'customer_phone': order_data.get('customer_phone', ''),
-                'customer_address': order_data.get('customer_address', '')
-            }
-            
-            response = requests.post(
-                f"{Config.SUPABASE_URL}/rest/v1/orders",
+        if has_internet():
+            response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/bundles?select=*",
                 headers=Config.SUPABASE_HEADERS,
-                json=supabase_order,
-                timeout=10,
+                timeout=5,
             )
-            
-            if response.status_code in [200, 201, 204]:
-                print(f"✅ Order saved to Supabase: {order_data.get('order_id')}")
-                for order in json_data['orders']:
-                    if order.get('order_id') == order_data.get('order_id'):
-                        order['synced'] = True
-                        order['synced_at'] = datetime.utcnow().isoformat()
-                save_json_data(json_data)
-                return {'success': True, 'synced': True, 'queued': False, 'message': 'Order saved successfully.'}
-            else:
-                print(f"⚠️ Supabase save failed: {response.status_code}")
-                print(f"Response: {response.text[:200]}")
-                queue = json_data.get('order_queue', [])
-                if order_data.get('order_id') not in [q.get('order_id') for q in queue]:
-                    queue.append({**order_data, 'queued_at': datetime.utcnow().isoformat()})
-                    json_data['order_queue'] = queue
-                    save_json_data(json_data)
-                return {'success': True, 'synced': False, 'queued': True, 'message': 'Order saved locally. Will sync when internet returns.'}
-                
-        except Exception as e:
-            print(f"❌ Error saving to Supabase: {e}")
-            queue = json_data.get('order_queue', [])
-            if order_data.get('order_id') not in [q.get('order_id') for q in queue]:
-                queue.append({**order_data, 'queued_at': datetime.utcnow().isoformat()})
-                json_data['order_queue'] = queue
-                save_json_data(json_data)
-            return {'success': True, 'synced': False, 'queued': True, 'message': 'Order saved locally. Will sync when internet returns.'}
-        
-    except Exception as exc:
-        print(f'Error saving order: {exc}')
-        traceback.print_exc()
-        return {'success': False, 'synced': False, 'queued': False, 'message': str(exc)}
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    return data
+        return []
+    except Exception:
+        return []
+
+
+def sync_products_from_supabase():
+    return load_products()
 
 
 def update_product_stock(product_id, new_stock):
