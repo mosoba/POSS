@@ -478,7 +478,7 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
-                # FETCH CREDIT DATA
+        # FETCH CREDIT DATA
         credit_summary = {
             'total_customers': 0,
             'active_customers': 0,
@@ -499,23 +499,42 @@ def admin_dashboard():
             )
             
             if response.status_code == 200:
-    products = response.json()
-    if products and len(products) > 0:
-        product = products[0]
-        # ✅ SAVE COST PRICE TO ORDER ITEM
-        item['cost_price'] = product.get('cost_price', 0)
-        
-        current_stock = product.get('stock', 0)
-        new_stock = max(0, current_stock - quantity)
-        
-        print(f"📦 {product.get('name')}: Cost: {item['cost_price']}, Stock: {current_stock} → {new_stock}")
-        
-        update_response = requests.patch(
-            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
-            headers=Config.SUPABASE_HEADERS,
-            json={'stock': new_stock},
-            timeout=10
-        )
+                credit_customers = response.json()
+                total_cust = len(credit_customers)
+                active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
+                total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
+                total_cost = sum(c.get('total_cost', 0) for c in credit_customers)
+                total_profit = sum(c.get('total_profit', 0) for c in credit_customers)
+                
+                tx_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+                
+                total_purchases = 0
+                total_payments = 0
+                if tx_response.status_code == 200:
+                    transactions = tx_response.json()
+                    total_purchases = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'purchase')
+                    total_payments = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'payment')
+                
+                overdue_count = sum(1 for c in credit_customers if c.get('current_balance', 0) > c.get('credit_limit', 0))
+                
+                credit_summary = {
+                    'total_customers': total_cust,
+                    'active_customers': active_cust,
+                    'total_balance': total_balance,
+                    'total_purchases': total_purchases,
+                    'total_payments': total_payments,
+                    'total_cost': total_cost,
+                    'total_profit': total_profit
+                }
+                print(f"✅ Loaded {total_cust} credit customers with profit: KSh {total_profit}")
+            else:
+                print(f"⚠️ Credit customers fetch error: {response.status_code}")
+        except Exception as e:
+            print(f"❌ Error loading credit data: {e}")
 
         # FETCH SUPPLIER DATA
         supplier_summary = {
@@ -652,7 +671,7 @@ def admin_dashboard():
 
 
 # ============================================================
-# CREDIT CUSTOMER MANAGEMENT ROUTES - FIXED
+# CREDIT CUSTOMER MANAGEMENT ROUTES
 # ============================================================
 
 @admin_bp.route('/admin/credit')
@@ -766,10 +785,6 @@ def api_add_credit_customer():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ============================================================
-# FIXED: GET SINGLE CREDIT CUSTOMER
-# ============================================================
-
 @admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['GET'])
 @admin_required
 def api_get_credit_customer(customer_id):
@@ -859,7 +874,7 @@ def api_get_credit_transactions(customer_id):
 
 
 # ============================================================
-# FIXED: CREDIT PURCHASE ROUTE WITH STOCK DEDUCTION
+# CREDIT PURCHASE ROUTE WITH STOCK DEDUCTION
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/purchase', methods=['POST'])
@@ -882,7 +897,7 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # 🔥 STOCK DEDUCTION
+        # STOCK DEDUCTION
         items_str = data.get('items', '')
         print(f"📦 Items string: {items_str}")
         
@@ -1016,9 +1031,9 @@ def api_get_credit_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-  
-  # ============================================================
-# PROFITABILITY API - COMBINES ALL PAID SALES    <-- ADD THIS
+
+# ============================================================
+# PROFITABILITY API - COMBINES ALL PAID SALES
 # ============================================================
 
 @admin_bp.route('/admin/api/profitability/summary', methods=['GET'])
@@ -1043,10 +1058,9 @@ def api_profitability_summary():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-  
 
-  # ============================================================
-# ✅ ADD CLEAR CACHE HERE
+# ============================================================
+# CLEAR CACHE
 # ============================================================
 
 @admin_bp.route('/admin/api/clear-cache', methods=['GET'])
@@ -1060,7 +1074,6 @@ def clear_cache():
         return jsonify({'success': True, 'message': 'Cache cleared successfully'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
 
 
 # ============================================================
@@ -1308,7 +1321,7 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE
+# POS ORDER ROUTE - WITH COST PRICE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -1366,10 +1379,13 @@ def admin_pos_place_order():
                     products = response.json()
                     if products and len(products) > 0:
                         product = products[0]
+                        # ✅ SAVE COST PRICE TO ORDER ITEM
+                        item['cost_price'] = product.get('cost_price', 0)
+                        
                         current_stock = product.get('stock', 0)
                         new_stock = max(0, current_stock - quantity)
                         
-                        print(f"📦 {product.get('name')}: {current_stock} → {new_stock}")
+                        print(f"📦 {product.get('name')}: Cost: {item['cost_price']}, Stock: {current_stock} → {new_stock}")
                         
                         update_response = requests.patch(
                             f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
@@ -1431,7 +1447,7 @@ def admin_pos_place_order():
 
         order_data = {
             'order_id': order_id,
-            'items': items,
+            'items': items,  # ✅ items now have cost_price
             'subtotal': subtotal,
             'shipping': shipping,
             'total': total,
@@ -1732,7 +1748,7 @@ def api_process_return():
 
 
 # ============================================================
-# API ROUTES
+# ANALYTICS API - MERGED WITH CREDIT
 # ============================================================
 
 @admin_bp.route('/admin/api/analytics')
@@ -2318,6 +2334,7 @@ def api_update_product(product_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
 @admin_bp.route('/admin/api/product/<product_id>', methods=['DELETE'])
 @admin_required
 def api_delete_product(product_id):
@@ -2763,8 +2780,8 @@ def static_files(filename):
         return "File not found", 404
 
 
-        # ============================================================
-# ✅ OFFLINE STATUS API
+# ============================================================
+# OFFLINE STATUS API
 # ============================================================
 
 @admin_bp.route('/api/offline-status', methods=['GET'])
@@ -2791,7 +2808,7 @@ def api_offline_status():
 
 
 # ============================================================
-# ✅ SYNC OFFLINE CREDIT ORDERS
+# SYNC OFFLINE CREDIT ORDERS
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/sync-offline', methods=['GET', 'POST'])
@@ -2856,7 +2873,7 @@ def api_sync_credit_offline():
 
 
 # ============================================================
-# ✅ CREDIT PROFIT API ROUTES
+# CREDIT PROFIT API ROUTES
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/profit/<customer_id>', methods=['GET'])
