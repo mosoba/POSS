@@ -322,7 +322,7 @@
 </div>
 
 <!-- ============================================================
-     PRODUCTS SECTION
+     PRODUCTS SECTION - UPDATED WITH COST & PROFIT
      ============================================================ -->
 <div id="products-section" class="section hidden">
     <!-- Search & Actions -->
@@ -342,7 +342,16 @@
             <div class="table-wrap border-0 rounded-none max-h-[400px] sm:max-h-[500px] overflow-y-auto">
                 <table>
                     <thead class="sticky top-0 bg-white z-10">
-                        <tr><th class="text-xs sm:text-sm">Product</th><th class="text-xs sm:text-sm hidden sm:table-cell">Category</th><th class="text-right text-xs sm:text-sm">Selling</th><th class="text-right text-xs sm:text-sm hidden md:table-cell">Cost</th><th class="text-right text-xs sm:text-sm hidden lg:table-cell">Profit</th><th class="text-center text-xs sm:text-sm">Stock</th><th class="text-center text-xs sm:text-sm hidden sm:table-cell">Status</th><th class="text-center text-xs sm:text-sm">Actions</th></tr>
+                        <tr>
+                            <th class="text-xs sm:text-sm">Product</th>
+                            <th class="text-xs sm:text-sm hidden sm:table-cell">Category</th>
+                            <th class="text-right text-xs sm:text-sm">Selling</th>
+                            <th class="text-right text-xs sm:text-sm hidden md:table-cell">Cost</th>
+                            <th class="text-right text-xs sm:text-sm hidden lg:table-cell">Profit</th>
+                            <th class="text-center text-xs sm:text-sm">Stock</th>
+                            <th class="text-center text-xs sm:text-sm hidden sm:table-cell">Status</th>
+                            <th class="text-center text-xs sm:text-sm">Actions</th>
+                        </tr>
                     </thead>
                     <tbody id="productsTableBody">
                         {% for product in products %}
@@ -408,7 +417,7 @@
 </div>
 
 <!-- ============================================================
-     ADD PRODUCT SECTION - WITH BARCODE SUPPORT
+     ADD PRODUCT SECTION - WITH COST PRICE & PROFIT TRACKING
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
@@ -449,15 +458,24 @@
                         <option value="General">📦 General</option>
                     </select>
                 </div>
-                <!-- Price -->
+                <!-- Selling Price -->
                 <div>
-                    <label class="form-label text-[8px] sm:text-[10px]">Selling Price</label>
+                    <label class="form-label text-[8px] sm:text-[10px]">Selling Price (KSh)</label>
                     <input type="number" id="prodPrice" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="245000" required>
                 </div>
-                <!-- Cost Price -->
+                <!-- Cost Price - NEW -->
                 <div>
-                    <label class="form-label text-[8px] sm:text-[10px]">Cost Price</label>
+                    <label class="form-label text-[8px] sm:text-[10px]">Cost Price (KSh)</label>
                     <input type="number" id="prodCost" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="200000" required>
+                    <p class="text-[8px] text-gray-400 mt-0.5">Your purchase cost</p>
+                </div>
+                <!-- Profit Preview - NEW -->
+                <div>
+                    <label class="form-label text-[8px] sm:text-[10px]">Profit Preview</label>
+                    <div id="profitPreview" class="text-xs sm:text-sm font-bold py-1 px-2 bg-gray-50 rounded-lg border border-gray-200">
+                        KSh 0
+                    </div>
+                    <p class="text-[8px] text-gray-400 mt-0.5" id="profitMarginPreview">Margin: 0%</p>
                 </div>
                 <!-- Original Price -->
                 <div>
@@ -469,7 +487,7 @@
                     <label class="form-label text-[8px] sm:text-[10px]">Stock</label>
                     <input type="number" id="prodStock" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="25" required>
                 </div>
-                <!-- ✅ BARCODE FIELD -->
+                <!-- Barcode -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Barcode</label>
                     <div class="flex gap-1 sm:gap-2">
@@ -663,7 +681,7 @@
 </div>
 
 <!-- ============================================================
-     ✅ CREDIT MANAGEMENT SECTION
+     ✅ CREDIT MANAGEMENT SECTION - WITH PROFIT TRACKING
      ============================================================ -->
 <div id="credit-section" class="section hidden">
     <!-- Header -->
@@ -681,6 +699,9 @@
             </button>
             <button onclick="sendWhatsAppToOverdueCustomers()" class="btn-danger text-sm py-2 px-4">
                 <i class="fas fa-exclamation-triangle"></i> Overdue Alerts
+            </button>
+            <button onclick="syncOfflineCreditOrders()" class="btn-warning text-sm py-2 px-4">
+                <i class="fas fa-sync-alt"></i> Sync Offline
             </button>
         </div>
     </div>
@@ -705,42 +726,42 @@
         </div>
     </div>
 
-    <!-- Credit Money Tracking -->
+    <!-- ✅ PROFIT STATS - NEW -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div class="stat-card p-3" style="border-left: 4px solid #7c3aed;">
+        <div class="stat-card p-3" style="border-left: 4px solid #10b981;">
             <p class="text-xs text-gray-500">💰 Total Credit Sales</p>
-            <p class="text-xl font-bold text-purple-600">KSh {{ credit_summary.total_purchases|default(0)|int }}</p>
+            <p class="text-xl font-bold text-blue-600" id="creditTotalSales">KSh {{ credit_summary.total_purchases|default(0)|int }}</p>
             <p class="text-xs text-gray-400">Lifetime credit sales</p>
         </div>
-        <div class="stat-card p-3" style="border-left: 4px solid #059669;">
-            <p class="text-xs text-gray-500">✅ Total Payments Received</p>
-            <p class="text-xl font-bold text-green-600">KSh {{ credit_summary.total_payments|default(0)|int }}</p>
+        <div class="stat-card p-3" style="border-left: 4px solid #3b82f6;">
+            <p class="text-xs text-gray-500">💵 Total Payments Received</p>
+            <p class="text-xl font-bold text-green-600" id="creditTotalPayments">KSh {{ credit_summary.total_payments|default(0)|int }}</p>
             <p class="text-xs text-gray-400">Money collected from credit</p>
         </div>
-        <div class="stat-card p-3" style="border-left: 4px solid #f59e0b;">
-            <p class="text-xs text-gray-500">📊 Current Outstanding</p>
-            <p class="text-xl font-bold text-amber-600">KSh {{ credit_summary.total_balance|default(0)|int }}</p>
-            <p class="text-xs text-gray-400">Money still owed to you</p>
+        <div class="stat-card p-3" style="border-left: 4px solid #8b5cf6;">
+            <p class="text-xs text-gray-500">📈 Total Profit from Credit</p>
+            <p class="text-xl font-bold text-purple-600" id="creditTotalProfit">KSh {{ credit_summary.total_profit|default(0)|int }}</p>
+            <p class="text-xs text-gray-400">Profit from credit sales</p>
         </div>
-        <div class="stat-card p-3" style="border-left: 4px solid #ef4444;">
-            <p class="text-xs text-gray-500">⚠️ Collection Rate</p>
-            <p class="text-xl font-bold text-red-600">
+        <div class="stat-card p-3" style="border-left: 4px solid #f59e0b;">
+            <p class="text-xs text-gray-500">📊 Profit Margin</p>
+            <p class="text-xl font-bold text-amber-600" id="creditProfitMargin">
                 {% if credit_summary.total_purchases|default(0) > 0 %}
-                    {{ ((credit_summary.total_payments|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}%
+                    {{ ((credit_summary.total_profit|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}%
                 {% else %}
                     0%
                 {% endif %}
             </p>
-            <p class="text-xs text-gray-400">Payment collection rate</p>
+            <p class="text-xs text-gray-400">Credit profit margin</p>
         </div>
     </div>
 
-    <!-- Collection Rate Bar -->
+    <!-- Collection Rate Bar with Profit -->
     <div class="glass-card p-3 sm:p-4 mb-4">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-500">📈 Collection Rate</p>
-                <p class="text-2xl font-bold text-blue-600">
+                <p class="text-2xl font-bold text-blue-600" id="creditCollectionRate">
                     {% if credit_summary.total_purchases|default(0) > 0 %}
                         {{ ((credit_summary.total_payments|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}%
                     {% else %}
@@ -756,9 +777,28 @@
                 <p class="text-xs text-gray-500">Total Payments</p>
                 <p class="font-bold text-green-600">KSh {{ credit_summary.total_payments|default(0)|int }}</p>
             </div>
+            <div class="text-right">
+                <p class="text-xs text-gray-500">Total Profit</p>
+                <p class="font-bold text-purple-600" id="creditTotalProfitDisplay">KSh {{ credit_summary.total_profit|default(0)|int }}</p>
+            </div>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
             <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {% if credit_summary.total_purchases|default(0) > 0 %}{{ ((credit_summary.total_payments|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}{% else %}0{% endif %}%"></div>
+        </div>
+        <div class="mt-2">
+            <div class="flex justify-between text-xs text-gray-500">
+                <span>Profit Margin</span>
+                <span>
+                    {% if credit_summary.total_purchases|default(0) > 0 %}
+                        {{ ((credit_summary.total_profit|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-0.5">
+                <div class="bg-purple-600 h-1.5 rounded-full transition-all duration-500" style="width: {% if credit_summary.total_purchases|default(0) > 0 %}{{ ((credit_summary.total_profit|default(0) / credit_summary.total_purchases|default(1)) * 100)|round(1) }}{% else %}0{% endif %}%"></div>
+            </div>
         </div>
     </div>
 
@@ -773,8 +813,8 @@
         <button onclick="showOverdueCustomers()" class="btn-danger text-sm py-1.5 px-3">
             <i class="fas fa-exclamation-triangle"></i> View Overdue
         </button>
-        <button onclick="sendBulkWhatsAppReminders()" class="btn-success text-sm py-1.5 px-3" style="background: #25D366;">
-            <i class="fab fa-whatsapp"></i> Bulk WhatsApp
+        <button onclick="syncOfflineCreditOrders()" class="btn-warning text-sm py-1.5 px-3">
+            <i class="fas fa-sync-alt"></i> Sync Offline
         </button>
         <button onclick="refreshCreditData()" class="btn-outline text-sm py-1.5 px-3">
             <i class="fas fa-sync-alt"></i> Refresh
@@ -804,7 +844,7 @@
         </div>
     </div>
 
-    <!-- Credit Customers Table -->
+    <!-- Credit Customers Table - WITH PROFIT COLUMN -->
     <div class="glass-card p-0 overflow-hidden">
         <div class="table-wrap max-h-[500px] overflow-y-auto">
             <table>
@@ -814,7 +854,8 @@
                         <th class="text-sm hidden sm:table-cell">Phone</th>
                         <th class="text-sm hidden md:table-cell">Credit Limit</th>
                         <th class="text-sm text-center">Balance</th>
-                        <th class="text-sm text-center hidden lg:table-cell">Status</th>
+                        <th class="text-sm text-center hidden lg:table-cell">Profit</th>
+                        <th class="text-sm text-center hidden lg:table-cell">Margin</th>
                         <th class="text-sm text-center">Actions</th>
                     </tr>
                 </thead>
@@ -826,7 +867,9 @@
                         data-status="{{ customer.account_status }}" 
                         data-balance="{{ customer.current_balance|default(0) }}" 
                         data-limit="{{ customer.credit_limit|default(0) }}"
-                        data-customer-id="{{ customer.customer_id }}">
+                        data-customer-id="{{ customer.customer_id }}"
+                        data-profit="{{ customer.total_profit|default(0) }}"
+                        data-sales="{{ customer.total_purchases|default(0) }}">
                         <td>
                             <div>
                                 <p class="font-semibold">{{ customer.full_name }}</p>
@@ -854,10 +897,17 @@
                             {% endif %}
                         </td>
                         <td class="text-center hidden lg:table-cell">
-                            {% if customer.account_status == 'active' %}
-                            <span class="badge badge-success">Active</span>
+                            {% if customer.total_profit|default(0) > 0 %}
+                                <span class="font-bold text-green-600">KSh {{ customer.total_profit|default(0)|int }}</span>
                             {% else %}
-                            <span class="badge badge-danger">Inactive</span>
+                                <span class="text-gray-400">KSh 0</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center hidden lg:table-cell">
+                            {% if customer.total_purchases|default(0) > 0 %}
+                                <span class="badge badge-info">{{ ((customer.total_profit|default(0) / customer.total_purchases|default(1)) * 100)|round(1) }}%</span>
+                            {% else %}
+                                <span class="badge badge-secondary">0%</span>
                             {% endif %}
                         </td>
                         <td>
@@ -871,12 +921,8 @@
                                 <button onclick="openRecordPaymentModal('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.current_balance|default(0) }}')" class="btn-success text-xs px-2 py-1" title="Record Payment">
                                     <i class="fas fa-money-bill-wave"></i>
                                 </button>
-                                <button onclick="viewTransactionHistory('{{ customer.customer_id }}')" class="btn-outline text-xs px-2 py-1 text-purple-600" title="History">
-                                    <i class="fas fa-history"></i>
-                                </button>
-                                <button onclick="sendWhatsAppReminder('{{ customer.customer_id }}', '{{ customer.full_name }}', '{{ customer.current_balance|default(0) }}', '{{ customer.phone }}')" 
-                                        class="btn-success text-xs px-2 py-1" title="Send WhatsApp Reminder" style="background: #25D366;">
-                                    <i class="fab fa-whatsapp"></i>
+                                <button onclick="viewProfitDetails('{{ customer.customer_id }}')" class="btn-outline text-xs px-2 py-1 text-purple-600" title="Profit Details">
+                                    <i class="fas fa-chart-line"></i>
                                 </button>
                             </div>
                         </td>
@@ -897,7 +943,7 @@
 </div>
 
 <!-- ============================================================
-     ✅ SUPPLIERS SECTION
+     SUPPLIERS SECTION
      ============================================================ -->
 <div id="suppliers-section" class="section hidden">
     <!-- Header -->
@@ -908,7 +954,8 @@
         </div>
         <div class="flex gap-2">
             <button onclick="showAddSupplierModal()" class="btn-gradient text-sm py-2 px-4">
-                <i class="fas fa-plus"></i> Add Supplier            </button>
+                <i class="fas fa-plus"></i> Add Supplier
+            </button>
             <button onclick="showLowStockModal()" class="btn-danger text-sm py-2 px-4">
                 <i class="fas fa-exclamation-triangle"></i> Low Stock (<span id="lowStockBadge">{{ low_stock_count|default(0) }}</span>)
             </button>
@@ -1086,7 +1133,7 @@
 </div>
 
 <!-- ============================================================
-     EDIT PRODUCT MODAL - WITH BARCODE SUPPORT
+     EDIT PRODUCT MODAL - WITH COST PRICE
      ============================================================ -->
 <div id="editProductModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -1132,7 +1179,6 @@
                     </select>
                 </div>
                 
-                <!-- ✅ BARCODE FIELD IN EDIT -->
                 <div>
                     <label class="form-label text-sm font-semibold">Barcode</label>
                     <div class="flex gap-2">
@@ -1173,6 +1219,14 @@
                         <option value="Editor's Pick">✏️ Editor's Pick</option>
                     </select>
                 </div>
+                <!-- Profit Preview in Edit -->
+                <div class="md:col-span-2 bg-gray-50 p-3 rounded-lg">
+                    <p class="text-sm font-semibold">💰 Profit Preview</p>
+                    <div class="flex gap-4">
+                        <span class="text-sm">Profit: <span id="editProfitDisplay" class="font-bold text-green-600">KSh 0</span></span>
+                        <span class="text-sm">Margin: <span id="editMarginDisplay" class="font-bold text-purple-600">0%</span></span>
+                    </div>
+                </div>
             </div>
             
             <div>
@@ -1193,6 +1247,19 @@
                 <button type="button" onclick="document.getElementById('editProductModal').classList.add('hidden')" class="btn-outline py-2 px-6">Cancel</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ============================================================
+     PROFIT DETAILS MODAL
+     ============================================================ -->
+<div id="profitModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="sticky top-0 bg-white p-4 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">📊 Profit Details</h3>
+            <button onclick="document.getElementById('profitModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <div id="profitContent" class="p-4"></div>
     </div>
 </div>
 
@@ -1378,10 +1445,23 @@
     </div>
 </div>
 
+<!-- ============================================================
+     ORDER VIEW MODAL
+     ============================================================ -->
+<div id="orderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="sticky top-0 bg-white p-4 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">📋 Order Details</h3>
+            <button onclick="document.getElementById('orderModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <div id="orderDetails" class="p-4"></div>
+    </div>
+</div>
+
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - COMPLETE WITH CHART FIXES
+     SCRIPTS - COMPLETE WITH PROFIT FUNCTIONS
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -1468,7 +1548,7 @@ function showSection(sectionName) {
 }
 
 // ============================================================
-// ✅ LOAD PROFITABILITY DATA - ADDED
+// ✅ LOAD PROFITABILITY DATA
 // ============================================================
 function loadProfitability() {
     fetch('/admin/api/profitability/summary')
@@ -1490,27 +1570,21 @@ function loadProfitability() {
 }
 
 // ============================================================
-// ✅ CHARTS INITIALIZATION - COMPLETE FIX
+// ✅ CHARTS INITIALIZATION
 // ============================================================
-
-// Chart variables (global)
 var revenueChart = null;
 var categoryChart = null;
 
-// ============================================================
-// INIT CHARTS
-// ============================================================
 function initCharts() {
     console.log('📊 Initializing charts...');
     
-    // Check if Chart.js is loaded
     if (typeof Chart === 'undefined') {
         console.log('⏳ Chart.js not loaded yet, retrying...');
         setTimeout(initCharts, 500);
         return;
     }
     
-    // ===== REVENUE CHART =====
+    // Revenue Chart
     var revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
         if (revenueChart) {
@@ -1574,7 +1648,7 @@ function initCharts() {
         console.log('✅ Revenue chart created');
     }
     
-    // ===== CATEGORY CHART =====
+    // Category Chart
     var categoryCtx = document.getElementById('categoryChart');
     if (categoryCtx) {
         if (categoryChart) {
@@ -1620,9 +1694,6 @@ function initCharts() {
     }
 }
 
-// ============================================================
-// WAIT FOR CHARTJS
-// ============================================================
 function waitForChartJS() {
     console.log('📊 Waiting for ChartJS to load...');
     if (typeof Chart !== 'undefined') {
@@ -1633,9 +1704,6 @@ function waitForChartJS() {
     }
 }
 
-// ============================================================
-// UPDATE CHARTS ON RESIZE
-// ============================================================
 function updateChartsOnResize() {
     if (revenueChart) {
         try { revenueChart.resize(); } catch(e) {}
@@ -1644,6 +1712,93 @@ function updateChartsOnResize() {
         try { categoryChart.resize(); } catch(e) {}
     }
 }
+
+// ============================================================
+// ✅ PROFIT PREVIEW ON ADD PRODUCT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Profit preview for add product
+    const priceInput = document.getElementById('prodPrice');
+    const costInput = document.getElementById('prodCost');
+    const profitPreview = document.getElementById('profitPreview');
+    const marginPreview = document.getElementById('profitMarginPreview');
+    
+    if (priceInput && costInput) {
+        function updateProfitPreview() {
+            const price = parseFloat(priceInput.value) || 0;
+            const cost = parseFloat(costInput.value) || 0;
+            const profit = price - cost;
+            
+            if (profitPreview) {
+                if (profit > 0) {
+                    profitPreview.textContent = 'KSh ' + profit.toLocaleString();
+                    profitPreview.style.color = '#16a34a';
+                } else if (profit < 0) {
+                    profitPreview.textContent = 'KSh ' + profit.toLocaleString();
+                    profitPreview.style.color = '#dc2626';
+                } else {
+                    profitPreview.textContent = 'KSh 0';
+                    profitPreview.style.color = '#6b7280';
+                }
+            }
+            
+            if (marginPreview) {
+                if (price > 0) {
+                    const margin = (profit / price) * 100;
+                    marginPreview.textContent = 'Margin: ' + margin.toFixed(1) + '%';
+                    marginPreview.style.color = profit > 0 ? '#16a34a' : '#dc2626';
+                } else {
+                    marginPreview.textContent = 'Margin: 0%';
+                    marginPreview.style.color = '#6b7280';
+                }
+            }
+        }
+        
+        priceInput.addEventListener('input', updateProfitPreview);
+        costInput.addEventListener('input', updateProfitPreview);
+    }
+    
+    // Profit preview for edit product
+    const editPrice = document.getElementById('editProdPrice');
+    const editCost = document.getElementById('editProdCost');
+    const editProfitDisplay = document.getElementById('editProfitDisplay');
+    const editMarginDisplay = document.getElementById('editMarginDisplay');
+    
+    if (editPrice && editCost) {
+        function updateEditProfitPreview() {
+            const price = parseFloat(editPrice.value) || 0;
+            const cost = parseFloat(editCost.value) || 0;
+            const profit = price - cost;
+            
+            if (editProfitDisplay) {
+                if (profit > 0) {
+                    editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
+                    editProfitDisplay.style.color = '#16a34a';
+                } else if (profit < 0) {
+                    editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
+                    editProfitDisplay.style.color = '#dc2626';
+                } else {
+                    editProfitDisplay.textContent = 'KSh 0';
+                    editProfitDisplay.style.color = '#6b7280';
+                }
+            }
+            
+            if (editMarginDisplay) {
+                if (price > 0) {
+                    const margin = (profit / price) * 100;
+                    editMarginDisplay.textContent = margin.toFixed(1) + '%';
+                    editMarginDisplay.style.color = profit > 0 ? '#16a34a' : '#dc2626';
+                } else {
+                    editMarginDisplay.textContent = '0%';
+                    editMarginDisplay.style.color = '#6b7280';
+                }
+            }
+        }
+        
+        editPrice.addEventListener('input', updateEditProfitPreview);
+        editCost.addEventListener('input', updateEditProfitPreview);
+    }
+});
 
 // ============================================================
 // AUTO-SHOW SECTION ON PAGE LOAD
@@ -1662,11 +1817,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     loadAnalyticsData();
-    
-    // 🔥 LOAD PROFITABILITY DATA
     loadProfitability();
     
-    // Initialize charts after a delay
     setTimeout(initCharts, 800);
     setTimeout(waitForChartJS, 500);
     setTimeout(loadOfflineOrdersForDashboard, 2000);
@@ -1710,9 +1862,7 @@ function loadCreditCount() {
                 }
             }
         })
-        .catch(err => {
-            console.error('Error loading credit count:', err);
-        });
+        .catch(err => console.error('Error loading credit count:', err));
 }
 
 function loadSupplierCount() {
@@ -1726,9 +1876,7 @@ function loadSupplierCount() {
                 }
             }
         })
-        .catch(err => {
-            console.error('Error loading supplier count:', err);
-        });
+        .catch(err => console.error('Error loading supplier count:', err));
 }
 
 // ============================================================
@@ -1845,7 +1993,7 @@ function renderOrderDetails(order) {
 }
 
 // ============================================================
-// ✅ FIXED: EDIT PRODUCT - WITH BARCODE
+// ✅ FIXED: EDIT PRODUCT - WITH COST PRICE
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -1871,12 +2019,10 @@ function editProduct(productId) {
                 const product = data.product;
                 console.log('📦 Product loaded:', product);
                 
-                // Fill basic fields
                 document.getElementById('editProdId').value = product.id;
                 document.getElementById('editProdIdDisplay').value = product.id;
                 document.getElementById('editProdName').value = product.name || '';
                 
-                // Set category
                 const categorySelect = document.getElementById('editProdCategory');
                 if (categorySelect) {
                     let found = false;
@@ -1890,12 +2036,9 @@ function editProduct(productId) {
                     if (!found) {
                         categorySelect.value = product.category || '';
                     }
-                    categorySelect.dispatchEvent(new Event('change'));
                 }
                 
-                // ✅ LOAD BARCODE
                 document.getElementById('editProdBarcode').value = product.barcode || '';
-                
                 document.getElementById('editProdPrice').value = product.price || 0;
                 document.getElementById('editProdCost').value = product.cost_price || 0;
                 document.getElementById('editProdOriginal').value = product.original_price || '';
@@ -1905,6 +2048,37 @@ function editProduct(productId) {
                 document.getElementById('editProdImage').value = product.image || '';
                 document.getElementById('editProdDesc').value = product.description || '';
                 document.getElementById('editProdSpecs').value = (product.specs || []).join(', ');
+                
+                // Update profit preview
+                const price = parseFloat(product.price || 0);
+                const cost = parseFloat(product.cost_price || 0);
+                const profit = price - cost;
+                const editProfitDisplay = document.getElementById('editProfitDisplay');
+                const editMarginDisplay = document.getElementById('editMarginDisplay');
+                
+                if (editProfitDisplay) {
+                    if (profit > 0) {
+                        editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
+                        editProfitDisplay.style.color = '#16a34a';
+                    } else if (profit < 0) {
+                        editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
+                        editProfitDisplay.style.color = '#dc2626';
+                    } else {
+                        editProfitDisplay.textContent = 'KSh 0';
+                        editProfitDisplay.style.color = '#6b7280';
+                    }
+                }
+                
+                if (editMarginDisplay) {
+                    if (price > 0) {
+                        const margin = (profit / price) * 100;
+                        editMarginDisplay.textContent = margin.toFixed(1) + '%';
+                        editMarginDisplay.style.color = profit > 0 ? '#16a34a' : '#dc2626';
+                    } else {
+                        editMarginDisplay.textContent = '0%';
+                        editMarginDisplay.style.color = '#6b7280';
+                    }
+                }
                 
                 showToast('✅ Product loaded', 'success');
             } else {
@@ -1920,7 +2094,7 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// ✅ FIXED: SAVE EDITED PRODUCT - WITH BARCODE
+// ✅ FIXED: SAVE EDITED PRODUCT - WITH COST PRICE
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
@@ -1930,14 +2104,10 @@ function saveEditedProduct(event) {
         return;
     }
     
-    // Get the category select
-    const categorySelect = document.getElementById('editProdCategory');
-    const selectedCategory = categorySelect ? categorySelect.value : '';
-    
     const productId = document.getElementById('editProdId').value;
     const data = {
         name: document.getElementById('editProdName').value.trim(),
-        category: selectedCategory,
+        category: document.getElementById('editProdCategory').value,
         price: parseFloat(document.getElementById('editProdPrice').value) || 0,
         cost_price: parseFloat(document.getElementById('editProdCost').value) || 0,
         original_price: parseFloat(document.getElementById('editProdOriginal').value) || null,
@@ -1952,7 +2122,6 @@ function saveEditedProduct(event) {
     
     console.log('📦 Updating product:', data);
     
-    // Validation
     if (!data.name) {
         showToast('❌ Please enter a product name', 'error');
         return;
@@ -2015,13 +2184,12 @@ function saveEditedProduct(event) {
 }
 
 // ============================================================
-// ✅ FIXED: SAVE PRODUCT - WITH BARCODE
+// ✅ FIXED: SAVE PRODUCT - WITH COST PRICE
 // ============================================================
 function saveProduct(event) {
     event.preventDefault();
     console.log('🔄 Saving product...');
 
-    // Get form values
     const id = document.getElementById('prodId').value.trim();
     const name = document.getElementById('prodName').value.trim();
     const category = document.getElementById('prodCategory').value;
@@ -2036,7 +2204,6 @@ function saveProduct(event) {
     const specs = document.getElementById('prodSpecs').value.split(',').map(s => s.trim()).filter(s => s);
     const barcode = document.getElementById('prodBarcode').value.trim() || '';
 
-    // Validation
     if (!id) {
         showToast('❌ Please enter a Product ID', 'error');
         return;
@@ -2077,7 +2244,6 @@ function saveProduct(event) {
 
     console.log('📦 Product data:', productData);
 
-    // Show saving state
     const btn = document.querySelector('#productForm button[type="submit"]');
     const originalText = btn ? btn.innerHTML : 'Save';
     if (btn) {
@@ -2085,7 +2251,6 @@ function saveProduct(event) {
         btn.disabled = true;
     }
 
-    // Send to API
     fetch('/admin/products', {
         method: 'POST',
         headers: {
@@ -2106,10 +2271,8 @@ function saveProduct(event) {
         console.log('📥 Result:', result);
         if (result.success) {
             showToast('✅ Product "' + name + '" added successfully!', 'success');
-            // Clear form
             document.getElementById('productForm').reset();
             document.getElementById('imagePreview').style.display = 'none';
-            // Go to products list
             setTimeout(() => {
                 showSection('products');
                 setTimeout(() => location.reload(), 500);
@@ -2133,8 +2296,6 @@ function saveProduct(event) {
 // ============================================================
 // BARCODE SCANNER FUNCTIONS
 // ============================================================
-
-// For Add Product
 function scanBarcode() {
     const barcodeInput = document.getElementById('prodBarcode');
     if (barcodeInput) {
@@ -2144,7 +2305,6 @@ function scanBarcode() {
     }
 }
 
-// For Edit Product
 function scanBarcodeEdit() {
     const barcodeInput = document.getElementById('editProdBarcode');
     if (barcodeInput) {
@@ -2568,7 +2728,6 @@ function loadAnalyticsData() {
                 }
             }
             
-            // ✅ UPDATE CHARTS WITH REAL DATA
             if (revenueChart && data.monthly_data) {
                 try {
                     const months = Object.keys(data.monthly_data).sort();
@@ -2609,20 +2768,16 @@ function loadAnalyticsData() {
 // ============================================================
 // FILTER FUNCTIONS
 // ============================================================
-
-// ✅ NEW: Search ALL products in database (not just current page)
 let searchTimeout = null;
 
 function filterProductsTable(searchTerm) {
     const term = searchTerm.trim();
     
-    // If search is empty, reload first page
     if (!term) {
         loadProductsPage(1);
         return;
     }
     
-    // Debounce search to avoid too many requests
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         searchAllProducts(term);
@@ -2633,14 +2788,11 @@ async function searchAllProducts(term) {
     console.log('🔍 Searching for:', term);
     
     try {
-        // Fetch ALL products from database
         const response = await fetch(`/admin/api/products?per_page=1000&t=${Date.now()}`);
         const data = await response.json();
         
         if (data.success) {
             const allProducts = data.products || [];
-            
-            // Filter by search term
             const filtered = allProducts.filter(product => {
                 const name = (product.name || '').toLowerCase();
                 const category = (product.category || '').toLowerCase();
@@ -2653,10 +2805,8 @@ async function searchAllProducts(term) {
                        barcode.includes(term);
             });
             
-            // Display results
             renderProductsTable(filtered);
             
-            // Update count
             const totalEl = document.getElementById('productsTotal');
             if (totalEl) totalEl.textContent = filtered.length;
             
@@ -2666,7 +2816,6 @@ async function searchAllProducts(term) {
             const startEl = document.getElementById('productsStart');
             if (startEl) startEl.textContent = filtered.length > 0 ? '1' : '0';
             
-            // Show search results message
             const paginationLinks = document.getElementById('productsPaginationLinks');
             if (paginationLinks) {
                 if (filtered.length > 0) {
@@ -2684,7 +2833,6 @@ async function searchAllProducts(term) {
     }
 }
 
-// Keep these functions as they are (they work fine)
 function filterCreditCustomers(searchTerm) {
     const rows = document.querySelectorAll('#creditCustomersTableBody .credit-row');
     const term = (searchTerm || document.getElementById('searchCreditCustomers')?.value || '').toLowerCase().trim();
@@ -2738,6 +2886,7 @@ function clearSupplierFilters() {
     document.getElementById('categoryFilter').value = 'all';
     filterSuppliers('');
 }
+
 // ============================================================
 // CREDIT CUSTOMER CRUD FUNCTIONS
 // ============================================================
@@ -2814,9 +2963,9 @@ function viewCreditCustomer(customerId) {
                             <div><p class="text-xs text-gray-400">Email</p><p class="font-semibold">${c.email || 'N/A'}</p></div>
                             <div><p class="text-xs text-gray-400">Credit Limit</p><p class="font-semibold">KSh ${(c.credit_limit || 0).toLocaleString()}</p></div>
                             <div><p class="text-xs text-gray-400">Current Balance</p><p class="font-bold ${c.current_balance > c.credit_limit ? 'text-red-600' : 'text-blue-600'}">KSh ${(c.current_balance || 0).toLocaleString()}</p></div>
-                            <div><p class="text-xs text-gray-400">Payment Terms</p><p class="font-semibold">${c.payment_terms || '30 days'}</p></div>
                             <div><p class="text-xs text-gray-400">Total Purchases</p><p class="font-semibold">KSh ${(c.total_purchases || 0).toLocaleString()}</p></div>
                             <div><p class="text-xs text-gray-400">Total Payments</p><p class="font-semibold text-green-600">KSh ${(c.total_payments || 0).toLocaleString()}</p></div>
+                            <div><p class="text-xs text-gray-400">Total Profit</p><p class="font-semibold text-purple-600">KSh ${(c.total_profit || 0).toLocaleString()}</p></div>
                             <div><p class="text-xs text-gray-400">Status</p><span class="badge ${c.account_status === 'active' ? 'badge-success' : 'badge-danger'}">${c.account_status || 'Unknown'}</span></div>
                         </div>
                         ${c.address ? `<div><p class="text-xs text-gray-400">Address</p><p>${c.address}</p></div>` : ''}
@@ -2824,6 +2973,7 @@ function viewCreditCustomer(customerId) {
                         <div class="flex gap-2 pt-3 border-t flex-wrap">
                             <button onclick="openRecordPaymentModal('${c.customer_id}', '${c.full_name}', '${c.current_balance || 0}'); closeViewCreditModal();" class="btn-success text-sm py-2 px-4"><i class="fas fa-money-bill-wave"></i> Record Payment</button>
                             <button onclick="viewTransactionHistory('${c.customer_id}'); closeViewCreditModal();" class="btn-outline text-sm py-2 px-4 text-purple-600"><i class="fas fa-history"></i> History</button>
+                            <button onclick="viewProfitDetails('${c.customer_id}'); closeViewCreditModal();" class="btn-outline text-sm py-2 px-4 text-purple-600"><i class="fas fa-chart-line"></i> Profit</button>
                             <button onclick="editCreditCustomer('${c.customer_id}'); closeViewCreditModal();" class="btn-gradient text-sm py-2 px-4"><i class="fas fa-edit"></i> Edit</button>
                             <button onclick="closeViewCreditModal()" class="btn-outline text-sm py-2 px-4">Close</button>
                         </div>
@@ -3435,6 +3585,158 @@ function syncOfflineOrdersFromDashboard() {
     }, 2000);
 }
 
-console.log('✅ Admin dashboard loaded successfully with charts!');
+// ============================================================
+// ✅ PROFIT DETAILS FUNCTION
+// ============================================================
+function viewProfitDetails(customerId) {
+    showToast('Loading profit details...', 'info');
+    
+    fetch(`/admin/api/credit/profit/${customerId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const content = document.getElementById('profitContent');
+                const summary = data.summary;
+                const transactions = data.transactions || [];
+                
+                let html = `
+                    <div class="space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="text-xl font-bold">${summary.customer_name}</h4>
+                                <p class="text-gray-400 font-mono text-sm">${summary.customer_id}</p>
+                            </div>
+                            <span class="badge ${summary.remaining_balance > 0 ? 'badge-warning' : 'badge-success'}">
+                                ${summary.remaining_balance > 0 ? 'Has Balance' : 'Paid'}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-500">Total Sales</p>
+                                <p class="text-xl font-bold text-green-600">KSh ${summary.total_sales.toLocaleString()}</p>
+                            </div>
+                            <div class="bg-red-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-500">Total Cost</p>
+                                <p class="text-xl font-bold text-red-600">KSh ${summary.total_cost.toLocaleString()}</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-500">Total Profit</p>
+                                <p class="text-xl font-bold text-purple-600">KSh ${summary.total_profit.toLocaleString()}</p>
+                            </div>
+                            <div class="bg-amber-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-500">Profit Margin</p>
+                                <p class="text-xl font-bold text-amber-600">${summary.profit_margin}%</p>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-lg col-span-2">
+                                <p class="text-xs text-gray-500">Remaining Balance</p>
+                                <p class="text-xl font-bold text-blue-600">KSh ${summary.remaining_balance.toLocaleString()}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <p class="text-sm font-semibold mb-2">Transaction History</p>
+                            <div class="table-wrap max-h-48 overflow-y-auto">
+                                <table>
+                                    <thead class="sticky top-0 bg-white">
+                                        <tr>
+                                            <th class="text-xs">Date</th>
+                                            <th class="text-xs">Type</th>
+                                            <th class="text-xs text-right">Amount</th>
+                                            <th class="text-xs text-right">Profit</th>
+                                            <th class="text-xs text-center">Margin</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                if (transactions.length === 0) {
+                    html += `<tr><td colspan="5" class="text-center py-4 text-gray-400">No transactions found</td></tr>`;
+                } else {
+                    transactions.forEach(tx => {
+                        const typeClass = tx.transaction_type === 'payment' ? 'text-green-600' : 'text-blue-600';
+                        const typeIcon = tx.transaction_type === 'payment' ? '💰' : '🛍️';
+                        const profit = tx.profit || 0;
+                        const margin = tx.profit_margin || 0;
+                        const profitClass = profit > 0 ? 'text-green-600' : 'text-gray-400';
+                        
+                        html += `
+                            <tr>
+                                <td class="text-xs">${tx.created_at ? tx.created_at.slice(0, 10) : 'N/A'}</td>
+                                <td class="text-xs ${typeClass}">${typeIcon} ${tx.transaction_type}</td>
+                                <td class="text-xs text-right ${typeClass}">KSh ${(tx.amount || 0).toLocaleString()}</td>
+                                <td class="text-xs text-right ${profitClass}">${profit > 0 ? 'KSh ' + profit.toLocaleString() : '-'}</td>
+                                <td class="text-xs text-center">${margin > 0 ? margin + '%' : '-'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2 pt-3 border-t flex-wrap">
+                            <button onclick="openRecordPaymentModal('${summary.customer_id}', '${summary.customer_name}', '${summary.remaining_balance}'); document.getElementById('profitModal').classList.add('hidden');" class="btn-success text-sm py-2 px-4"><i class="fas fa-money-bill-wave"></i> Record Payment</button>
+                            <button onclick="document.getElementById('profitModal').classList.add('hidden')" class="btn-outline text-sm py-2 px-4">Close</button>
+                        </div>
+                    </div>
+                `;
+                
+                content.innerHTML = html;
+                document.getElementById('profitModal').classList.remove('hidden');
+                showToast('Profit details loaded', 'success');
+            } else {
+                showToast('❌ ' + (data.message || 'Error loading profit details'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('❌ Error loading profit details', 'error');
+        });
+}
+
+function updateCreditStats() {
+    fetch('/admin/api/credit/profit/summary')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const s = data.summary;
+                document.getElementById('creditTotalSales').textContent = 'KSh ' + (s.total_credit_sales || 0).toLocaleString();
+                document.getElementById('creditTotalPayments').textContent = 'KSh ' + (s.total_payments_received || 0).toLocaleString();
+                document.getElementById('creditTotalProfit').textContent = 'KSh ' + (s.total_profit || 0).toLocaleString();
+                document.getElementById('creditProfitMargin').textContent = (s.profit_margin || 0) + '%';
+                document.getElementById('creditCollectionRate').textContent = (s.collection_rate || 0) + '%';
+                document.getElementById('creditTotalProfitDisplay').textContent = 'KSh ' + (s.total_profit || 0).toLocaleString();
+            }
+        })
+        .catch(err => console.error('Error updating credit stats:', err));
+}
+
+function syncOfflineCreditOrders() {
+    showToast('🔄 Syncing offline credit orders...', 'info');
+    
+    fetch('/admin/api/credit/sync-offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`✅ Synced ${data.orders_synced || 0} orders, ${data.payments_synced || 0} payments`, 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showToast('❌ Sync failed: ' + (data.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        showToast('❌ Error syncing offline orders', 'error');
+    });
+}
+
+console.log('✅ Admin dashboard loaded successfully with charts and profit tracking!');
 </script>
 {% endblock %}
