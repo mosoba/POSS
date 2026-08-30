@@ -1713,93 +1713,63 @@ function updateChartsOnResize() {
     }
 }
 
-// ============================================================
-// ✅ PROFIT PREVIEW ON ADD PRODUCT
-// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Profit preview for add product
-    const priceInput = document.getElementById('prodPrice');
-    const costInput = document.getElementById('prodCost');
-    const profitPreview = document.getElementById('profitPreview');
-    const marginPreview = document.getElementById('profitMarginPreview');
+    console.log('🚀 Admin dashboard loading...');
     
-    if (priceInput && costInput) {
-        function updateProfitPreview() {
-            const price = parseFloat(priceInput.value) || 0;
-            const cost = parseFloat(costInput.value) || 0;
-            const profit = price - cost;
-            
-            if (profitPreview) {
-                if (profit > 0) {
-                    profitPreview.textContent = 'KSh ' + profit.toLocaleString();
-                    profitPreview.style.color = '#16a34a';
-                } else if (profit < 0) {
-                    profitPreview.textContent = 'KSh ' + profit.toLocaleString();
-                    profitPreview.style.color = '#dc2626';
-                } else {
-                    profitPreview.textContent = 'KSh 0';
-                    profitPreview.style.color = '#6b7280';
-                }
-            }
-            
-            if (marginPreview) {
-                if (price > 0) {
-                    const margin = (profit / price) * 100;
-                    marginPreview.textContent = 'Margin: ' + margin.toFixed(1) + '%';
-                    marginPreview.style.color = profit > 0 ? '#16a34a' : '#dc2626';
-                } else {
-                    marginPreview.textContent = 'Margin: 0%';
-                    marginPreview.style.color = '#6b7280';
-                }
-            }
-        }
-        
-        priceInput.addEventListener('input', updateProfitPreview);
-        costInput.addEventListener('input', updateProfitPreview);
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+    
+    if (section) {
+        console.log('📌 Loading section from URL:', section);
+        setTimeout(function() {
+            showSection(section);
+        }, 300);
     }
     
-    // Profit preview for edit product
-    const editPrice = document.getElementById('editProdPrice');
-    const editCost = document.getElementById('editProdCost');
-    const editProfitDisplay = document.getElementById('editProfitDisplay');
-    const editMarginDisplay = document.getElementById('editMarginDisplay');
+    loadAnalyticsData();
+    loadProfitability();
     
-    if (editPrice && editCost) {
-        function updateEditProfitPreview() {
-            const price = parseFloat(editPrice.value) || 0;
-            const cost = parseFloat(editCost.value) || 0;
-            const profit = price - cost;
-            
-            if (editProfitDisplay) {
-                if (profit > 0) {
-                    editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
-                    editProfitDisplay.style.color = '#16a34a';
-                } else if (profit < 0) {
-                    editProfitDisplay.textContent = 'KSh ' + profit.toLocaleString();
-                    editProfitDisplay.style.color = '#dc2626';
-                } else {
-                    editProfitDisplay.textContent = 'KSh 0';
-                    editProfitDisplay.style.color = '#6b7280';
-                }
-            }
-            
-            if (editMarginDisplay) {
-                if (price > 0) {
-                    const margin = (profit / price) * 100;
-                    editMarginDisplay.textContent = margin.toFixed(1) + '%';
-                    editMarginDisplay.style.color = profit > 0 ? '#16a34a' : '#dc2626';
-                } else {
-                    editMarginDisplay.textContent = '0%';
-                    editMarginDisplay.style.color = '#6b7280';
-                }
+    setTimeout(initCharts, 800);
+    setTimeout(waitForChartJS, 500);
+    setTimeout(loadOfflineOrdersForDashboard, 2000);
+    
+    window.addEventListener('online', function() {
+        console.log('📡 Back online - checking for offline orders...');
+        showToast('🔄 Back online! Syncing orders...', 'info');
+        setTimeout(loadOfflineOrdersForDashboard, 2000);
+    });
+    
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            updateChartsOnResize();
+        }, 300);
+    });
+    
+    function updateLiveTime() {
+        const now = new Date();
+        document.getElementById('liveTime').textContent = now.toLocaleTimeString();
+    }
+    updateLiveTime();
+    setInterval(updateLiveTime, 30000);
+    
+    loadCreditCount();
+    loadSupplierCount();
+    
+    // 🔥 NEW: Fix collection rate to never exceed 100%
+    setTimeout(function() {
+        var rateEl = document.getElementById('creditCollectionRate');
+        if (rateEl) {
+            var currentText = rateEl.textContent;
+            var currentValue = parseFloat(currentText);
+            if (currentValue > 100) {
+                rateEl.textContent = '100%';
+                console.log('✅ Collection rate capped at 100% (was ' + currentValue + '%)');
             }
         }
-        
-        editPrice.addEventListener('input', updateEditProfitPreview);
-        editCost.addEventListener('input', updateEditProfitPreview);
-    }
+    }, 1000);
 });
-
 // ============================================================
 // AUTO-SHOW SECTION ON PAGE LOAD
 // ============================================================
