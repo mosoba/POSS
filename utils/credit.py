@@ -314,11 +314,11 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             'created_at': datetime.utcnow().isoformat(),
             'total_cost': total_cost,
             'profit': total_profit,
-            'profit_margin': profit_margin,
-            'total_items': len(item_details)
+            'profit_margin': profit_margin
+            # ❌ REMOVED: 'total_items' - column doesn't exist
         }
         
-        print(f"📤 Inserting transaction")
+        print(f"📤 Inserting transaction with cost: KSh {total_cost}")
         
         response = requests.post(
             f"{Config.SUPABASE_URL}/rest/v1/credit_transactions",
@@ -330,7 +330,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         print(f"📥 Response status: {response.status_code}")
         
         if response.status_code not in [200, 201]:
-            # Try without profit columns if they don't exist
+            # ✅ FIXED: Add cost to fallback transaction
             simple_transaction = {
                 'transaction_id': transaction_id,
                 'customer_id': customer_id,
@@ -341,7 +341,10 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'staff_name': staff_name,
                 'notes': notes or '',
                 'payment_status': 'pending',
-                'created_at': datetime.utcnow().isoformat()
+                'created_at': datetime.utcnow().isoformat(),
+                'total_cost': total_cost,      # ✅ ADDED
+                'profit': total_profit,        # ✅ ADDED
+                'profit_margin': profit_margin # ✅ ADDED
             }
             
             response = requests.post(
@@ -358,7 +361,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                     'error': response.text
                 }
         
-        print(f"✅ Transaction saved")
+        print(f"✅ Transaction saved with correct cost")
         
         # Update customer balance
         update_data = {
