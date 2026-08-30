@@ -155,7 +155,7 @@
     </div>
 
     <!-- ============================================================
-         PROFITABILITY SECTION - PAID SALES ONLY (ADDED)
+         PROFITABILITY SECTION - PAID SALES ONLY
          ============================================================ -->
     <div class="profitability-section" style="margin-top: 20px; padding: 16px 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
         <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
@@ -408,7 +408,7 @@
 </div>
 
 <!-- ============================================================
-     ✅ ADD PRODUCT SECTION - UPDATED WITH ALL CATEGORIES
+     ADD PRODUCT SECTION - WITH BARCODE SUPPORT
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
@@ -424,7 +424,7 @@
                     <label class="form-label text-[8px] sm:text-[10px]">Product Name</label>
                     <input type="text" id="prodName" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="iPhone 15 Pro Max" required>
                 </div>
-                <!-- ✅ CATEGORY - UPDATED WITH ALL CATEGORIES -->
+                <!-- Category -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Category</label>
                     <select id="prodCategory" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" required>
@@ -468,6 +468,16 @@
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Stock</label>
                     <input type="number" id="prodStock" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="25" required>
+                </div>
+                <!-- ✅ BARCODE FIELD -->
+                <div>
+                    <label class="form-label text-[8px] sm:text-[10px]">Barcode</label>
+                    <div class="flex gap-1 sm:gap-2">
+                        <input type="text" id="prodBarcode" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1" placeholder="Enter barcode or scan">
+                        <button type="button" class="btn-outline text-[8px] sm:text-[10px] px-2 sm:px-3 py-1 sm:py-1.5" onclick="scanBarcode()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none;">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
                 </div>
                 <!-- Rating -->
                 <div>
@@ -898,8 +908,7 @@
         </div>
         <div class="flex gap-2">
             <button onclick="showAddSupplierModal()" class="btn-gradient text-sm py-2 px-4">
-                <i class="fas fa-plus"></i> Add Supplier
-            </button>
+                <i class="fas fa-plus"></i> Add Supplier            </button>
             <button onclick="showLowStockModal()" class="btn-danger text-sm py-2 px-4">
                 <i class="fas fa-exclamation-triangle"></i> Low Stock (<span id="lowStockBadge">{{ low_stock_count|default(0) }}</span>)
             </button>
@@ -1077,7 +1086,7 @@
 </div>
 
 <!-- ============================================================
-     ✅ EDIT PRODUCT MODAL - ADD THIS
+     EDIT PRODUCT MODAL - WITH BARCODE SUPPORT
      ============================================================ -->
 <div id="editProductModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -1098,7 +1107,6 @@
                     <input type="text" id="editProdName" class="form-input w-full" required>
                 </div>
                 
-                <!-- ✅ CATEGORY - ALL 18 OPTIONS -->
                 <div>
                     <label class="form-label text-sm font-semibold">Category</label>
                     <select id="editProdCategory" class="form-input w-full">
@@ -1122,6 +1130,17 @@
                         <option value="Tablets">📱 Tablets</option>
                         <option value="General">📦 General</option>
                     </select>
+                </div>
+                
+                <!-- ✅ BARCODE FIELD IN EDIT -->
+                <div>
+                    <label class="form-label text-sm font-semibold">Barcode</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="editProdBarcode" class="form-input w-full" placeholder="Enter barcode">
+                        <button type="button" class="btn-outline text-xs px-3 py-1.5" onclick="scanBarcodeEdit()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none;">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <div>
@@ -1826,7 +1845,7 @@ function renderOrderDetails(order) {
 }
 
 // ============================================================
-// ✅ FIXED: EDIT PRODUCT - SHOWS CURRENT CATEGORY
+// ✅ FIXED: EDIT PRODUCT - WITH BARCODE
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -1851,35 +1870,31 @@ function editProduct(productId) {
             if (data.success) {
                 const product = data.product;
                 console.log('📦 Product loaded:', product);
-                console.log('📂 Current category:', product.category);
                 
                 // Fill basic fields
                 document.getElementById('editProdId').value = product.id;
                 document.getElementById('editProdIdDisplay').value = product.id;
                 document.getElementById('editProdName').value = product.name || '';
                 
-                // ✅ FIX: Set category dropdown to current category
+                // Set category
                 const categorySelect = document.getElementById('editProdCategory');
                 if (categorySelect) {
-                    // First try to find the category in dropdown
                     let found = false;
                     for (let i = 0; i < categorySelect.options.length; i++) {
                         if (categorySelect.options[i].value === product.category) {
                             categorySelect.selectedIndex = i;
                             found = true;
-                            console.log('✅ Category set to:', product.category);
                             break;
                         }
                     }
-                    // If not found, try to set by value
                     if (!found) {
                         categorySelect.value = product.category || '';
-                        console.log('✅ Category set by value:', categorySelect.value);
                     }
-                    
-                    // Force the select to show the correct value
                     categorySelect.dispatchEvent(new Event('change'));
                 }
+                
+                // ✅ LOAD BARCODE
+                document.getElementById('editProdBarcode').value = product.barcode || '';
                 
                 document.getElementById('editProdPrice').value = product.price || 0;
                 document.getElementById('editProdCost').value = product.cost_price || 0;
@@ -1905,7 +1920,7 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// ✅ FIXED: SAVE EDITED PRODUCT - SAVES CATEGORY CORRECTLY
+// ✅ FIXED: SAVE EDITED PRODUCT - WITH BARCODE
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
@@ -1919,9 +1934,6 @@ function saveEditedProduct(event) {
     const categorySelect = document.getElementById('editProdCategory');
     const selectedCategory = categorySelect ? categorySelect.value : '';
     
-    // Log what's being saved
-    console.log('📂 Selected category:', selectedCategory);
-    
     const productId = document.getElementById('editProdId').value;
     const data = {
         name: document.getElementById('editProdName').value.trim(),
@@ -1934,7 +1946,8 @@ function saveEditedProduct(event) {
         badge: document.getElementById('editProdBadge').value,
         image: document.getElementById('editProdImage').value.trim(),
         description: document.getElementById('editProdDesc').value.trim(),
-        specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s)
+        specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s),
+        barcode: document.getElementById('editProdBarcode').value.trim() || ''
     };
     
     console.log('📦 Updating product:', data);
@@ -2002,7 +2015,7 @@ function saveEditedProduct(event) {
 }
 
 // ============================================================
-// ✅ FIXED: SAVE PRODUCT - ACTUALLY SAVES TO DATABASE
+// ✅ FIXED: SAVE PRODUCT - WITH BARCODE
 // ============================================================
 function saveProduct(event) {
     event.preventDefault();
@@ -2021,6 +2034,7 @@ function saveProduct(event) {
     const image = document.getElementById('prodImage').value.trim() || '';
     const description = document.getElementById('prodDesc').value.trim() || '';
     const specs = document.getElementById('prodSpecs').value.split(',').map(s => s.trim()).filter(s => s);
+    const barcode = document.getElementById('prodBarcode').value.trim() || '';
 
     // Validation
     if (!id) {
@@ -2057,6 +2071,7 @@ function saveProduct(event) {
         image: image,
         description: description,
         specs: specs,
+        barcode: barcode,
         created_at: new Date().toISOString()
     };
 
@@ -2115,6 +2130,33 @@ function saveProduct(event) {
     });
 }
 
+// ============================================================
+// BARCODE SCANNER FUNCTIONS
+// ============================================================
+
+// For Add Product
+function scanBarcode() {
+    const barcodeInput = document.getElementById('prodBarcode');
+    if (barcodeInput) {
+        barcodeInput.placeholder = 'Scanning...';
+        barcodeInput.focus();
+        showToast('📷 Scan barcode or type it in', 'info');
+    }
+}
+
+// For Edit Product
+function scanBarcodeEdit() {
+    const barcodeInput = document.getElementById('editProdBarcode');
+    if (barcodeInput) {
+        barcodeInput.placeholder = 'Scanning...';
+        barcodeInput.focus();
+        showToast('📷 Scan barcode or type it in', 'info');
+    }
+}
+
+// ============================================================
+// DELETE PRODUCT
+// ============================================================
 function deleteProduct(productId) {
     if (!isOnline()) {
         showToast('📡 You are offline. Please connect to the internet to delete products.', 'warning');
