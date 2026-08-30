@@ -1033,7 +1033,7 @@ def api_get_credit_summary():
 
   
 
-  # ============================================================
+ # ============================================================
 # UPDATE CREDIT TRANSACTION - FIX COST AND PROFIT
 # ============================================================
 
@@ -1086,7 +1086,6 @@ def api_update_credit_transaction(transaction_id):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
-
 
 # ============================================================
 # PROFITABILITY API - COMBINES ALL PAID SALES
@@ -1832,9 +1831,10 @@ def admin_api_analytics():
             if tx.get('transaction_type') == 'purchase':
                 amount = float(tx.get('amount', 0))
                 cost = float(tx.get('total_cost', 0))
+                profit = float(tx.get('profit', 0))  # ✅ FIXED: Use stored profit
                 credit_sales += amount
                 credit_cost += cost
-                credit_profit += (amount - cost)
+                credit_profit += profit  # ✅ FIXED: Use stored profit
         
         # Merge with regular orders
         analytics['total_revenue'] = analytics.get('total_revenue', 0) + credit_sales
@@ -1847,7 +1847,7 @@ def admin_api_analytics():
         analytics['credit_profit'] = credit_profit
         analytics['cash_sales'] = analytics.get('total_revenue', 0) - credit_sales
         
-        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Total: KSh {analytics['total_revenue']}")
+        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Cost: KSh {credit_cost}, Profit: KSh {credit_profit}, Total: KSh {analytics['total_revenue']}")
         
     except Exception as e:
         print(f"⚠️ Error merging credit data: {e}")
