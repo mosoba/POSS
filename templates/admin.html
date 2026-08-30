@@ -276,6 +276,31 @@
         <div class="stat-card p-2 sm:p-3"><div class="flex items-center gap-1.5 sm:gap-2 mb-0.5"><div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center"><i class="fas fa-shopping-cart text-[10px] sm:text-sm"></i></div><p class="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase">Orders</p></div><p class="text-sm sm:text-xl font-extrabold text-amber-600" id="totalOrders">{{ stats.total_orders|default(0) }}</p></div>
     </div>
 
+    <!-- ✅ NEW: Sales Breakdown - Cash vs Credit -->
+    <div class="glass-card p-3 sm:p-4 mb-3 sm:mb-6">
+        <h3 class="font-bold text-[#0f172a] text-xs sm:text-base mb-2 sm:mb-3">
+            <i class="fas fa-chart-pie text-purple-500 mr-1 sm:mr-2"></i> Sales Breakdown
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+            <div class="bg-blue-50 p-2 sm:p-3 rounded-xl text-center">
+                <p class="text-[8px] sm:text-[10px] text-gray-500">Cash Sales</p>
+                <p class="text-sm sm:text-lg font-extrabold text-blue-600" id="cashSales">KSh 0</p>
+            </div>
+            <div class="bg-purple-50 p-2 sm:p-3 rounded-xl text-center">
+                <p class="text-[8px] sm:text-[10px] text-gray-500">Credit Sales</p>
+                <p class="text-sm sm:text-lg font-extrabold text-purple-600" id="creditSales">KSh 0</p>
+            </div>
+            <div class="bg-green-50 p-2 sm:p-3 rounded-xl text-center">
+                <p class="text-[8px] sm:text-[10px] text-gray-500">Total Revenue</p>
+                <p class="text-sm sm:text-lg font-extrabold text-green-600" id="totalRevenueMerged">KSh 0</p>
+            </div>
+            <div class="bg-amber-50 p-2 sm:p-3 rounded-xl text-center">
+                <p class="text-[8px] sm:text-[10px] text-gray-500">Credit % of Total</p>
+                <p class="text-sm sm:text-lg font-extrabold text-amber-600" id="creditPercentage">0%</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Profit Overview -->
     <div class="glass-card p-3 sm:p-4 mb-3 sm:mb-6">
         <h3 class="font-bold text-[#0f172a] text-xs sm:text-base mb-2 sm:mb-3"><i class="fas fa-chart-line text-blue-500 mr-1 sm:mr-2"></i> Profit Overview</h3>
@@ -2647,63 +2672,105 @@ function dismissSyncBar() {
 }
 
 // ============================================================
-// LOAD ANALYTICS DATA
-// ============================================================
 function loadAnalyticsData() {
     console.log('📊 Loading analytics data...');
     
     fetch('/admin/api/analytics?t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
             console.log('✅ Analytics data loaded:', data);
             
-            const monthlyTable = document.getElementById('monthlyTable');
+            // ✅ UPDATE TOTALS (POS + Credit merged)
+            var totalRevenue = data.total_revenue || 0;
+            var totalCost = data.total_cost || 0;
+            var totalProfit = data.total_profit || 0;
+            
+            // Update main stats
+            document.getElementById('totalRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
+            document.getElementById('totalCost').textContent = 'KSh ' + totalCost.toLocaleString();
+            document.getElementById('totalProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
+            document.getElementById('totalOrders').textContent = data.total_orders || 0;
+            
+            // Update profit overview
+            document.getElementById('revRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
+            document.getElementById('revProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
+            
+            var margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
+            document.getElementById('profitMargin').textContent = margin + '%';
+            
+            // ✅ UPDATE CREDIT BREAKDOWN (New section)
+            var creditSales = data.credit_sales || 0;
+            var cashSales = totalRevenue - creditSales;
+            var creditPercentage = totalRevenue > 0 ? ((creditSales / totalRevenue) * 100).toFixed(1) : 0;
+            
+            var cashEl = document.getElementById('cashSales');
+            var creditEl = document.getElementById('creditSales');
+            var totalEl = document.getElementById('totalRevenueMerged');
+            var percentEl = document.getElementById('creditPercentage');
+            
+            if (cashEl) cashEl.textContent = 'KSh ' + cashSales.toLocaleString();
+            if (creditEl) creditEl.textContent = 'KSh ' + creditSales.toLocaleString();
+            if (totalEl) totalEl.textContent = 'KSh ' + totalRevenue.toLocaleString();
+            if (percentEl) percentEl.textContent = creditPercentage + '%';
+            
+            // Monthly Performance Table
+            var monthlyTable = document.getElementById('monthlyTable');
             if (monthlyTable && data.monthly_data) {
-                const months = Object.keys(data.monthly_data).sort();
+                var months = Object.keys(data.monthly_data).sort();
                 if (months.length > 0) {
-                    let html = '';
-                    months.forEach(month => {
-                        const m = data.monthly_data[month];
-                        html += `<tr>
-                            <td class="text-xs sm:text-sm font-semibold">${month}</td>
-                            <td class="text-right text-xs sm:text-sm">${m.orders || 0}</td>
-                            <td class="text-right text-xs sm:text-sm">${m.items || 0}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ${(m.revenue || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${(m.cost || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${(m.profit || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-blue-600">${(m.margin || 0)}%</td>
-                        </tr>`;
-                    });
+                    var html = '';
+                    for (var i = 0; i < months.length; i++) {
+                        var month = months[i];
+                        var m = data.monthly_data[month];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (m.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (m.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (m.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (m.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
                     monthlyTable.innerHTML = html;
                 }
             }
             
-            const productTable = document.getElementById('productTable');
-            if (productTable && data.top_products) {
-                if (data.top_products.length > 0) {
-                    let html = '';
-                    data.top_products.forEach(product => {
-                        html += `<tr>
-                            <td class="text-xs sm:text-sm font-semibold text-[#0f172a]">${product.name}</td>
-                            <td class="text-right text-xs sm:text-sm">${product.quantity || 0}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ${(product.revenue || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm text-gray-500">KSh ${(product.cost || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ${(product.profit || 0).toLocaleString()}</td>
-                            <td class="text-right text-xs sm:text-sm font-semibold text-blue-600">${(product.margin || 0)}%</td>
-                        </tr>`;
-                    });
+            // Top Selling Products
+            var productTable = document.getElementById('productTable');
+            if (productTable && data.product_sales) {
+                var productNames = Object.keys(data.product_sales);
+                if (productNames.length > 0) {
+                    var html = '';
+                    var count = Math.min(productNames.length, 10);
+                    for (var j = 0; j < count; j++) {
+                        var name = productNames[j];
+                        var p = data.product_sales[name];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold text-[#0f172a]">' + name + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (p.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (p.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (p.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (p.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
                     productTable.innerHTML = html;
                 } else {
-                    productTable.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">No products sold yet</td></tr>`;
+                    productTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No products sold yet</td></tr>';
                 }
             }
             
+            // Update charts
             if (revenueChart && data.monthly_data) {
                 try {
-                    const months = Object.keys(data.monthly_data).sort();
-                    const revenueValues = months.map(function(m) { 
-                        return data.monthly_data[m].revenue || 0; 
-                    });
+                    var months = Object.keys(data.monthly_data).sort();
+                    var revenueValues = [];
+                    for (var k = 0; k < months.length; k++) {
+                        revenueValues.push(data.monthly_data[months[k]].revenue || 0);
+                    }
                     revenueChart.data.labels = months;
                     revenueChart.data.datasets[0].data = revenueValues;
                     revenueChart.update();
@@ -2714,12 +2781,13 @@ function loadAnalyticsData() {
             
             if (categoryChart && data.category_sales) {
                 try {
-                    const categories = Object.keys(data.category_sales);
-                    const values = categories.map(function(c) { 
-                        return data.category_sales[c].revenue || 0; 
-                    });
+                    var categories = Object.keys(data.category_sales);
+                    var values = [];
+                    for (var l = 0; l < categories.length; l++) {
+                        values.push(data.category_sales[categories[l]].revenue || 0);
+                    }
                     if (categories.length > 0) {
-                        const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#14b8a6'];
+                        var colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#14b8a6'];
                         categoryChart.data.labels = categories;
                         categoryChart.data.datasets[0].data = values;
                         categoryChart.data.datasets[0].backgroundColor = colors.slice(0, categories.length);
@@ -2730,7 +2798,7 @@ function loadAnalyticsData() {
                 }
             }
         })
-        .catch(err => {
+        .catch(function(err) {
             console.error('Error loading analytics:', err);
         });
 }
