@@ -478,13 +478,15 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
-        # FETCH CREDIT DATA
+                # FETCH CREDIT DATA
         credit_summary = {
             'total_customers': 0,
             'active_customers': 0,
             'total_balance': 0,
             'total_purchases': 0,
-            'total_payments': 0
+            'total_payments': 0,
+            'total_cost': 0,
+            'total_profit': 0
         }
         credit_customers = []
         overdue_count = 0
@@ -501,6 +503,8 @@ def admin_dashboard():
                 total_cust = len(credit_customers)
                 active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
                 total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
+                total_cost = sum(c.get('total_cost', 0) for c in credit_customers)
+                total_profit = sum(c.get('total_profit', 0) for c in credit_customers)
                 
                 tx_response = requests.get(
                     f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
@@ -522,9 +526,11 @@ def admin_dashboard():
                     'active_customers': active_cust,
                     'total_balance': total_balance,
                     'total_purchases': total_purchases,
-                    'total_payments': total_payments
+                    'total_payments': total_payments,
+                    'total_cost': total_cost,
+                    'total_profit': total_profit
                 }
-                print(f"✅ Loaded {total_cust} credit customers")
+                print(f"✅ Loaded {total_cust} credit customers with profit: KSh {total_profit}")
             else:
                 print(f"⚠️ Credit customers fetch error: {response.status_code}")
         except Exception as e:
