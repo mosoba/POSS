@@ -408,54 +408,73 @@
 </div>
 
 <!-- ============================================================
-     ADD PRODUCT SECTION
+     ADD PRODUCT SECTION - UPDATED WITH ALL CATEGORIES
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
         <form id="productForm" onsubmit="saveProduct(event)">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                <!-- Product ID -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Product ID</label>
                     <input type="text" id="prodId" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="iphone_15_pro" required>
                 </div>
+                <!-- Product Name -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Product Name</label>
                     <input type="text" id="prodName" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="iPhone 15 Pro Max" required>
                 </div>
+                <!-- ✅ CATEGORY - UPDATED WITH ALL CATEGORIES -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Category</label>
                     <select id="prodCategory" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" required>
-                        <option value="">Select</option>
+                        <option value="">Select Category</option>
+                        <option value="Beverages">🍹 Beverages</option>
+                        <option value="Food Staples">🍞 Food Staples</option>
+                        <option value="Snacks">🍪 Snacks</option>
+                        <option value="Spices & Seasonings">🌶️ Spices & Seasonings</option>
+                        <option value="Cereals & Grains">🌾 Cereals & Grains</option>
+                        <option value="Bakery">🥖 Bakery</option>
+                        <option value="Personal Care">🧴 Personal Care</option>
+                        <option value="Household">🧹 Household</option>
+                        <option value="School Supplies">✏️ School Supplies</option>
+                        <option value="Electronics">💻 Electronics</option>
                         <option value="Phones">📱 Phones</option>
-                        <option value="Laptops">💻 Laptops</option>
                         <option value="Accessories">🎧 Accessories</option>
                         <option value="Wearables">⌚ Wearables</option>
                         <option value="Audio">🎵 Audio</option>
                         <option value="Televisions">📺 Televisions</option>
                         <option value="Gaming">🎮 Gaming</option>
                         <option value="Tablets">📱 Tablets</option>
+                        <option value="General">📦 General</option>
                     </select>
                 </div>
+                <!-- Price -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Selling Price</label>
                     <input type="number" id="prodPrice" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="245000" required>
                 </div>
+                <!-- Cost Price -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Cost Price</label>
                     <input type="number" id="prodCost" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="200000" required>
                 </div>
+                <!-- Original Price -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Original Price</label>
                     <input type="number" id="prodOriginal" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="265000">
                 </div>
+                <!-- Stock -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Stock</label>
                     <input type="number" id="prodStock" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="25" required>
                 </div>
+                <!-- Rating -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Rating</label>
                     <input type="number" id="prodRating" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2" placeholder="4.5" step="0.1" value="4.5">
                 </div>
+                <!-- Badge -->
                 <div>
                     <label class="form-label text-[8px] sm:text-[10px]">Badge</label>
                     <select id="prodBadge" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2">
@@ -473,9 +492,9 @@
                 <label class="form-label text-[8px] sm:text-[10px]">Image</label>
                 <div class="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
                     <input type="url" id="prodImage" class="form-input text-xs sm:text-sm py-1 sm:py-1.5 px-2 flex-1" placeholder="https://images.unsplash.com/photo-..." />
-                   <button type="button" class="btn-outline text-[8px] sm:text-[10px] px-2 sm:px-3 py-1 sm:py-1.5" onclick="document.getElementById('fileInput').click()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); transition: all 0.3s ease;">
-    <i class="fas fa-upload"></i> Upload
-</button>
+                    <button type="button" class="btn-outline text-[8px] sm:text-[10px] px-2 sm:px-3 py-1 sm:py-1.5" onclick="document.getElementById('fileInput').click()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; border: none; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); transition: all 0.3s ease;">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(this)" />
                 </div>
                 <img id="imagePreview" class="upload-preview mt-1 sm:mt-2" alt="Preview" />
