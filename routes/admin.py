@@ -499,42 +499,23 @@ def admin_dashboard():
             )
             
             if response.status_code == 200:
-                credit_customers = response.json()
-                total_cust = len(credit_customers)
-                active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
-                total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
-                total_cost = sum(c.get('total_cost', 0) for c in credit_customers)
-                total_profit = sum(c.get('total_profit', 0) for c in credit_customers)
-                
-                tx_response = requests.get(
-                    f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
-                    headers=Config.SUPABASE_HEADERS,
-                    timeout=10
-                )
-                
-                total_purchases = 0
-                total_payments = 0
-                if tx_response.status_code == 200:
-                    transactions = tx_response.json()
-                    total_purchases = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'purchase')
-                    total_payments = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'payment')
-                
-                overdue_count = sum(1 for c in credit_customers if c.get('current_balance', 0) > c.get('credit_limit', 0))
-                
-                credit_summary = {
-                    'total_customers': total_cust,
-                    'active_customers': active_cust,
-                    'total_balance': total_balance,
-                    'total_purchases': total_purchases,
-                    'total_payments': total_payments,
-                    'total_cost': total_cost,
-                    'total_profit': total_profit
-                }
-                print(f"✅ Loaded {total_cust} credit customers with profit: KSh {total_profit}")
-            else:
-                print(f"⚠️ Credit customers fetch error: {response.status_code}")
-        except Exception as e:
-            print(f"❌ Error loading credit data: {e}")
+    products = response.json()
+    if products and len(products) > 0:
+        product = products[0]
+        # ✅ SAVE COST PRICE TO ORDER ITEM
+        item['cost_price'] = product.get('cost_price', 0)
+        
+        current_stock = product.get('stock', 0)
+        new_stock = max(0, current_stock - quantity)
+        
+        print(f"📦 {product.get('name')}: Cost: {item['cost_price']}, Stock: {current_stock} → {new_stock}")
+        
+        update_response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json={'stock': new_stock},
+            timeout=10
+        )
 
         # FETCH SUPPLIER DATA
         supplier_summary = {
@@ -1759,8 +1740,46 @@ def admin_api_analytics():
     if not session.get('admin_logged_in'):
         return jsonify({'error': 'Unauthorized'}), 401
 
+    # Get regular orders
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
+    
+    # ✅ ADD CREDIT DATA
+    try:
+        from utils.credit import get_all_credit_transactions, get_all_credit_customers
+        
+        # Get credit transactions
+        credit_transactions = get_all_credit_transactions()
+        credit_customers = get_all_credit_customers()
+        
+        credit_sales = 0
+        credit_cost = 0
+        credit_profit = 0
+        
+        for tx in credit_transactions:
+            if tx.get('transaction_type') == 'purchase':
+                amount = float(tx.get('amount', 0))
+                cost = float(tx.get('total_cost', 0))
+                credit_sales += amount
+                credit_cost += cost
+                credit_profit += (amount - cost)
+        
+        # Merge with regular orders
+        analytics['total_revenue'] = analytics.get('total_revenue', 0) + credit_sales
+        analytics['total_cost'] = analytics.get('total_cost', 0) + credit_cost
+        analytics['total_profit'] = analytics.get('total_profit', 0) + credit_profit
+        
+        # Add credit breakdown
+        analytics['credit_sales'] = credit_sales
+        analytics['credit_cost'] = credit_cost
+        analytics['credit_profit'] = credit_profit
+        analytics['cash_sales'] = analytics.get('total_revenue', 0) - credit_sales
+        
+        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Total: KSh {analytics['total_revenue']}")
+        
+    except Exception as e:
+        print(f"⚠️ Error merging credit data: {e}")
+    
     return jsonify(analytics)
 
 
