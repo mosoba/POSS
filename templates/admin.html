@@ -408,7 +408,7 @@
 </div>
 
 <!-- ============================================================
-     ADD PRODUCT SECTION - UPDATED WITH ALL CATEGORIES
+     ✅ ADD PRODUCT SECTION - UPDATED WITH ALL CATEGORIES
      ============================================================ -->
 <div id="add-product-section" class="section hidden">
     <div class="glass-card p-3 sm:p-4">
@@ -1077,6 +1077,107 @@
 </div>
 
 <!-- ============================================================
+     ✅ EDIT PRODUCT MODAL - ADD THIS
+     ============================================================ -->
+<div id="editProductModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="sticky top-0 bg-white p-4 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">✏️ Edit Product</h3>
+            <button onclick="document.getElementById('editProductModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <form id="editProductForm" onsubmit="saveEditedProduct(event)" class="p-4 space-y-4">
+            <input type="hidden" id="editProdId">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label text-sm font-semibold">Product ID</label>
+                    <input type="text" id="editProdIdDisplay" class="form-input w-full bg-gray-50" readonly>
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Product Name *</label>
+                    <input type="text" id="editProdName" class="form-input w-full" required>
+                </div>
+                
+                <!-- ✅ CATEGORY - ALL 18 OPTIONS -->
+                <div>
+                    <label class="form-label text-sm font-semibold">Category</label>
+                    <select id="editProdCategory" class="form-input w-full">
+                        <option value="">Select Category</option>
+                        <option value="Beverages">🍹 Beverages</option>
+                        <option value="Food Staples">🍞 Food Staples</option>
+                        <option value="Snacks">🍪 Snacks</option>
+                        <option value="Spices & Seasonings">🌶️ Spices & Seasonings</option>
+                        <option value="Cereals & Grains">🌾 Cereals & Grains</option>
+                        <option value="Bakery">🥖 Bakery</option>
+                        <option value="Personal Care">🧴 Personal Care</option>
+                        <option value="Household">🧹 Household</option>
+                        <option value="School Supplies">✏️ School Supplies</option>
+                        <option value="Electronics">💻 Electronics</option>
+                        <option value="Phones">📱 Phones</option>
+                        <option value="Accessories">🎧 Accessories</option>
+                        <option value="Wearables">⌚ Wearables</option>
+                        <option value="Audio">🎵 Audio</option>
+                        <option value="Televisions">📺 Televisions</option>
+                        <option value="Gaming">🎮 Gaming</option>
+                        <option value="Tablets">📱 Tablets</option>
+                        <option value="General">📦 General</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="form-label text-sm font-semibold">Selling Price (KSh) *</label>
+                    <input type="number" id="editProdPrice" class="form-input w-full" required>
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Cost Price (KSh)</label>
+                    <input type="number" id="editProdCost" class="form-input w-full">
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Original Price (KSh)</label>
+                    <input type="number" id="editProdOriginal" class="form-input w-full">
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Stock *</label>
+                    <input type="number" id="editProdStock" class="form-input w-full" required>
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Rating</label>
+                    <input type="number" id="editProdRating" class="form-input w-full" step="0.1" min="0" max="5">
+                </div>
+                <div>
+                    <label class="form-label text-sm font-semibold">Badge</label>
+                    <select id="editProdBadge" class="form-input w-full">
+                        <option value="">None</option>
+                        <option value="Best Seller">⭐ Best Seller</option>
+                        <option value="New">🌟 New</option>
+                        <option value="Trending">🔥 Trending</option>
+                        <option value="Editor's Pick">✏️ Editor's Pick</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label text-sm font-semibold">Image URL</label>
+                <input type="url" id="editProdImage" class="form-input w-full" placeholder="https://images.unsplash.com/photo-...">
+            </div>
+            <div>
+                <label class="form-label text-sm font-semibold">Description</label>
+                <textarea id="editProdDesc" class="form-input w-full" rows="2"></textarea>
+            </div>
+            <div>
+                <label class="form-label text-sm font-semibold">Specifications</label>
+                <input type="text" id="editProdSpecs" class="form-input w-full" placeholder="256GB Storage, 8GB RAM, 48MP Camera">
+            </div>
+            
+            <div class="flex gap-3 pt-3 border-t">
+                <button type="submit" class="btn-gradient flex-1 py-2"><i class="fas fa-save"></i> Update Product</button>
+                <button type="button" onclick="document.getElementById('editProductModal').classList.add('hidden')" class="btn-outline py-2 px-6">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
      CREDIT MODALS (Add, Edit, Payment, View, History)
      ============================================================ -->
 <!-- Add/Edit Credit Customer Modal -->
@@ -1725,7 +1826,7 @@ function renderOrderDetails(order) {
 }
 
 // ============================================================
-// EDIT PRODUCT
+// ✅ FIXED: EDIT PRODUCT - SHOWS CURRENT CATEGORY
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -1749,10 +1850,37 @@ function editProduct(productId) {
         .then(data => {
             if (data.success) {
                 const product = data.product;
+                console.log('📦 Product loaded:', product);
+                console.log('📂 Current category:', product.category);
+                
+                // Fill basic fields
                 document.getElementById('editProdId').value = product.id;
                 document.getElementById('editProdIdDisplay').value = product.id;
                 document.getElementById('editProdName').value = product.name || '';
-                document.getElementById('editProdCategory').value = product.category || '';
+                
+                // ✅ FIX: Set category dropdown to current category
+                const categorySelect = document.getElementById('editProdCategory');
+                if (categorySelect) {
+                    // First try to find the category in dropdown
+                    let found = false;
+                    for (let i = 0; i < categorySelect.options.length; i++) {
+                        if (categorySelect.options[i].value === product.category) {
+                            categorySelect.selectedIndex = i;
+                            found = true;
+                            console.log('✅ Category set to:', product.category);
+                            break;
+                        }
+                    }
+                    // If not found, try to set by value
+                    if (!found) {
+                        categorySelect.value = product.category || '';
+                        console.log('✅ Category set by value:', categorySelect.value);
+                    }
+                    
+                    // Force the select to show the correct value
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+                
                 document.getElementById('editProdPrice').value = product.price || 0;
                 document.getElementById('editProdCost').value = product.cost_price || 0;
                 document.getElementById('editProdOriginal').value = product.original_price || '';
@@ -1762,6 +1890,7 @@ function editProduct(productId) {
                 document.getElementById('editProdImage').value = product.image || '';
                 document.getElementById('editProdDesc').value = product.description || '';
                 document.getElementById('editProdSpecs').value = (product.specs || []).join(', ');
+                
                 showToast('✅ Product loaded', 'success');
             } else {
                 showToast('❌ ' + (data.error || 'Product not found'), 'error');
@@ -1776,7 +1905,7 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// SAVE EDITED PRODUCT
+// ✅ FIXED: SAVE EDITED PRODUCT - SAVES CATEGORY CORRECTLY
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
@@ -1786,10 +1915,17 @@ function saveEditedProduct(event) {
         return;
     }
     
+    // Get the category select
+    const categorySelect = document.getElementById('editProdCategory');
+    const selectedCategory = categorySelect ? categorySelect.value : '';
+    
+    // Log what's being saved
+    console.log('📂 Selected category:', selectedCategory);
+    
     const productId = document.getElementById('editProdId').value;
     const data = {
         name: document.getElementById('editProdName').value.trim(),
-        category: document.getElementById('editProdCategory').value,
+        category: selectedCategory,
         price: parseFloat(document.getElementById('editProdPrice').value) || 0,
         cost_price: parseFloat(document.getElementById('editProdCost').value) || 0,
         original_price: parseFloat(document.getElementById('editProdOriginal').value) || null,
@@ -1801,39 +1937,184 @@ function saveEditedProduct(event) {
         specs: document.getElementById('editProdSpecs').value.split(',').map(s => s.trim()).filter(s => s)
     };
     
-    const btn = document.querySelector('#editProductModal .btn-gradient');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    btn.disabled = true;
+    console.log('📦 Updating product:', data);
+    
+    // Validation
+    if (!data.name) {
+        showToast('❌ Please enter a product name', 'error');
+        return;
+    }
+    if (!data.category || data.category === '') {
+        showToast('❌ Please select a category', 'error');
+        return;
+    }
+    if (data.price <= 0) {
+        showToast('❌ Please enter a valid price', 'error');
+        return;
+    }
+    
+    const btn = document.querySelector('#editProductModal .btn-gradient, #editProductModal button[type="submit"]');
+    const originalText = btn ? btn.innerHTML : 'Update';
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+    }
     
     fetch('/admin/api/product/' + productId, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📊 Response status:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
     .then(result => {
+        console.log('📥 Result:', result);
         if (result.success) {
-            showToast('✅ ' + result.message, 'success');
+            showToast('✅ Product updated successfully!', 'success');
             document.getElementById('editProductModal').classList.add('hidden');
             setTimeout(() => location.reload(), 1000);
         } else {
             showToast('❌ ' + (result.message || 'Failed to update'), 'error');
         }
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     })
     .catch(err => {
-        console.error('Error:', err);
-        showToast('❌ Error saving product', 'error');
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        console.error('❌ Error:', err);
+        showToast('❌ Error saving product: ' + err.message, 'error');
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     });
 }
 
 // ============================================================
-// DELETE PRODUCT
+// ✅ FIXED: SAVE PRODUCT - ACTUALLY SAVES TO DATABASE
 // ============================================================
+function saveProduct(event) {
+    event.preventDefault();
+    console.log('🔄 Saving product...');
+
+    // Get form values
+    const id = document.getElementById('prodId').value.trim();
+    const name = document.getElementById('prodName').value.trim();
+    const category = document.getElementById('prodCategory').value;
+    const price = parseFloat(document.getElementById('prodPrice').value) || 0;
+    const cost_price = parseFloat(document.getElementById('prodCost').value) || 0;
+    const original_price = parseFloat(document.getElementById('prodOriginal').value) || null;
+    const stock = parseInt(document.getElementById('prodStock').value) || 0;
+    const rating = parseFloat(document.getElementById('prodRating').value) || 4.5;
+    const badge = document.getElementById('prodBadge').value || '';
+    const image = document.getElementById('prodImage').value.trim() || '';
+    const description = document.getElementById('prodDesc').value.trim() || '';
+    const specs = document.getElementById('prodSpecs').value.split(',').map(s => s.trim()).filter(s => s);
+
+    // Validation
+    if (!id) {
+        showToast('❌ Please enter a Product ID', 'error');
+        return;
+    }
+    if (!name) {
+        showToast('❌ Please enter a Product Name', 'error');
+        return;
+    }
+    if (!category || category === '') {
+        showToast('❌ Please select a Category', 'error');
+        return;
+    }
+    if (price <= 0) {
+        showToast('❌ Please enter a valid Selling Price', 'error');
+        return;
+    }
+    if (stock < 0) {
+        showToast('❌ Please enter a valid Stock quantity', 'error');
+        return;
+    }
+
+    const productData = {
+        id: id,
+        name: name,
+        category: category,
+        price: price,
+        cost_price: cost_price,
+        original_price: original_price,
+        stock: stock,
+        rating: rating,
+        badge: badge,
+        image: image,
+        description: description,
+        specs: specs,
+        created_at: new Date().toISOString()
+    };
+
+    console.log('📦 Product data:', productData);
+
+    // Show saving state
+    const btn = document.querySelector('#productForm button[type="submit"]');
+    const originalText = btn ? btn.innerHTML : 'Save';
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+    }
+
+    // Send to API
+    fetch('/admin/products', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(productData)
+    })
+    .then(response => {
+        console.log('📊 Response status:', response.status);
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('📥 Result:', result);
+        if (result.success) {
+            showToast('✅ Product "' + name + '" added successfully!', 'success');
+            // Clear form
+            document.getElementById('productForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            // Go to products list
+            setTimeout(() => {
+                showSection('products');
+                setTimeout(() => location.reload(), 500);
+            }, 1000);
+        } else {
+            showToast('❌ Failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+        showToast('❌ Error: ' + error.message, 'error');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+}
+
 function deleteProduct(productId) {
     if (!isOnline()) {
         showToast('📡 You are offline. Please connect to the internet to delete products.', 'warning');
@@ -3025,15 +3306,6 @@ function closeSidebar() {
     const backdrop = document.getElementById('backdrop');
     if (sidebar) sidebar.classList.remove('open');
     if (backdrop) backdrop.classList.remove('active');
-}
-
-// ============================================================
-// PLACEHOLDER FUNCTIONS
-// ============================================================
-function saveProduct(event) {
-    event.preventDefault();
-    showToast('📦 Product saved successfully!', 'success');
-    setTimeout(() => showSection('products'), 1000);
 }
 
 function updateOrderStatus(orderId, status) {
