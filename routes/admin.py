@@ -1031,6 +1031,62 @@ def api_get_credit_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+  
+
+  # ============================================================
+# UPDATE CREDIT TRANSACTION - FIX COST AND PROFIT
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/transaction/<transaction_id>', methods=['PUT', 'PATCH'])
+@admin_required
+def api_update_credit_transaction(transaction_id):
+    """Update a credit transaction with cost and profit"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        print(f"📤 Updating transaction: {transaction_id}")
+        print(f"📤 Data: {data}")
+        
+        # Clean the data - only allow specific fields
+        clean_data = {}
+        allowed_fields = ['total_cost', 'profit', 'profit_margin', 'notes', 'payment_status']
+        for field in allowed_fields:
+            if field in data and data[field] is not None:
+                clean_data[field] = data[field]
+        
+        if not clean_data:
+            return jsonify({'success': False, 'message': 'No valid fields to update'}), 400
+        
+        # Update in Supabase
+        response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?transaction_id=eq.{transaction_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json=clean_data,
+            timeout=30
+        )
+        
+        if response.status_code in [200, 204]:
+            print(f"✅ Transaction {transaction_id} updated successfully")
+            return jsonify({
+                'success': True,
+                'message': 'Transaction updated successfully',
+                'data': clean_data
+            })
+        else:
+            print(f"❌ Failed to update transaction: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'message': f'Failed to update: {response.status_code}'
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Error updating transaction: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ============================================================
 # PROFITABILITY API - COMBINES ALL PAID SALES
