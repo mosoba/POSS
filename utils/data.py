@@ -28,12 +28,11 @@ def has_internet():
 
 
 # ============================================================
-# ⚠️ SAMPLE PRODUCTS - NEVER USED ANYMORE
-# Kept only for reference, but NEVER called
+# ⚠️ SAMPLE PRODUCTS - RETURNS EMPTY LIST (NEVER USED)
 # ============================================================
 
 def get_sample_products():
-    """⚠️ DEPRECATED - NEVER USED - Kept for reference only"""
+    """⚠️ DEPRECATED - Returns empty list. DO NOT USE."""
     return []
 
 
@@ -143,11 +142,11 @@ def load_orders():
 
 
 # ============================================================
-# LOAD PRODUCTS - ONLY FROM SUPABASE, NEVER SAMPLES
+# LOAD PRODUCTS - ONLY FROM SUPABASE, NO FALLBACK
 # ============================================================
 
 def load_products():
-    """Load products - ONLY from Supabase, NEVER use samples"""
+    """Load products - ONLY from Supabase, NEVER from cache or samples"""
     global products_cache
     
     # Clear cache to force fresh load
@@ -175,6 +174,10 @@ def load_products():
                         product['image'] = ''
                     if 'description' not in product:
                         product['description'] = ''
+                    if 'stock' not in product:
+                        product['stock'] = 0
+                    if 'price' not in product:
+                        product['price'] = 0
                 
                 products_cache = data
                 print(f"✅ Loaded {len(data)} products from Supabase")
@@ -360,7 +363,7 @@ def sync_pending_data_if_possible():
 
 
 # ============================================================
-# REST OF YOUR FUNCTIONS (keep everything else the same)
+# LOAD BUNDLES
 # ============================================================
 
 def load_bundles():
@@ -383,6 +386,10 @@ def load_bundles():
 def sync_products_from_supabase():
     return load_products()
 
+
+# ============================================================
+# UPDATE PRODUCT STOCK
+# ============================================================
 
 def update_product_stock(product_id, new_stock):
     """Update product stock in Supabase"""
@@ -409,6 +416,10 @@ def update_product_stock(product_id, new_stock):
         return False
 
 
+# ============================================================
+# CART FUNCTIONS
+# ============================================================
+
 def get_cart():
     try:
         cart = session.get('cart', {})
@@ -428,6 +439,10 @@ def get_cart():
         print(f'Error getting cart: {exc}')
         return {}
 
+
+# ============================================================
+# SALES ANALYTICS
+# ============================================================
 
 def get_sales_analytics():
     """Get sales analytics with proper revenue and profit calculation"""
@@ -629,30 +644,58 @@ def get_sales_analytics():
         }
 
 
+# ============================================================
+# CATEGORY ICONS
+# ============================================================
+
 def get_category_icon(category):
+    """Get Font Awesome icon for a category"""
     icons = {
+        'Beverages': 'fa-mug-saucer',
+        'Food Staples': 'fa-bread-slice',
+        'Snacks': 'fa-cookie',
+        'Spices & Seasonings': 'fa-pepper',
+        'Cereals & Grains': 'fa-wheat',
+        'Bakery': 'fa-bread-slice',
+        'Personal Care': 'fa-toothbrush',
+        'Household': 'fa-home',
+        'School Supplies': 'fa-pencil',
+        'Electronics': 'fa-laptop',
         'Phones': 'fa-mobile-screen',
-        'Laptops': 'fa-laptop',
         'Accessories': 'fa-headphones',
         'Wearables': 'fa-watch',
         'Audio': 'fa-music',
         'Televisions': 'fa-tv',
         'Gaming': 'fa-gamepad',
         'Tablets': 'fa-tablet',
-        'Smart Home': 'fa-home'
+        'Smart Home': 'fa-home',
+        'General': 'fa-box',
+        'Uncategorized': 'fa-question',
     }
     return icons.get(category, 'fa-box')
 
 
 def get_all_categories():
+    """Get all categories with their Font Awesome icons"""
     return {
+        'Beverages': 'fa-mug-saucer',
+        'Food Staples': 'fa-bread-slice',
+        'Snacks': 'fa-cookie',
+        'Spices & Seasonings': 'fa-pepper',
+        'Cereals & Grains': 'fa-wheat',
+        'Bakery': 'fa-bread-slice',
+        'Personal Care': 'fa-toothbrush',
+        'Household': 'fa-home',
+        'School Supplies': 'fa-pencil',
+        'Electronics': 'fa-laptop',
         'Phones': 'fa-mobile-screen',
-        'Laptops': 'fa-laptop',
         'Accessories': 'fa-headphones',
         'Wearables': 'fa-watch',
         'Audio': 'fa-music',
         'Televisions': 'fa-tv',
         'Gaming': 'fa-gamepad',
         'Tablets': 'fa-tablet',
-        'Smart Home': 'fa-home'
+        'Smart Home': 'fa-home',
+        'General': 'fa-box',
+        'Uncategorized': 'fa-question',
     }
