@@ -4599,155 +4599,9 @@ window.addEventListener('offline', () => {
 // USB THERMAL PRINTER - GLOBAL FUNCTIONS
 // ============================================================
 
-window.thermalPrinter = null;
-window.printerConnected = false;
-
-window.connectUSBPrinter = async function() {
-    try {
-        if (!navigator.serial) {
-            showToast('⚠️ Use Chrome or Edge browser for USB printing', 'warning');
-            return false;
-        }
-
-        showToast('🔌 Select your USB printer...', 'info');
-        const port = await navigator.serial.requestPort();
-
-        await port.open({ baudRate: 9600 });
-
-        window.thermalPrinter = port;
-        window.printerConnected = true;
-        localStorage.setItem('printer_connected', 'true');
-
-        showToast('✅ Printer connected!', 'success');
-        console.log('✅ Printer connected');
-        return true;
-
-    } catch(e) {
-        if (e.message && e.message.includes('cancel')) {
-            showToast('❌ Selection cancelled', 'warning');
-        } else {
-            showToast('❌ Failed: ' + e.message, 'error');
-        }
-        return false;
-    }
-};
-
-window.printToUSBPrinter = async function(receiptText) {
-    if (!window.printerConnected || !window.thermalPrinter) {
-        const connected = await window.connectUSBPrinter();
-        if (!connected) {
-            window.printViaBrowser(receiptText);
-            return;
-        }
-    }
-
-    try {
-        const writer = window.thermalPrinter.writable.getWriter();
-        const encoder = new TextEncoder();
-
-        await writer.write(encoder.encode('\x1B\x40'));
-        await writer.write(encoder.encode('\x1B\x21\x00'));
-        await writer.write(encoder.encode('\x1B\x61\x01'));
-
-        const lines = receiptText.split('\n');
-        for (const line of lines) {
-            await writer.write(encoder.encode(line + '\n'));
-        }
-
-        await writer.write(encoder.encode('\n\n\n'));
-        await writer.write(encoder.encode('\x1D\x56\x00'));
-
-        await writer.close();
-        showToast('✅ Receipt printed!', 'success');
-        console.log('✅ Receipt printed successfully');
-
-    } catch(e) {
-        console.error('Print error:', e);
-        window.printViaBrowser(receiptText);
-    }
-};
-
-window.printViaBrowser = function(receiptText) {
-    const win = window.open('', '_blank', 'width=400,height=600');
-    if (!win) {
-        showToast('⚠️ Allow popups for printing', 'warning');
-        return;
-    }
-
-    win.document.write(`
-        <html>
-        <head>
-            <title>Receipt - PRICEPOINT</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', monospace;
-                    padding: 20px;
-                    background: white;
-                    color: black;
-                    max-width: 80mm;
-                    margin: 0 auto;
-                }
-                pre {
-                    font-family: 'Courier New', monospace;
-                    font-size: 10pt;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    margin: 0;
-                    line-height: 1.4;
-                }
-                @page {
-                    margin: 0;
-                    size: 80mm auto;
-                }
-                @media print {
-                    body { padding: 10px; margin: 0; }
-                }
-            </style>
-        </head>
-        <body>
-            <pre>${receiptText}</pre>
-            <script>
-                window.onload = function() {
-                    setTimeout(function() {
-                        window.print();
-                    }, 500);
-                    setTimeout(function() {
-                        window.close();
-                    }, 3000);
-                };
-            <\/script>
-        </body>
-        </html>
-    `);
-    win.document.close();
-};
-
-window.disconnectPrinter = async function() {
-    if (window.thermalPrinter) {
-        try { await window.thermalPrinter.close(); } catch(e) {}
-        window.thermalPrinter = null;
-        window.printerConnected = false;
-        localStorage.removeItem('printer_connected');
-        showToast('🔌 Printer disconnected', 'info');
-    }
-};
-
-window.checkPrinterStatus = function() {
-    if (window.printerConnected && window.thermalPrinter) {
-        showToast('✅ Printer is connected and ready', 'success');
-        console.log('✅ Printer connected:', window.thermalPrinter);
-    } else {
-        showToast('❌ Printer not connected. Click "Connect Printer"', 'warning');
-    }
-};
-
-window.autoReconnect = async function() {
-    if (localStorage.getItem('printer_connected') === 'true' && navigator.serial) {
-        console.log('🔄 Auto-reconnecting...');
-        await window.connectUSBPrinter();
-    }
-};
+// ============================================================
+// SIMPLE PRINT RECEIPT
+// ============================================================
 
 function printReceipt() {
     const content = document.getElementById('receiptContent');
@@ -4758,36 +4612,38 @@ function printReceipt() {
 
     const receiptText = content.textContent;
     console.log('🖨️ Printing receipt...');
-    window.printToUSBPrinter(receiptText);
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(window.autoReconnect, 2000);
-
-    if (document.getElementById('printerButtons')) return;
-
-    const actions = document.querySelector('.cart-actions');
-    if (actions) {
-        const div = document.createElement('div');
-        div.id = 'printerButtons';
-        div.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;';
-        div.innerHTML = `
-            <button onclick="window.connectUSBPrinter()" class="btn-outline" style="flex:1;min-width:100px;background:#6366f1;color:white;border-color:#6366f1;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;">
-                🔌 Connect Printer
-            </button>
-            <button onclick="window.checkPrinterStatus()" class="btn-outline" style="flex:1;min-width:80px;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;border:1px solid #ccc;">
-                📊 Status
-            </button>
-            <button onclick="window.disconnectPrinter()" class="btn-outline" style="flex:1;min-width:80px;color:#ef4444;border-color:#ef4444;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;">
-                🔌 Disconnect
-            </button>
-        `;
-        actions.insertBefore(div, actions.firstChild);
+    const win = window.open('', '_blank', 'width=400,height=600');
+    if (!win) {
+        showToast('⚠️ Allow popups for printing', 'warning');
+        return;
     }
 
-    console.log('✅ Global Printer module loaded');
-});
-
+    win.document.write(`
+        <html>
+        <head>
+            <title>Receipt - ACACIAMART</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                @page { margin: 0; size: 80mm auto; }
+                @media print { body { padding: 10px; margin: 0; } }
+            </style>
+        </head>
+        <body>
+            <pre>${receiptText}</pre>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() { window.print(); }, 500);
+                    setTimeout(function() { window.close(); }, 3000);
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+    win.document.close();
+}
 // ============================================================
 // LOAD CATEGORIES DYNAMICALLY FROM DATABASE
 // ============================================================
