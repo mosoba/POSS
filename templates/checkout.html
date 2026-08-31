@@ -3,79 +3,88 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Checkout · Price Point Kenya</title>
+    <title>Checkout · ACACIAMART</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f0f4f8; color: #0f172a; min-height: 100vh; }
+        body { background: #f0f4f8; color: #0b1a2f; min-height: 100vh; }
 
         /* ===== ANIMATIONS ===== */
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        @keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        @keyframes whatsappPulse { 0%,100% { box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); } 50% { box-shadow: 0 4px 30px rgba(37, 211, 102, 0.6); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-        @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(37, 211, 102, 0.2); } 50% { box-shadow: 0 0 50px rgba(37, 211, 102, 0.4); } }
 
         /* ===== HEADER ===== */
         .app-header {
-            background: rgba(255,255,255,0.98);
+            background: rgba(255,255,255,0.92);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
             position: sticky;
             top: 0;
             z-index: 1000;
             transition: all 0.3s ease;
         }
-        .app-header.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.06); }
+        .app-header.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.05); }
 
+        .brand-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0b2b1e, #1e4d34);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c7a86b;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 16px rgba(11,43,30,0.2);
+            flex-shrink: 0;
+        }
         .brand-text {
             font-weight: 800;
-            font-size: 1.4rem;
-            color: #0f172a;
+            font-size: 1.35rem;
+            color: #0b1a2f;
             letter-spacing: -0.5px;
         }
         .brand-text span { 
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            background: linear-gradient(135deg, #0b2b1e, #1e4d34);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .back-link {
-            color: #64748b;
+            color: #5a6d7a;
             text-decoration: none;
             transition: all 0.3s;
             font-weight: 500;
             font-size: 0.9rem;
             padding: 8px 16px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            border-radius: 40px;
+            background: rgba(0,0,0,0.02);
+            border: 1px solid transparent;
         }
         .back-link:hover {
             background: #f1f5f9;
-            color: #0f172a;
+            color: #0b1a2f;
+            border-color: #e2e8f0;
         }
+        .back-link i { margin-right: 6px; }
 
         /* ===== GLASS CARD ===== */
         .glass-card {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.5);
             border-radius: 20px;
             padding: 28px;
             transition: all 0.3s;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
         }
         .glass-card:hover {
-            box-shadow: 0 8px 40px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.04);
         }
 
         /* ===== FORM ===== */
@@ -84,7 +93,7 @@
             border-radius: 12px;
             padding: 12px 16px 12px 44px;
             width: 100%;
-            color: #0f172a;
+            color: #0b1a2f;
             transition: all 0.3s;
             background: #f8fafc;
             font-size: 0.95rem;
@@ -92,25 +101,23 @@
         .form-input::placeholder { color: #94a3b8; }
         .form-input:focus {
             outline: none;
-            border-color: #2563eb;
+            border-color: #0b2b1e;
             background: white;
-            box-shadow: 0 0 0 4px rgba(37,99,235,0.06);
+            box-shadow: 0 0 0 4px rgba(11,43,30,0.06);
         }
         .form-label {
             font-size: 0.75rem;
             font-weight: 600;
-            color: #475569;
+            color: #3d4f47;
             display: block;
             margin-bottom: 4px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .form-label i { color: #2563eb; margin-right: 4px; }
-        .form-label .required { color: #ef4444; margin-left: 2px; }
+        .form-label i { color: #0b2b1e; margin-right: 4px; }
+        .form-label .required { color: #dc2626; margin-left: 2px; }
 
-        .input-wrapper {
-            position: relative;
-        }
+        .input-wrapper { position: relative; }
         .input-wrapper .input-icon {
             position: absolute;
             left: 14px;
@@ -120,15 +127,13 @@
             font-size: 1rem;
             z-index: 2;
         }
-        .input-wrapper .form-input {
-            padding-left: 44px;
-        }
+        .input-wrapper .form-input { padding-left: 44px; }
 
         /* ===== BUTTONS ===== */
         .btn-primary {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            background: linear-gradient(135deg, #0b2b1e, #1e4d34);
             color: white;
-            padding: 14px 32px;
+            padding: 16px 32px;
             border-radius: 9999px;
             font-weight: 700;
             border: none;
@@ -140,24 +145,11 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(11,43,30,0.2);
         }
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s;
-        }
-        .btn-primary:hover::after { left: 100%; }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 12px 30px rgba(11,43,30,0.3);
         }
         .btn-primary:disabled {
             opacity: 0.5;
@@ -167,7 +159,7 @@
 
         .btn-outline {
             border: 2px solid #e2e8f0;
-            color: #475569;
+            color: #3d4f47;
             background: transparent;
             padding: 12px 24px;
             border-radius: 9999px;
@@ -178,53 +170,9 @@
             font-size: 0.95rem;
         }
         .btn-outline:hover {
-            border-color: #2563eb;
-            color: #2563eb;
-            background: #eff6ff;
-        }
-
-        /* ===== WHATSAPP BUTTON ===== */
-        .btn-whatsapp {
-            background: linear-gradient(135deg, #25D366, #1da85a);
-            color: white;
-            padding: 14px 32px;
-            border-radius: 9999px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            width: 100%;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            animation: whatsappPulse 2s infinite;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-whatsapp::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #25D366, #1da85a, #25D366);
-            background-size: 300% 300%;
-            border-radius: 9999px;
-            z-index: -1;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-        .btn-whatsapp:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 35px rgba(37, 211, 102, 0.4);
-        }
-        .btn-whatsapp:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            animation: none;
+            border-color: #0b2b1e;
+            color: #0b2b1e;
+            background: #f0fdf4;
         }
 
         /* ===== PAYMENT OPTIONS ===== */
@@ -241,19 +189,11 @@
         .payment-option:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 40px rgba(0,0,0,0.06);
-            border-color: #2563eb;
-        }
-        .payment-option.whatsapp {
-            border-color: #25D366;
-            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-        }
-        .payment-option.whatsapp:hover {
-            border-color: #1da85a;
-            box-shadow: 0 12px 40px rgba(37, 211, 102, 0.15);
+            border-color: #0b2b1e;
         }
         .payment-option .icon { font-size: 2.2rem; margin-bottom: 8px; display: block; }
-        .payment-option .title { font-weight: 700; color: #0f172a; font-size: 1.05rem; }
-        .payment-option .subtitle { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+        .payment-option .title { font-weight: 700; color: #0b1a2f; font-size: 1.05rem; }
+        .payment-option .subtitle { font-size: 0.8rem; color: #5a6d7a; margin-top: 2px; }
         .payment-option .badge {
             display: inline-block;
             font-size: 0.6rem;
@@ -264,7 +204,6 @@
         }
         .payment-option .badge.popular { background: #dbeafe; color: #2563eb; }
         .payment-option .badge.mpesa { background: #d1fae5; color: #059669; }
-        .payment-option .badge.secure { background: #e0e7ff; color: #4f46e5; }
 
         /* ===== STEP INDICATOR ===== */
         .step-indicator {
@@ -282,10 +221,10 @@
             background: #e2e8f0;
             transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .step-dot.active { background: #2563eb; width: 60px; }
+        .step-dot.active { background: #0b2b1e; width: 60px; }
         .step-dot.completed { background: #10b981; }
         .step-number { font-size: 0.7rem; font-weight: 600; color: #94a3b8; transition: all 0.3s; }
-        .step-number.active { color: #2563eb; }
+        .step-number.active { color: #0b2b1e; }
         .step-number.completed { color: #10b981; }
 
         /* ===== CHECKOUT STEPS ===== */
@@ -308,20 +247,15 @@
             justify-content: space-between;
             padding: 14px 0;
             margin-top: 8px;
-            border-top: 2px solid #2563eb;
+            border-top: 2px solid #0b2b1e;
             font-size: 1.2rem;
             font-weight: 700;
         }
         .summary-total .value {
-            color: #2563eb;
+            color: #0b2b1e;
             font-size: 1.5rem;
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        /* ===== ORDER ITEMS ===== */
         .order-item {
             display: flex;
             align-items: center;
@@ -346,9 +280,26 @@
             object-fit: contain;
             padding: 6px;
         }
-        .order-item-name { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
-        .order-item-price { font-weight: 700; color: #2563eb; font-size: 0.9rem; }
+        .order-item-name { font-weight: 600; color: #0b1a2f; font-size: 0.9rem; }
+        .order-item-price { font-weight: 700; color: #0b2b1e; font-size: 0.9rem; }
         .order-item-quantity { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            background: white;
+            padding: 18px 24px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 420px;
+            backdrop-filter: blur(12px);
+        }
+        .toast.hidden { display: none; }
 
         /* ===== CONFETTI ===== */
         .confetti-container {
@@ -368,66 +319,10 @@
             border-radius: 2px;
             animation: confettiFall linear forwards;
         }
-
-        /* ===== TOAST ===== */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 9999;
-            background: white;
-            padding: 18px 24px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 420px;
-            backdrop-filter: blur(12px);
+        @keyframes confettiFall {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
-        .toast.hidden { display: none; }
-
-        /* ===== WHATSAPP FLOATING ICON ===== */
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            z-index: 999;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #25D366, #1da85a);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            box-shadow: 0 4px 25px rgba(37, 211, 102, 0.4);
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            animation: whatsappPulse 2s infinite;
-        }
-        .whatsapp-float:hover {
-            transform: scale(1.1) rotate(-5deg);
-            box-shadow: 0 6px 40px rgba(37, 211, 102, 0.6);
-        }
-        .whatsapp-float .tooltip {
-            position: absolute;
-            left: 70px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #0f172a;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s;
-        }
-        .whatsapp-float:hover .tooltip { opacity: 1; left: 75px; }
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
@@ -437,24 +332,20 @@
             .step-dot { width: 30px; }
             .step-dot.active { width: 40px; }
             .payment-option { padding: 16px; }
-            .whatsapp-float { width: 52px; height: 52px; font-size: 1.6rem; bottom: 20px; left: 20px; }
             .toast { right: 16px; left: 16px; max-width: none; bottom: 16px; }
         }
         @media (max-width: 480px) {
             .glass-card { padding: 14px; border-radius: 14px; }
             .form-input { font-size: 0.85rem; padding: 10px 14px 10px 40px; }
-            .btn-primary, .btn-whatsapp { font-size: 0.9rem; padding: 12px 20px; }
+            .btn-primary { font-size: 0.9rem; padding: 12px 20px; }
             .btn-outline { font-size: 0.85rem; padding: 10px 16px; }
             .order-item-image { width: 40px; height: 40px; }
             .order-item-name { font-size: 0.8rem; }
             .payment-option .icon { font-size: 1.6rem; }
             .payment-option .title { font-size: 0.9rem; }
             .summary-total .value { font-size: 1.2rem; }
-            .whatsapp-float { width: 44px; height: 44px; font-size: 1.4rem; bottom: 16px; left: 16px; }
-            .whatsapp-float .tooltip { display: none; }
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -463,20 +354,15 @@
 </head>
 <body>
 
-    <!-- ===== WHATSAPP FLOATING BUTTON ===== -->
-    <a href="https://wa.me/254745793237" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp">
-        <i class="fab fa-whatsapp"></i>
-        <span class="tooltip">Chat with us 💬</span>
-    </a>
-
     <!-- ===== HEADER ===== -->
     <header class="app-header" id="mainHeader">
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-            <a href="/" class="flex items-center gap-2 group">
-                <i class="fas fa-bolt text-2xl text-blue-600 group-hover:scale-110 transition-transform"></i>
-                <span class="brand-text">Price<span>Point</span></span>
+            <a href="/" class="flex items-center gap-3">
+                <span class="brand-icon-wrap"><i class="fas fa-shopping-basket"></i></span>
+                <span class="brand-text">ACACIA<span>MART</span></span>
+                <span class="text-[0.5rem] font-bold text-white bg-[#0b2b1e] px-2 py-0.5 rounded-full">KE</span>
             </a>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 <a href="/cart" class="back-link">
                     <i class="fas fa-arrow-left"></i> Back to Cart
                 </a>
@@ -489,18 +375,18 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
             <div>
-                <h1 class="text-3xl md:text-4xl font-extrabold text-[#0f172a] tracking-tight">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-[#0b1a2f] tracking-tight">
                     Checkout
                     <span class="text-sm font-normal text-gray-400 ml-2">• Secure</span>
                 </h1>
                 <p class="text-gray-500 text-sm mt-1 flex items-center gap-2">
-                    <i class="fas fa-lock text-green-500 text-xs"></i>
-                    Your information is safe and secure
+                    <i class="fas fa-lock text-[#0b2b1e] text-xs"></i>
+                    Your information is safe
                 </p>
             </div>
             <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
                 <span class="text-gray-400 text-sm">Total:</span>
-                <span class="font-bold text-blue-600 text-lg" id="orderTotal">KSh {{ "%.0f"|format(total) }}</span>
+                <span class="font-bold text-[#0b2b1e] text-lg" id="orderTotal">KSh {{ "%.0f"|format(total) }}</span>
             </div>
         </div>
 
@@ -527,9 +413,9 @@
                     <!-- Step 1: Shipping Information -->
                     <div class="checkout-step active" id="step1">
                         <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/20">1</div>
+                            <div class="w-10 h-10 rounded-full bg-[#0b2b1e] text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-[#0b2b1e]/20">1</div>
                             <div>
-                                <h2 class="text-xl font-bold text-[#0f172a]">Shipping Information</h2>
+                                <h2 class="text-xl font-bold text-[#0b1a2f]">Shipping Information</h2>
                                 <p class="text-sm text-gray-400">Where should we deliver your order?</p>
                             </div>
                         </div>
@@ -604,48 +490,47 @@
                     <!-- Step 2: Payment -->
                     <div class="checkout-step" id="step2">
                         <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/20">2</div>
+                            <div class="w-10 h-10 rounded-full bg-[#0b2b1e] text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-[#0b2b1e]/20">2</div>
                             <div>
-                                <h2 class="text-xl font-bold text-[#0f172a]">Choose Payment Method</h2>
+                                <h2 class="text-xl font-bold text-[#0b1a2f]">Choose Payment Method</h2>
                                 <p class="text-sm text-gray-400">Select how you'd like to complete your order</p>
                             </div>
                         </div>
 
-                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 mb-6 flex items-start gap-3">
-                            <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
+                        <div class="bg-gradient-to-r from-[#f0fdf4] to-[#ecfdf5] border border-[#d1fae5] rounded-xl p-4 mb-6 flex items-start gap-3">
+                            <i class="fas fa-shield-alt text-[#0b2b1e] text-lg mt-0.5"></i>
                             <div>
-                                <p class="text-sm font-semibold text-blue-800">🔒 100% Secure Checkout</p>
-                                <p class="text-xs text-blue-600">Your payment is encrypted. We never store your card details.</p>
+                                <p class="text-sm font-semibold text-[#0b2b1e]">🔒 Secure Checkout</p>
+                                <p class="text-xs text-[#3d4f47]">Your payment is encrypted. We never store your card details.</p>
                             </div>
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-4">
-                            <!-- Option 1: Card Payment -->
-                            <div class="payment-option" onclick="placeOrder()">
+                            <!-- Option 1: M-Pesa -->
+                            <div class="payment-option" onclick="placeOrder('mpesa')">
+                                <span class="icon">📱</span>
+                                <div class="title">M-Pesa</div>
+                                <div class="subtitle">Pay via M-Pesa Paybill</div>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="badge mpesa">💳 M-Pesa</span>
+                                    <span class="badge popular">✓ Fast</span>
+                                </div>
+                                <button class="mt-3 w-full bg-[#0b2b1e] text-white py-2.5 px-4 rounded-full font-semibold text-sm hover:bg-[#061a12] transition-all shadow-lg shadow-[#0b2b1e]/20">
+                                    <i class="fas fa-mobile-alt"></i> Pay with M-Pesa
+                                </button>
+                            </div>
+
+                            <!-- Option 2: Card Payment -->
+                            <div class="payment-option" onclick="placeOrder('card')">
                                 <span class="icon">💳</span>
                                 <div class="title">Card Payment</div>
                                 <div class="subtitle">Pay with debit or credit card</div>
                                 <div class="flex flex-wrap gap-2 mt-2">
                                     <span class="badge popular">✓ Secure</span>
-                                    <span class="badge secure">🔒 Encrypted</span>
+                                    <span class="badge" style="background:#e0e7ff;color:#4f46e5;">🔒 Encrypted</span>
                                 </div>
-                                <button class="mt-3 w-full bg-blue-600 text-white py-2.5 px-4 rounded-full font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                                <button class="mt-3 w-full bg-[#0b2b1e] text-white py-2.5 px-4 rounded-full font-semibold text-sm hover:bg-[#061a12] transition-all shadow-lg shadow-[#0b2b1e]/20">
                                     <i class="fas fa-credit-card"></i> Pay Now
-                                </button>
-                            </div>
-
-                            <!-- Option 2: WhatsApp Order -->
-                            <div class="payment-option whatsapp" onclick="orderViaWhatsApp()">
-                                <span class="icon">📱</span>
-                                <div class="title">Order via WhatsApp</div>
-                                <div class="subtitle">Pay with M-Pesa or Bank Transfer</div>
-                                <div class="flex flex-wrap gap-2 mt-2">
-                                    <span class="badge mpesa">💳 M-Pesa</span>
-                                    <span class="badge" style="background:#fef3c7;color:#d97706;">🏦 Bank Transfer</span>
-                                </div>
-                                <button class="btn-whatsapp mt-3 py-2.5 px-4 text-sm">
-                                    <i class="fab fa-whatsapp"></i>
-                                    Send Order on WhatsApp
                                 </button>
                             </div>
                         </div>
@@ -661,15 +546,15 @@
                     <div class="checkout-step text-center" id="step3">
                         <div class="py-12">
                             <div class="w-28 h-28 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-6 animate-bounce">
-                                <i class="fas fa-check text-5xl text-green-600"></i>
+                                <i class="fas fa-check text-5xl text-[#0b2b1e]"></i>
                             </div>
-                            <h2 class="text-3xl font-extrabold text-[#0f172a]">Order Placed! 🎉</h2>
+                            <h2 class="text-3xl font-extrabold text-[#0b1a2f]">Order Placed! 🎉</h2>
                             <p class="text-gray-500 mt-2">Your order has been confirmed and is being processed</p>
                             <div class="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                                 <p class="text-gray-400 text-sm font-medium">Order ID</p>
-                                <p class="text-[#0f172a] font-bold text-2xl tracking-wider" id="orderId">PP-XXXXXXXX</p>
+                                <p class="text-[#0b1a2f] font-bold text-2xl tracking-wider" id="orderId">PP-XXXXXXXX</p>
                                 <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-400">
-                                    <span><i class="fas fa-envelope text-blue-500"></i> Confirmation sent</span>
+                                    <span><i class="fas fa-envelope text-[#0b2b1e]"></i> Confirmation sent</span>
                                     <span><i class="fas fa-clock text-amber-500"></i> Processing</span>
                                 </div>
                             </div>
@@ -689,8 +574,8 @@
             <!-- Order Summary -->
             <div class="lg:col-span-1">
                 <div class="glass-card sticky top-24">
-                    <h3 class="font-bold text-[#0f172a] text-lg mb-4 flex items-center gap-2">
-                        <i class="fas fa-receipt text-blue-600"></i> Order Summary
+                    <h3 class="font-bold text-[#0b1a2f] text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-receipt text-[#0b2b1e]"></i> Order Summary
                     </h3>
                     
                     <div class="max-h-60 overflow-y-auto pr-1">
@@ -711,55 +596,34 @@
                     <div class="border-t border-gray-100 mt-4 pt-4 space-y-2 text-sm">
                         <div class="summary-item">
                             <span class="text-gray-500">Subtotal</span>
-                            <span class="text-[#0f172a] font-semibold">KSh {{ "%.0f"|format(subtotal) }}</span>
+                            <span class="text-[#0b1a2f] font-semibold">KSh {{ "%.0f"|format(subtotal) }}</span>
                         </div>
                         <div class="summary-item">
                             <span class="text-gray-500">Shipping</span>
                             <span class="font-semibold">
                                 {% if shipping == 0 %}
-                                    <span class="text-green-600">Free</span>
+                                    <span class="text-[#0b2b1e]">Free</span>
                                 {% else %}
-                                    <span class="text-[#0f172a]">KSh {{ "%.0f"|format(shipping) }}</span>
+                                    <span class="text-[#0b1a2f]">KSh {{ "%.0f"|format(shipping) }}</span>
                                 {% endif %}
                             </span>
                         </div>
                         <div class="summary-total">
-                            <span class="text-[#0f172a]">Total</span>
+                            <span class="text-[#0b1a2f]">Total</span>
                             <span class="value">KSh {{ "%.0f"|format(total) }}</span>
                         </div>
                     </div>
 
                     {% if shipping > 0 %}
                     <div class="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                        <i class="fas fa-info-circle text-blue-500"></i>
+                        <i class="fas fa-info-circle text-[#0b2b1e]"></i>
                         Free shipping on orders over KSh 50,000
                     </div>
                     {% endif %}
 
-                    <!-- WhatsApp Quick Order Divider -->
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="flex items-center gap-3 mb-3">
-                            <hr class="flex-1 border-gray-200" />
-                            <span class="text-xs text-gray-400 font-medium">or order via</span>
-                            <hr class="flex-1 border-gray-200" />
-                        </div>
-
-                        <!-- Quick WhatsApp Button in Summary -->
-                        <button onclick="orderViaWhatsApp()" 
-                                class="w-full py-3 px-4 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
-                                style="background: linear-gradient(135deg, #25D366, #1da85a); color: white; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);">
-                            <i class="fab fa-whatsapp text-lg"></i>
-                            Order via WhatsApp
-                            <span class="text-xs opacity-75">(M-Pesa)</span>
-                        </button>
-                        <p class="text-xs text-center text-gray-400 mt-1.5 flex items-center justify-center gap-1">
-                            <i class="fas fa-clock"></i> We'll confirm within minutes
-                        </p>
-                    </div>
-
                     <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-400">
-                        <span><i class="fas fa-lock text-green-500"></i> Secure</span>
-                        <span><i class="fas fa-undo text-orange-500"></i> 30-Day Returns</span>
+                        <span><i class="fas fa-lock text-[#0b2b1e]"></i> Secure</span>
+                        <span><i class="fas fa-undo text-amber-500"></i> 30-Day Returns</span>
                         <span><i class="fas fa-shield-alt text-blue-500"></i> Warranty</span>
                         <span><i class="fas fa-truck text-purple-500"></i> Fast Delivery</span>
                     </div>
@@ -774,9 +638,9 @@
     <!-- Toast -->
     <div id="toast" class="toast hidden">
         <div class="flex items-center gap-3">
-            <i class="fas fa-check-circle text-green-500 text-xl" id="toastIcon"></i>
+            <i class="fas fa-check-circle text-[#0b2b1e] text-xl" id="toastIcon"></i>
             <div>
-                <p id="toastMessage" class="font-semibold text-[#0f172a]"></p>
+                <p id="toastMessage" class="font-semibold text-[#0b1a2f]"></p>
                 <p id="toastSubMessage" class="text-xs text-gray-400"></p>
             </div>
         </div>
@@ -828,7 +692,7 @@
                 goToStep(1);
                 document.querySelectorAll('.form-input').forEach(el => {
                     if (!el.value.trim()) {
-                        el.style.borderColor = '#ef4444';
+                        el.style.borderColor = '#dc2626';
                         setTimeout(() => el.style.borderColor = '', 2000);
                     }
                 });
@@ -838,224 +702,44 @@
         }
 
         // ============================================================
-        // PLACE ORDER (Card Payment)
+        // PLACE ORDER (Simulated Payment)
         // ============================================================
-        function placeOrder() {
+        function placeOrder(method) {
             if (!validateCustomerData()) return;
 
-            const btn = document.querySelector('#step2 .btn-primary') || document.querySelector('.payment-option .bg-blue-600');
-            if (btn) {
+            // Get all payment buttons and disable them
+            const btns = document.querySelectorAll('#step2 .btn-primary, .payment-option button');
+            btns.forEach(btn => {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            }
-
-            const data = getCustomerData();
-            const customerData = {
-                customer_name: data.first_name + ' ' + data.last_name,
-                customer_email: data.email,
-                customer_phone: data.phone,
-                customer_address: data.address + ', ' + data.city + ', ' + data.country
-            };
-
-            fetch('/place-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(customerData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('orderId').textContent = data.order_id;
-                    goToStep(3);
-                    launchConfetti();
-                    showToast('🎉 Order placed successfully!', 'success', 'Your order #' + data.order_id + ' is being processed');
-                } else {
-                    showToast('❌ ' + (data.message || 'Failed to place order'), 'error');
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
-                    }
-                }
-            })
-            .catch(() => {
-                showToast('❌ Something went wrong. Please try again.', 'error');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
-                }
             });
-        }
-
-        // ============================================================
-        // ORDER VIA WHATSAPP - PREMIUM MODERN MESSAGE
-        // ============================================================
-        function orderViaWhatsApp() {
-            if (!validateCustomerData()) return;
-
-            const btn = document.querySelector('#step2 .btn-whatsapp') || document.querySelector('.btn-whatsapp');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            }
 
             const data = getCustomerData();
             const customerName = data.first_name + ' ' + data.last_name;
             const fullAddress = data.address + ', ' + data.city + ', ' + data.country;
 
-            const cartItems = {{ cart_items | tojson | safe }};
-            const subtotal = {{ subtotal }};
-            const shipping = {{ shipping }};
-            const total = {{ total }};
+            // Generate order ID
+            const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
-            const orderId = 'WA-' + Date.now().toString(36).toUpperCase();
-            const currentDate = new Date().toLocaleString('en-KE', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            // ============================================================
-            // 🎯 PREMIUM MODERN WHATSAPP MESSAGE
-            // ============================================================
-            let message = '╔═══════════════════════════════════════════════════╗\n';
-            message += '║  🛍️  PRICE POINT KENYA - NEW ORDER              ║\n';
-            message += '╚═══════════════════════════════════════════════════╝\n\n';
-            
-            message += '📋 *ORDER DETAILS*\n';
-            message += '─────────────────────────────────────\n';
-            message += '🆔 *Order ID:* ' + orderId + '\n';
-            message += '📅 *Date:* ' + currentDate + '\n';
-            message += '📦 *Status:* ⏳ Pending Confirmation\n\n';
-            
-            message += '👤 *CUSTOMER INFORMATION*\n';
-            message += '─────────────────────────────────────\n';
-            message += '┌───────────────────────────────────┐\n';
-            message += '│ 👤 Name:   ' + customerName.padEnd(30) + '│\n';
-            message += '│ 📧 Email:  ' + data.email.padEnd(30) + '│\n';
-            message += '│ 📞 Phone:  ' + data.phone.padEnd(30) + '│\n';
-            message += '│ 📍 City:   ' + data.city.padEnd(30) + '│\n';
-            message += '│ 🏠 Address:' + data.address.padEnd(30) + '│\n';
-            message += '└───────────────────────────────────┘\n\n';
-            
-            message += '🛒 *ORDER ITEMS*\n';
-            message += '─────────────────────────────────────\n';
-            message += '┌────────┬──────────────────────┬────────────┬──────────┐\n';
-            message += '│  QTY   │ ITEM                 │ UNIT PRICE │  TOTAL   │\n';
-            message += '├────────┼──────────────────────┼────────────┼──────────┤\n';
-            
-            cartItems.forEach(item => {
-                const qty = String(item.quantity).padStart(6);
-                const name = item.name.substring(0, 20).padEnd(20);
-                const price = 'KSh ' + String(item.price.toLocaleString()).padStart(10);
-                const itemTotal = 'KSh ' + String((item.price * item.quantity).toLocaleString()).padStart(8);
-                message += '│ ' + qty + ' │ ' + name + ' │ ' + price + ' │ ' + itemTotal + ' │\n';
-            });
-            
-            message += '└────────┴──────────────────────┴────────────┴──────────┘\n\n';
-            
-            message += '💰 *PAYMENT SUMMARY*\n';
-            message += '─────────────────────────────────────\n';
-            message += '┌───────────────────────────────────┐\n';
-            message += '│ 📦 Subtotal:      KSh ' + String(subtotal.toLocaleString()).padStart(12) + '│\n';
-            if (shipping > 0) {
-                message += '│ 🚚 Shipping:      KSh ' + String(shipping.toLocaleString()).padStart(12) + '│\n';
-            } else {
-                message += '│ 🚚 Shipping:      FREE'.padStart(33) + '│\n';
-            }
-            message += '├───────────────────────────────────┤\n';
-            message += '│ 💵 TOTAL AMOUNT:  KSh ' + String(total.toLocaleString()).padStart(12) + '│\n';
-            message += '└───────────────────────────────────┘\n\n';
-            
-            message += '💳 *PAYMENT OPTIONS*\n';
-            message += '─────────────────────────────────────\n';
-            message += '┌───────────────────────────────────┐\n';
-            message += '│ 1️⃣ M-Pesa Paybill: 123456       │\n';
-            message += '│    Account: ' + orderId.padEnd(26) + '│\n';
-            message += '│                                     │\n';
-            message += '│ 2️⃣ Bank Transfer:                │\n';
-            message += '│    Bank:   Equity Bank           │\n';
-            message += '│    Account: 1234567890           │\n';
-            message += '│    Name:   Price Point Ltd       │\n';
-            message += '└───────────────────────────────────┘\n\n';
-            
-            message += '📦 *DELIVERY INFORMATION*\n';
-            message += '─────────────────────────────────────\n';
-            message += '📍 ' + fullAddress + '\n';
-            message += '🚚 Estimated Delivery: 1-3 business days\n';
-            message += '📞 Contact: +254 745 793 237\n\n';
-            
-            message += '✅ *NEXT STEPS*\n';
-            message += '─────────────────────────────────────\n';
-            message += '1️⃣ Reply ✅ to confirm this order\n';
-            message += '2️⃣ Make payment using options above\n';
-            message += '3️⃣ Send payment confirmation\n';
-            message += '4️⃣ Order will be processed immediately\n';
-            message += '5️⃣ Tracking number sent upon dispatch\n\n';
-            
-            message += '🌟 *Thank you for choosing Price Point Kenya!* 🌟\n';
-            message += 'We appreciate your business and trust. 🙏\n\n';
-            
-            message += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            message += '📧 support@pricepoint.co.ke  |  📞 0745 793 237\n';
-            message += '🌐 www.pricepoint.co.ke  |  ⭐ Rate us 5 stars!\n';
-            message += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-
-            // Create order in system
-            const orderData = {
-                order_id: orderId,
-                items: cartItems,
-                subtotal: subtotal,
-                shipping: shipping,
-                total: total,
-                status: 'pending_whatsapp',
-                source: 'whatsapp',
-                created_at: new Date().toISOString(),
-                customer_name: customerName,
-                customer_email: data.email,
-                customer_phone: data.phone,
-                customer_address: fullAddress,
-                customer: {
-                    name: customerName,
-                    email: data.email,
-                    phone: data.phone,
-                    address: fullAddress
-                }
-            };
-
-            fetch('/place-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            })
-            .then(response => response.json())
-            .then(result => {
-                const encoded = encodeURIComponent(message);
-                // 🔥 YOUR WHATSAPP NUMBER: 0745793237
-                const whatsappNumber = '254745793237';
-                window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
-
+            // Simulate payment processing
+            setTimeout(() => {
+                // Show success
                 document.getElementById('orderId').textContent = orderId;
                 goToStep(3);
                 launchConfetti();
-                showToast('✅ Order sent via WhatsApp!', 'success', 'We\'ll confirm your order shortly');
+                showToast('🎉 Order placed successfully!', 'success', 'Your order #' + orderId + ' is being processed');
 
+                // Re-enable buttons after delay
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 6000);
-            })
-            .catch(() => {
-                const encoded = encodeURIComponent(message);
-                const whatsappNumber = '254745793237';
-                window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
+                    btns.forEach(btn => {
+                        btn.disabled = false;
+                        btn.innerHTML = method === 'mpesa' 
+                            ? '<i class="fas fa-mobile-alt"></i> Pay with M-Pesa'
+                            : '<i class="fas fa-credit-card"></i> Pay Now';
+                    });
+                }, 2000);
 
-                document.getElementById('orderId').textContent = orderId;
-                goToStep(3);
-                launchConfetti();
-                showToast('⚠️ Order saved locally', 'warning', 'Please confirm your order via WhatsApp');
-            });
+            }, 1500);
         }
 
         // ============================================================
@@ -1063,9 +747,9 @@
         // ============================================================
         function launchConfetti() {
             const container = document.getElementById('confettiContainer');
-            const colors = ['#2563eb', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4', '#25D366', '#f97316', '#ec4899'];
+            const colors = ['#0b2b1e', '#c7a86b', '#2563eb', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4'];
 
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 120; i++) {
                 const piece = document.createElement('div');
                 piece.className = 'confetti-piece';
                 piece.style.left = Math.random() * 100 + '%';
@@ -1093,7 +777,7 @@
             subEl.textContent = subMessage;
             
             const icons = {
-                success: 'fas fa-check-circle text-green-500 text-xl',
+                success: 'fas fa-check-circle text-[#0b2b1e] text-xl',
                 error: 'fas fa-times-circle text-red-500 text-xl',
                 warning: 'fas fa-exclamation-triangle text-amber-500 text-xl',
                 info: 'fas fa-info-circle text-blue-500 text-xl'
@@ -1102,7 +786,7 @@
             
             toast.classList.remove('hidden');
             clearTimeout(window.toastTimeout);
-            window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 6000);
+            window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 5000);
         }
 
         // ============================================================
@@ -1121,7 +805,6 @@
                     goToStep(2);
                 }
             }
-            // Number shortcuts: 1, 2, 3 for steps
             if (e.key >= '1' && e.key <= '3' && !e.ctrlKey && !e.metaKey) {
                 const step = parseInt(e.key);
                 if (step <= currentStep + 1) {
@@ -1136,8 +819,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const firstInput = document.querySelector('#step1 input');
             if (firstInput) setTimeout(() => firstInput.focus(), 300);
-            console.log('✅ Premium WhatsApp Checkout loaded');
-            console.log('📱 WhatsApp: 0745793237');
+            console.log('✅ ACACIAMART Checkout loaded');
             console.log('💰 Total: KSh {{ total }}');
         });
     </script>
