@@ -115,7 +115,7 @@
 
         [data-theme="dark"] .hero-section .hero-bg {
             background: linear-gradient(135deg, rgba(5,150,105,0.85) 0%, rgba(4,120,87,0.7) 100%),
-                        url('https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600&h=600&fit=crop&auto=format') center/cover no-repeat;
+                        url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=600&fit=crop&auto=format') center/cover no-repeat;
         }
 
         html { scroll-behavior: smooth; }
@@ -959,13 +959,16 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
+    <!-- ===== HEADER - WITH LOGO & CART ===== -->
     <header class="app-header" id="mainHeader" role="banner">
         <div class="container-full flex items-center justify-between h-14 relative">
             <a href="/" class="flex items-center gap-2" aria-label="ACACIAMART Home">
-                <i class="fas fa-shopping-bag text-primary text-xl"></i>
+                <!-- ✅ LOGO - same style as your POS -->
+                <div class="w-9 h-9 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow">
+                    🛒
+                </div>
                 <span class="brand-text">ACACIA<span class="highlight">MART</span></span>
-                <span class="text-[0.55rem] font-bold text-primary bg-primary-bg px-2 py-0.5 rounded-full">KE</span>
+                <span class="text-[0.5rem] font-bold text-white bg-primary px-2 py-0.5 rounded-full">KE</span>
             </a>
             
             <!-- Navigation Links -->
@@ -979,16 +982,21 @@
             </nav>
 
             <div class="flex items-center gap-3">
+                <!-- Dark Mode Toggle -->
                 <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
                     <span id="themeIcon">🌙</span>
                 </button>
+                
+                <!-- ✅ CART WITH COUNT - matches POS -->
                 <a href="/cart" class="relative text-gray-700 hover:text-primary transition" aria-label="Shopping cart">
                     <i class="fas fa-shopping-bag text-lg"></i>
                     <span class="cart-count" id="cartCount">0</span>
                 </a>
+                
                 <a href="#shop" class="hidden sm:inline-block bg-primary text-white px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-primary-dark transition" aria-label="Go to shop">
                     <i class="fas fa-plus"></i> Shop
                 </a>
+                
                 <!-- Mobile Menu Toggle -->
                 <button id="mobileToggle" class="md:hidden text-gray-700 hover:text-primary transition w-9 h-9 flex items-center justify-center" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
                     <i class="fas fa-bars text-xl icon-bars"></i>
@@ -1065,12 +1073,8 @@
             <!-- Category Pills -->
             <div class="flex items-center justify-between gap-2">
                 <div class="category-scroll flex-1" id="categoryList" role="tablist">
-                    <span class="category-pill active" data-category="all" onclick="filterByCategory('all', this)" role="tab" aria-selected="true">
-                        <i class="fas fa-th-large" aria-hidden="true"></i> All
-                        <span class="count">{{ all_products|length }}</span>
-                    </span>
                     {% for category, info in categories.items() %}
-                    <span class="category-pill" data-category="{{ category }}" onclick="filterByCategory('{{ category }}', this)" role="tab" aria-selected="false">
+                    <span class="category-pill {% if loop.first %}active{% endif %}" data-category="{{ category }}" onclick="filterByCategory('{{ category }}', this)" role="tab" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
                         <i class="fas {{ info.icon }}" aria-hidden="true"></i> {{ category }}
                         <span class="count">{{ info.count }}</span>
                     </span>
@@ -1505,12 +1509,14 @@
                 element.setAttribute('aria-selected', 'true');
             }
             
-            currentCategory = category;
+            // Normalize category name to lowercase for comparison
+            let categoryKey = category === 'All' ? 'all' : category;
+            currentCategory = categoryKey;
             filterProducts();
             
             const title = document.getElementById('categoryTitle');
             const subtitle = document.getElementById('categorySubtitle');
-            if (category === 'all') {
+            if (category === 'All' || category === 'all') {
                 title.textContent = '🔥 All Products';
                 subtitle.textContent = 'Browse our complete collection';
             } else {
@@ -1563,15 +1569,17 @@
         }
 
         function resetFilters() {
-            currentCategory = 'all';
-            document.querySelectorAll('.category-pill').forEach(pill => {
-                pill.classList.remove('active');
-                pill.setAttribute('aria-selected', 'false');
-                if (pill.dataset.category === 'all') {
-                    pill.classList.add('active');
-                    pill.setAttribute('aria-selected', 'true');
-                }
-            });
+            // Reset to 'All' category
+            const allPill = document.querySelector('.category-pill[data-category="All"]');
+            if (allPill) {
+                document.querySelectorAll('.category-pill').forEach(pill => {
+                    pill.classList.remove('active');
+                    pill.setAttribute('aria-selected', 'false');
+                });
+                allPill.classList.add('active');
+                allPill.setAttribute('aria-selected', 'true');
+                currentCategory = 'all';
+            }
             
             document.getElementById('searchInput').value = '';
             currentSearch = '';
@@ -1682,6 +1690,12 @@
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            // Set initial 'All' category as active
+            const allPill = document.querySelector('.category-pill[data-category="All"]');
+            if (allPill) {
+                allPill.classList.add('active');
+                allPill.setAttribute('aria-selected', 'true');
+            }
             filterProducts();
             sortProducts();
             updateCartCount();
