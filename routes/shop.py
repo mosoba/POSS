@@ -22,6 +22,85 @@ shop_bp = Blueprint('shop', __name__)
 
 
 # ============================================================
+# CATEGORY ICONS - FULL LIST FOR GENERAL STORE
+# ============================================================
+CATEGORY_ICONS = {
+    'All': 'fa-th-large',
+    'Beverages': 'fa-wine-bottle',
+    'Snacks': 'fa-utensils',
+    'Groceries': 'fa-apple-alt',
+    'Food': 'fa-apple-alt',
+    'Electronics': 'fa-laptop',
+    'Phones': 'fa-mobile-alt',
+    'Phone Accessories': 'fa-plug',
+    'Laptops': 'fa-laptop',
+    'Computers': 'fa-desktop',
+    'Audio': 'fa-headphones',
+    'Headphones': 'fa-headphones',
+    'Fashion': 'fa-tshirt',
+    'Clothing': 'fa-tshirt',
+    'Men\'s Fashion': 'fa-user-tie',
+    'Women\'s Fashion': 'fa-female',
+    'Shoes': 'fa-shoe-prints',
+    'Accessories': 'fa-plug',
+    'Bags': 'fa-bag-shopping',
+    'Watches': 'fa-clock',
+    'Jewelry': 'fa-ring',
+    'Sunglasses': 'fa-glasses',
+    'Home & Kitchen': 'fa-utensils',
+    'Furniture': 'fa-couch',
+    'Home Decor': 'fa-home',
+    'Kitchen': 'fa-kitchen-set',
+    'Bedding': 'fa-bed',
+    'Bath': 'fa-bath',
+    'Cleaning': 'fa-spray-can-sparkles',
+    'Laundry': 'fa-shirt',
+    'Beauty': 'fa-spa',
+    'Personal Care': 'fa-spa',
+    'Skincare': 'fa-spa',
+    'Makeup': 'fa-paint-brush',
+    'Fragrance': 'fa-perfume',
+    'Books': 'fa-book',
+    'Stationery': 'fa-pen',
+    'School Supplies': 'fa-book-open',
+    'Office Supplies': 'fa-briefcase',
+    'Toys': 'fa-gamepad',
+    'Games': 'fa-gamepad',
+    'Gaming': 'fa-gamepad',
+    'Sports': 'fa-dumbbell',
+    'Fitness': 'fa-dumbbell',
+    'Outdoor': 'fa-tree',
+    'Garden': 'fa-tree',
+    'Automotive': 'fa-car',
+    'Car Accessories': 'fa-car',
+    'Health': 'fa-heartbeat',
+    'Wellness': 'fa-heartbeat',
+    'Baby': 'fa-baby',
+    'Kids': 'fa-baby',
+    'Pet': 'fa-paw',
+    'Pet Supplies': 'fa-paw',
+    'Music': 'fa-music',
+    'Instruments': 'fa-guitar',
+    'Cameras': 'fa-camera',
+    'Photography': 'fa-camera',
+    'Printers': 'fa-print',
+    'Networking': 'fa-network-wired',
+    'Software': 'fa-code',
+    'Gifts': 'fa-gift',
+    'Flowers': 'fa-seedling',
+    'Crafts': 'fa-paintbrush',
+    'Hobbies': 'fa-puzzle-piece',
+    'Party': 'fa-party-horn',
+    'Uncategorized': 'fa-tag',
+    'Other': 'fa-tag',
+}
+
+def get_category_icon(category):
+    """Get Font Awesome icon for a category"""
+    return CATEGORY_ICONS.get(category, 'fa-tag')
+
+
+# ============================================================
 # HELPER: CLEAN PRODUCTS - Fix None values for Vercel
 # ============================================================
 def clean_products(products):
@@ -71,6 +150,29 @@ def clean_products(products):
     return cleaned
 
 
+# ============================================================
+# BUILD CATEGORIES WITH COUNTS
+# ============================================================
+def build_categories(products_list):
+    """Build categories dictionary with counts and icons"""
+    categories = {}
+    for product in products_list:
+        if not product:
+            continue
+        cat = product.get('category', 'Uncategorized')
+        if cat not in categories:
+            categories[cat] = {
+                'name': cat,
+                'icon': get_category_icon(cat),
+                'count': 0,
+            }
+        categories[cat]['count'] += 1
+    
+    # Sort categories alphabetically (case insensitive)
+    sorted_categories = dict(sorted(categories.items(), key=lambda x: x[0].lower()))
+    return sorted_categories
+
+
 @shop_bp.route('/')
 def index():
     products_list = load_products()
@@ -96,16 +198,20 @@ def index():
     new_arrivals = [p for p in products_list if p.get('badge') == 'New']
     trending = [p for p in products_list if p.get('badge') == 'Trending']
 
-    categories = {}
-    for product in products_list:
-        cat = product.get('category', 'Other')
-        if cat not in categories:
-            categories[cat] = {
-                'name': cat,
-                'icon': get_category_icon(cat),
-                'count': 0,
-            }
-        categories[cat]['count'] += 1
+    # ============================================================
+    # BUILD CATEGORIES WITH ALL PRODUCTS
+    # ============================================================
+    categories = build_categories(products_list)
+
+    # Add 'All' category at the beginning
+    all_categories = {
+        'All': {
+            'name': 'All',
+            'icon': 'fa-th-large',
+            'count': len(products_list)
+        }
+    }
+    all_categories.update(categories)
 
     return render_template(
         'shop.html',
@@ -115,7 +221,7 @@ def index():
         best_sellers=best_sellers,
         new_arrivals=new_arrivals,
         trending=trending,
-        categories=categories,
+        categories=all_categories,
         CATEGORIES=get_all_categories(),
     )
 
@@ -133,7 +239,25 @@ def category_page(category_name):
     for product in products:
         if product and 'id' in product and product.get('category') == category_name:
             products_dict[str(product['id'])] = product
-    return render_template('category.html', products=products_dict, category_name=category_name, CATEGORIES=get_all_categories())
+    
+    # Build categories for sidebar
+    categories = build_categories(products)
+    all_categories = {
+        'All': {
+            'name': 'All',
+            'icon': 'fa-th-large',
+            'count': len(products)
+        }
+    }
+    all_categories.update(categories)
+    
+    return render_template(
+        'category.html', 
+        products=products_dict, 
+        category_name=category_name, 
+        categories=all_categories,
+        CATEGORIES=get_all_categories()
+    )
 
 
 @shop_bp.route('/product/<product_id>')
@@ -582,7 +706,7 @@ def place_order():
                 'order_id': order_id,
                 'total': total,
                 'message': 'Order placed successfully!',
-                'customer_name': customer_name,  # Return for debugging
+                'customer_name': customer_name,
             })
         else:
             print(f"❌ Supabase error: {response.status_code} - {response.text}")
@@ -607,3 +731,25 @@ def clear_cart():
     session['cart'] = {}
     session.modified = True
     return jsonify({'success': True, 'message': 'Cart cleared'})
+
+
+# ============================================================
+# CATEGORY API - FOR DYNAMIC CATEGORY FILTERING
+# ============================================================
+@shop_bp.route('/api/categories')
+def api_categories():
+    """API endpoint to get all categories with counts"""
+    products = load_products()
+    products = clean_products(products)
+    categories = build_categories(products)
+    
+    all_categories = {
+        'All': {
+            'name': 'All',
+            'icon': 'fa-th-large',
+            'count': len(products)
+        }
+    }
+    all_categories.update(categories)
+    
+    return jsonify(all_categories)
