@@ -11,16 +11,15 @@
         * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f0f4f8; color: #0b1a2f; min-height: 100vh; }
 
-        /* ===== ANIMATIONS ===== */
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ===== HEADER ===== */
         .app-header {
             background: rgba(255,255,255,0.92);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(226, 232, 240, 0.5);
             position: sticky;
             top: 0;
@@ -73,7 +72,6 @@
         }
         .back-link i { margin-right: 6px; }
 
-        /* ===== GLASS CARD ===== */
         .glass-card {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(12px);
@@ -83,11 +81,8 @@
             transition: all 0.3s;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
         }
-        .glass-card:hover {
-            box-shadow: 0 8px 40px rgba(0,0,0,0.04);
-        }
+        .glass-card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.04); }
 
-        /* ===== FORM ===== */
         .form-input {
             border: 2px solid #e2e8f0;
             border-radius: 12px;
@@ -128,8 +123,8 @@
             z-index: 2;
         }
         .input-wrapper .form-input { padding-left: 44px; }
+        .input-wrapper textarea.form-input { padding-top: 14px; }
 
-        /* ===== BUTTONS ===== */
         .btn-primary {
             background: linear-gradient(135deg, #0b2b1e, #1e4d34);
             color: white;
@@ -175,7 +170,6 @@
             background: #f0fdf4;
         }
 
-        /* ===== PAYMENT OPTIONS ===== */
         .payment-option {
             border: 2px solid #e2e8f0;
             border-radius: 16px;
@@ -205,7 +199,6 @@
         .payment-option .badge.popular { background: #dbeafe; color: #2563eb; }
         .payment-option .badge.mpesa { background: #d1fae5; color: #059669; }
 
-        /* ===== STEP INDICATOR ===== */
         .step-indicator {
             display: flex;
             justify-content: center;
@@ -227,14 +220,12 @@
         .step-number.active { color: #0b2b1e; }
         .step-number.completed { color: #10b981; }
 
-        /* ===== CHECKOUT STEPS ===== */
         .checkout-step {
             display: none;
             animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .checkout-step.active { display: block; }
 
-        /* ===== SUMMARY ===== */
         .summary-item {
             display: flex;
             justify-content: space-between;
@@ -284,7 +275,104 @@
         .order-item-price { font-weight: 700; color: #0b2b1e; font-size: 0.9rem; }
         .order-item-quantity { color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
 
-        /* ===== TOAST ===== */
+        /* Shipping Status */
+        .shipping-status {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .shipping-status .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            position: relative;
+        }
+        .shipping-status .status-bar::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+        .shipping-status .status-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+        .shipping-status .status-step .circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.6rem;
+        }
+        .shipping-status .status-step.completed .circle {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        .shipping-status .status-step.active .circle {
+            background: #0b2b1e;
+            border-color: #0b2b1e;
+            animation: pulse 1.5s infinite;
+        }
+        .shipping-status .status-step .label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-top: 6px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .shipping-status .status-step.completed .label,
+        .shipping-status .status-step.active .label {
+            color: #0b1a2f;
+        }
+
+        /* Location Detection */
+        .location-detection {
+            background: #f0fdf4;
+            border: 2px dashed #0b2b1e;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .location-detection .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #0b2b1e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        .location-detection .icon-success {
+            color: #10b981;
+            font-size: 1.2rem;
+        }
+        .location-detection .icon-error {
+            color: #dc2626;
+            font-size: 1.2rem;
+        }
+
         .toast {
             position: fixed;
             bottom: 30px;
@@ -301,7 +389,6 @@
         }
         .toast.hidden { display: none; }
 
-        /* ===== CONFETTI ===== */
         .confetti-container {
             position: fixed;
             top: 0;
@@ -324,7 +411,16 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
-        /* ===== RESPONSIVE ===== */
+        .tracking-number {
+            font-family: 'Courier New', monospace;
+            background: #0b2b1e;
+            color: #c7a86b;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
         @media (max-width: 768px) {
             .glass-card { padding: 18px; }
             .app-header .brand-text { font-size: 1.1rem; }
@@ -333,6 +429,8 @@
             .step-dot.active { width: 40px; }
             .payment-option { padding: 16px; }
             .toast { right: 16px; left: 16px; max-width: none; bottom: 16px; }
+            .shipping-status .status-step .label { font-size: 0.45rem; }
+            .location-detection { flex-wrap: wrap; }
         }
         @media (max-width: 480px) {
             .glass-card { padding: 14px; border-radius: 14px; }
@@ -354,7 +452,6 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="app-header" id="mainHeader">
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
             <a href="/" class="flex items-center gap-3">
@@ -370,9 +467,7 @@
         </div>
     </header>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-extrabold text-[#0b1a2f] tracking-tight">
@@ -390,7 +485,6 @@
             </div>
         </div>
 
-        <!-- Step Indicators -->
         <div class="step-indicator">
             <div class="step-item">
                 <span class="step-number active" id="step1Num">1</span>
@@ -407,10 +501,9 @@
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
-            <!-- Checkout Form -->
             <div class="lg:col-span-2">
                 <div class="glass-card">
-                    <!-- Step 1: Shipping Information -->
+                    <!-- Step 1: Shipping -->
                     <div class="checkout-step active" id="step1">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="w-10 h-10 rounded-full bg-[#0b2b1e] text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-[#0b2b1e]/20">1</div>
@@ -419,7 +512,20 @@
                                 <p class="text-sm text-gray-400">Where should we deliver your order?</p>
                             </div>
                         </div>
-                        <div class="space-y-4">
+                        
+                        <!-- Location Detection -->
+                        <div class="location-detection" id="locationStatus">
+                            <div class="spinner" id="locationSpinner"></div>
+                            <div id="locationMessage">
+                                <span class="font-medium text-sm">Detecting your location...</span>
+                                <p class="text-xs text-gray-500">We'll calculate the shipping distance from our store</p>
+                            </div>
+                            <button onclick="detectLocation()" class="text-xs bg-[#0b2b1e] text-white px-3 py-1 rounded-full font-semibold ml-auto hover:bg-[#061a12] transition" id="locationRetryBtn" style="display:none;">
+                                <i class="fas fa-redo"></i> Retry
+                            </button>
+                        </div>
+
+                        <div class="space-y-4 mt-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="form-label"><i class="fas fa-user"></i> First Name <span class="required">*</span></label>
@@ -451,10 +557,10 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="form-label"><i class="fas fa-map-marker-alt"></i> Shipping Address <span class="required">*</span></label>
+                                <label class="form-label"><i class="fas fa-map-marker-alt"></i> Delivery Address <span class="required">*</span></label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-map-marker-alt input-icon"></i>
-                                    <input type="text" class="form-input" placeholder="123 Main Street" id="address" />
+                                    <input type="text" class="form-input" placeholder="123 Main Street" id="address" onchange="calculateShippingFromAddress()" />
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
@@ -462,7 +568,7 @@
                                     <label class="form-label"><i class="fas fa-city"></i> City <span class="required">*</span></label>
                                     <div class="input-wrapper">
                                         <i class="fas fa-city input-icon"></i>
-                                        <input type="text" class="form-input" placeholder="Nairobi" id="city" />
+                                        <input type="text" class="form-input" placeholder="Nairobi" id="city" onchange="calculateShippingFromAddress()" />
                                     </div>
                                 </div>
                                 <div>
@@ -478,6 +584,31 @@
                                 <div class="input-wrapper">
                                     <i class="fas fa-globe input-icon"></i>
                                     <input type="text" class="form-input" placeholder="Kenya" id="country" value="Kenya" />
+                                </div>
+                            </div>
+                            
+                            <!-- Shipping Cost Display -->
+                            <div class="bg-[#f0fdf4] border border-[#d1fae5] rounded-xl p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-semibold text-[#0b2b1e]">
+                                            <i class="fas fa-truck"></i> Shipping Cost
+                                        </p>
+                                        <p class="text-xs text-gray-500" id="shippingDistanceInfo">Distance: Calculating...</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-lg font-bold text-[#0b2b1e]" id="shippingCostDisplay">KSh 100</p>
+                                        <p class="text-xs text-gray-400" id="shippingMethodLabel">Minimum fee</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Delivery Notes -->
+                            <div>
+                                <label class="form-label"><i class="fas fa-pen"></i> Delivery Instructions (Optional)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-pen input-icon"></i>
+                                    <textarea class="form-input" id="deliveryNotes" rows="2" placeholder="Gate code, landmark, special instructions..." style="min-height:60px;"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -506,7 +637,6 @@
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-4">
-                            <!-- Option 1: M-Pesa -->
                             <div class="payment-option" onclick="placeOrder('mpesa')">
                                 <span class="icon">📱</span>
                                 <div class="title">M-Pesa</div>
@@ -520,7 +650,6 @@
                                 </button>
                             </div>
 
-                            <!-- Option 2: Card Payment -->
                             <div class="payment-option" onclick="placeOrder('card')">
                                 <span class="icon">💳</span>
                                 <div class="title">Card Payment</div>
@@ -543,28 +672,78 @@
                     </div>
 
                     <!-- Step 3: Confirmation -->
-                    <div class="checkout-step text-center" id="step3">
-                        <div class="py-12">
+                    <div class="checkout-step" id="step3">
+                        <div class="text-center">
                             <div class="w-28 h-28 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-6 animate-bounce">
                                 <i class="fas fa-check text-5xl text-[#0b2b1e]"></i>
                             </div>
                             <h2 class="text-3xl font-extrabold text-[#0b1a2f]">Order Placed! 🎉</h2>
                             <p class="text-gray-500 mt-2">Your order has been confirmed and is being processed</p>
-                            <div class="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                                <p class="text-gray-400 text-sm font-medium">Order ID</p>
-                                <p class="text-[#0b1a2f] font-bold text-2xl tracking-wider" id="orderId">PP-XXXXXXXX</p>
-                                <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-400">
-                                    <span><i class="fas fa-envelope text-[#0b2b1e]"></i> Confirmation sent</span>
-                                    <span><i class="fas fa-clock text-amber-500"></i> Processing</span>
+                            
+                            <div class="mt-6 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 text-left">
+                                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                    <div>
+                                        <p class="text-gray-400 text-sm font-medium">Order ID</p>
+                                        <p class="text-[#0b1a2f] font-bold text-xl tracking-wider" id="orderId">PP-XXXXXXXX</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-400 text-sm font-medium">Tracking Number</p>
+                                        <p class="tracking-number text-sm" id="trackingNumber">AC-XXXXXX-KE</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Shipping Status -->
+                                <div class="shipping-status">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-sm text-[#0b1a2f]">
+                                            <i class="fas fa-truck text-[#0b2b1e]"></i> Shipping Status
+                                        </span>
+                                        <span class="text-xs text-[#10b981] font-semibold" id="statusBadge">✅ Processing</span>
+                                    </div>
+                                    <div class="status-bar">
+                                        <div class="status-step completed" id="stepOrder">
+                                            <div class="circle"><i class="fas fa-check"></i></div>
+                                            <span class="label">Order Placed</span>
+                                        </div>
+                                        <div class="status-step" id="stepProcessing">
+                                            <div class="circle">2</div>
+                                            <span class="label">Processing</span>
+                                        </div>
+                                        <div class="status-step" id="stepShipping">
+                                            <div class="circle">3</div>
+                                            <span class="label">Shipped</span>
+                                        </div>
+                                        <div class="status-step" id="stepDelivered">
+                                            <div class="circle">4</div>
+                                            <span class="label">Delivered</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 text-xs text-gray-400 flex justify-between flex-wrap gap-1">
+                                        <span id="estimatedDelivery">🚚 Estimated delivery: 1-3 business days</span>
+                                        <span id="shippingMethodDisplay">📦 Distance-based shipping</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delivery Details -->
+                                <div class="mt-4 p-3 bg-white rounded-lg border border-gray-100 text-sm">
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-map-marker-alt text-[#0b2b1e] mt-0.5"></i>
+                                        <div>
+                                            <p class="font-medium text-[#0b1a2f]" id="deliveryName">John Doe</p>
+                                            <p class="text-gray-500" id="deliveryAddress">123 Main Street, Nairobi, Kenya</p>
+                                            <p class="text-gray-400 text-xs" id="deliveryNotesDisplay"></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                            
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
                                 <a href="/" class="btn-primary">
                                     <i class="fas fa-arrow-left"></i> Continue Shopping
                                 </a>
-                                <button onclick="window.print()" class="btn-outline" style="width:auto;padding:14px 24px;">
-                                    <i class="fas fa-print"></i> Print Receipt
-                                </button>
+                                <a href="/admin/orders" class="btn-outline" style="width:auto;padding:14px 24px;">
+                                    <i class="fas fa-eye"></i> View Orders
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -598,28 +777,24 @@
                             <span class="text-gray-500">Subtotal</span>
                             <span class="text-[#0b1a2f] font-semibold">KSh {{ "%.0f"|format(subtotal) }}</span>
                         </div>
-                        <div class="summary-item">
+                        <div class="summary-item" id="shippingSummary">
                             <span class="text-gray-500">Shipping</span>
-                            <span class="font-semibold">
-                                {% if shipping == 0 %}
-                                    <span class="text-[#0b2b1e]">Free</span>
-                                {% else %}
-                                    <span class="text-[#0b1a2f]">KSh {{ "%.0f"|format(shipping) }}</span>
-                                {% endif %}
-                            </span>
+                            <span class="font-semibold text-[#0b2b1e]" id="shippingCostDisplay2">KSh 100</span>
                         </div>
                         <div class="summary-total">
                             <span class="text-[#0b1a2f]">Total</span>
-                            <span class="value">KSh {{ "%.0f"|format(total) }}</span>
+                            <span class="value" id="totalDisplay">KSh {{ "%.0f"|format(total) }}</span>
                         </div>
                     </div>
 
-                    {% if shipping > 0 %}
-                    <div class="mt-2 text-xs text-gray-400 flex items-center gap-1">
-                        <i class="fas fa-info-circle text-[#0b2b1e]"></i>
-                        Free shipping on orders over KSh 50,000
+                    <!-- Store Location -->
+                    <div class="mt-3 p-3 bg-[#f8fafc] rounded-lg border border-gray-100 text-xs">
+                        <p class="font-semibold text-[#0b1a2f] flex items-center gap-1">
+                            <i class="fas fa-store text-[#0b2b1e]"></i> Our Store Location
+                        </p>
+                        <p class="text-gray-500">Nairobi CBD, Kenya</p>
+                        <p class="text-gray-400 text-[0.6rem]">Distance-based shipping from our store</p>
                     </div>
-                    {% endif %}
 
                     <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-400">
                         <span><i class="fas fa-lock text-[#0b2b1e]"></i> Secure</span>
@@ -632,10 +807,8 @@
         </div>
     </div>
 
-    <!-- Confetti Container -->
     <div class="confetti-container" id="confettiContainer"></div>
 
-    <!-- Toast -->
     <div id="toast" class="toast hidden">
         <div class="flex items-center gap-3">
             <i class="fas fa-check-circle text-[#0b2b1e] text-xl" id="toastIcon"></i>
@@ -648,6 +821,208 @@
 
     <script>
         let currentStep = 1;
+        let orderPlaced = false;
+        let shippingCost = 100; // Minimum fee
+        let shippingDistance = 0;
+        let totalAmount = {{ total }};
+        let storeLat = -1.286389; // Nairobi CBD coordinates
+        let storeLng = 36.817223;
+        let userLat = null;
+        let userLng = null;
+
+        // ============================================================
+        // HAVERSINE FORMULA - Calculate distance between two coordinates
+        // ============================================================
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distance in km
+        }
+
+        // ============================================================
+        // CALCULATE SHIPPING COST BASED ON DISTANCE
+        // ============================================================
+        function calculateShippingCost(distanceKm) {
+            // MINIMUM FEE: KSh 100
+            // BASE RATE: KSh 50 per km after 5km free distance
+            // MAXIMUM: KSh 5000 cap
+            
+            const MIN_FEE = 100;
+            const FREE_DISTANCE = 5; // 5km free
+            const RATE_PER_KM = 50;
+            const MAX_SHIPPING = 5000;
+            
+            if (distanceKm <= FREE_DISTANCE) {
+                return MIN_FEE;
+            }
+            
+            const extraDistance = distanceKm - FREE_DISTANCE;
+            const cost = MIN_FEE + (extraDistance * RATE_PER_KM);
+            
+            return Math.min(cost, MAX_SHIPPING);
+        }
+
+        // ============================================================
+        // DETECT LOCATION
+        // ============================================================
+        function detectLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            const spinner = document.getElementById('locationSpinner');
+            const messageEl = document.getElementById('locationMessage');
+            const retryBtn = document.getElementById('locationRetryBtn');
+            
+            spinner.style.display = 'block';
+            messageEl.innerHTML = '<span class="font-medium text-sm">Detecting your location...</span><p class="text-xs text-gray-500">Please allow location access</p>';
+            retryBtn.style.display = 'none';
+            
+            if (!navigator.geolocation) {
+                messageEl.innerHTML = '<span class="font-medium text-sm text-amber-600">⚠️ Geolocation not supported</span><p class="text-xs text-gray-500">Please enter your address manually</p>';
+                spinner.style.display = 'none';
+                retryBtn.style.display = 'inline-block';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    
+                    const distance = haversineDistance(storeLat, storeLng, userLat, userLng);
+                    shippingDistance = distance;
+                    shippingCost = calculateShippingCost(distance);
+                    
+                    spinner.style.display = 'none';
+                    messageEl.innerHTML = `
+                        <span class="font-medium text-sm text-green-600">
+                            <i class="fas fa-check-circle text-[#10b981]"></i> Location detected!
+                        </span>
+                        <p class="text-xs text-gray-500">Distance from store: ${distance.toFixed(1)} km</p>
+                    `;
+                    
+                    updateShippingDisplay(distance);
+                    showToast('📍 Location detected!', 'success', `Distance: ${distance.toFixed(1)} km`);
+                },
+                (error) => {
+                    spinner.style.display = 'none';
+                    retryBtn.style.display = 'inline-block';
+                    
+                    let errorMsg = 'Unable to detect location. Please enter your address manually.';
+                    if (error.code === 1) {
+                        errorMsg = '⚠️ Location access denied. Please enter your address manually.';
+                    } else if (error.code === 2) {
+                        errorMsg = '⚠️ Location unavailable. Please enter your address manually.';
+                    } else if (error.code === 3) {
+                        errorMsg = '⚠️ Location timeout. Please enter your address manually.';
+                    }
+                    
+                    messageEl.innerHTML = `
+                        <span class="font-medium text-sm text-amber-600">${errorMsg}</span>
+                        <p class="text-xs text-gray-500">We'll use distance-based shipping</p>
+                    `;
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // ============================================================
+        // CALCULATE SHIPPING FROM ADDRESS (Manual entry)
+        // ============================================================
+        function calculateShippingFromAddress() {
+            const city = document.getElementById('city').value.trim().toLowerCase();
+            const address = document.getElementById('address').value.trim().toLowerCase();
+            
+            // If no location detected yet, try to estimate based on city
+            if (userLat === null || userLng === null) {
+                // Rough distance estimates for major Kenyan cities
+                const cityDistances = {
+                    'nairobi': 0,
+                    'kiambu': 15,
+                    'thika': 45,
+                    'nakuru': 160,
+                    'eldoret': 310,
+                    'kisumu': 350,
+                    'mombasa': 480,
+                    'malindi': 520,
+                    'meru': 230,
+                    'nyeri': 150,
+                    'nanyuki': 200,
+                    'naivasha': 90,
+                    'machakos': 65,
+                    'kitui': 180,
+                    'garissa': 380,
+                    'kisii': 300,
+                    'kakamega': 330,
+                    'bungoma': 350,
+                    'busia': 390,
+                    'kitale': 340,
+                    'kapenguria': 370,
+                    'lodwar': 680,
+                    'isiolo': 280,
+                    'marsabit': 550,
+                    'wajir': 600,
+                    'mandera': 700
+                };
+                
+                let estimatedDistance = 0;
+                let found = false;
+                
+                for (const [cityName, dist] of Object.entries(cityDistances)) {
+                    if (city.includes(cityName) || cityName.includes(city)) {
+                        estimatedDistance = dist;
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    shippingDistance = estimatedDistance;
+                    shippingCost = calculateShippingCost(estimatedDistance);
+                    updateShippingDisplay(estimatedDistance);
+                    showToast('📍 Estimated distance: ' + estimatedDistance.toFixed(1) + ' km', 'info');
+                } else {
+                    // Default: use minimum fee
+                    shippingDistance = 5;
+                    shippingCost = 100;
+                    updateShippingDisplay(5);
+                }
+            }
+        }
+
+        // ============================================================
+        // UPDATE SHIPPING DISPLAY
+        // ============================================================
+        function updateShippingDisplay(distance) {
+            const costDisplay = document.getElementById('shippingCostDisplay');
+            const costDisplay2 = document.getElementById('shippingCostDisplay2');
+            const totalDisplay = document.getElementById('totalDisplay');
+            const orderTotal = document.getElementById('orderTotal');
+            const distanceInfo = document.getElementById('shippingDistanceInfo');
+            const methodLabel = document.getElementById('shippingMethodLabel');
+            
+            const subtotal = {{ subtotal }};
+            totalAmount = subtotal + shippingCost;
+            
+            costDisplay.textContent = 'KSh ' + shippingCost.toLocaleString();
+            costDisplay2.textContent = 'KSh ' + shippingCost.toLocaleString();
+            totalDisplay.textContent = 'KSh ' + totalAmount.toLocaleString();
+            if (orderTotal) orderTotal.textContent = 'KSh ' + totalAmount.toLocaleString();
+            
+            distanceInfo.textContent = `Distance: ${distance.toFixed(1)} km from our store`;
+            
+            if (shippingCost === 100) {
+                methodLabel.textContent = 'Minimum fee (within 5km)';
+            } else if (shippingCost >= 5000) {
+                methodLabel.textContent = 'Maximum fee (long distance)';
+            } else {
+                methodLabel.textContent = `KSh ${(shippingCost / distance).toFixed(1)} per km`;
+            }
+        }
 
         // ============================================================
         // STEP NAVIGATION
@@ -665,7 +1040,6 @@
                 if (i === step) { dot.classList.add('active'); num.classList.add('active'); }
             }
             currentStep = step;
-            
             document.querySelector('.glass-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -681,7 +1055,12 @@
                 address: document.getElementById('address').value.trim(),
                 city: document.getElementById('city').value.trim(),
                 zip: document.getElementById('zip').value.trim(),
-                country: document.getElementById('country').value.trim() || 'Kenya'
+                country: document.getElementById('country').value.trim() || 'Kenya',
+                delivery_notes: document.getElementById('deliveryNotes').value.trim(),
+                shipping_distance: shippingDistance,
+                shipping_cost: shippingCost,
+                user_lat: userLat,
+                user_lng: userLng
             };
         }
 
@@ -702,12 +1081,64 @@
         }
 
         // ============================================================
-        // PLACE ORDER (Simulated Payment)
+        // GENERATE TRACKING NUMBER
+        // ============================================================
+        function generateTrackingNumber() {
+            const prefix = 'AC';
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return prefix + '-' + code + '-KE';
+        }
+
+        // ============================================================
+        // UPDATE SHIPPING STATUS
+        // ============================================================
+        function updateShippingStatus() {
+            const steps = [
+                { id: 'stepProcessing', label: 'Processing', delay: 3000 },
+                { id: 'stepShipping', label: 'Shipped', delay: 6000 },
+                { id: 'stepDelivered', label: 'Delivered', delay: 9000 }
+            ];
+
+            const statusBadge = document.getElementById('statusBadge');
+            
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    const el = document.getElementById(step.id);
+                    if (el) {
+                        el.classList.add('active');
+                        el.querySelector('.circle').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        statusBadge.textContent = '⏳ ' + step.label + '...';
+                    }
+                }, step.delay - 1000);
+
+                setTimeout(() => {
+                    const el = document.getElementById(step.id);
+                    if (el) {
+                        el.classList.remove('active');
+                        el.classList.add('completed');
+                        el.querySelector('.circle').innerHTML = '<i class="fas fa-check"></i>';
+                        if (index === steps.length - 1) {
+                            statusBadge.textContent = '✅ Delivered!';
+                            showToast('📦 Your order has been delivered!', 'success');
+                        } else {
+                            statusBadge.textContent = '✅ ' + step.label;
+                        }
+                    }
+                }, step.delay);
+            });
+        }
+
+        // ============================================================
+        // PLACE ORDER
         // ============================================================
         function placeOrder(method) {
+            if (orderPlaced) return;
             if (!validateCustomerData()) return;
 
-            // Get all payment buttons and disable them
             const btns = document.querySelectorAll('#step2 .btn-primary, .payment-option button');
             btns.forEach(btn => {
                 btn.disabled = true;
@@ -718,28 +1149,114 @@
             const customerName = data.first_name + ' ' + data.last_name;
             const fullAddress = data.address + ', ' + data.city + ', ' + data.country;
 
-            // Generate order ID
+            const cartItems = [];
+            document.querySelectorAll('.order-item').forEach(el => {
+                const nameEl = el.querySelector('.order-item-name');
+                const priceEl = el.querySelector('.order-item-price');
+                const qtyEl = el.querySelector('.order-item-quantity');
+                const imgEl = el.querySelector('.order-item-image img');
+                if (nameEl && priceEl) {
+                    const price = parseFloat(priceEl.textContent.replace('KSh ', '').replace(/,/g, ''));
+                    const qty = qtyEl ? parseInt(qtyEl.textContent.replace('×', '')) : 1;
+                    cartItems.push({
+                        name: nameEl.textContent.trim(),
+                        price: price,
+                        quantity: qty,
+                        image: imgEl ? imgEl.src : ''
+                    });
+                }
+            });
+
+            const subtotal = {{ subtotal }};
+            const trackingNumber = generateTrackingNumber();
             const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
-            // Simulate payment processing
-            setTimeout(() => {
-                // Show success
-                document.getElementById('orderId').textContent = orderId;
-                goToStep(3);
-                launchConfetti();
-                showToast('🎉 Order placed successfully!', 'success', 'Your order #' + orderId + ' is being processed');
+            const orderData = {
+                order_id: orderId,
+                tracking_number: trackingNumber,
+                items: cartItems,
+                subtotal: subtotal,
+                shipping: shippingCost,
+                shipping_distance: shippingDistance,
+                total: totalAmount,
+                payment_method: method,
+                status: 'processing',
+                source: 'web',
+                created_at: new Date().toISOString(),
+                customer_name: customerName,
+                customer_email: data.email,
+                customer_phone: data.phone,
+                customer_address: fullAddress,
+                delivery_notes: data.delivery_notes,
+                estimated_delivery: shippingDistance <= 5 ? '1-2 days' : 
+                                   shippingDistance <= 20 ? '2-3 days' : 
+                                   shippingDistance <= 50 ? '3-4 days' : '4-5 days',
+                customer: {
+                    name: customerName,
+                    email: data.email,
+                    phone: data.phone,
+                    address: fullAddress
+                },
+                location: {
+                    user_lat: data.user_lat,
+                    user_lng: data.user_lng,
+                    store_lat: storeLat,
+                    store_lng: storeLng,
+                    distance_km: shippingDistance
+                }
+            };
 
-                // Re-enable buttons after delay
-                setTimeout(() => {
+            fetch('/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    orderPlaced = true;
+                    
+                    document.getElementById('orderId').textContent = result.order_id || orderId;
+                    document.getElementById('trackingNumber').textContent = trackingNumber;
+                    document.getElementById('deliveryName').textContent = customerName;
+                    document.getElementById('deliveryAddress').textContent = fullAddress;
+                    
+                    const notes = document.getElementById('deliveryNotesDisplay');
+                    if (data.delivery_notes) {
+                        notes.textContent = '📝 ' + data.delivery_notes;
+                    } else {
+                        notes.textContent = 'No special instructions';
+                    }
+                    
+                    document.getElementById('shippingMethodDisplay').textContent = `📦 Distance: ${shippingDistance.toFixed(1)} km · Shipping: KSh ${shippingCost.toFixed(0)}`;
+                    document.getElementById('estimatedDelivery').textContent = '🚚 Estimated delivery: ' + orderData.estimated_delivery;
+                    
+                    goToStep(3);
+                    launchConfetti();
+                    showToast('🎉 Order placed successfully!', 'success', 'Your order #' + (result.order_id || orderId) + ' is being processed');
+                    
+                    setTimeout(updateShippingStatus, 2000);
+                    
+                } else {
+                    showToast('❌ ' + (result.message || 'Failed to place order'), 'error');
                     btns.forEach(btn => {
                         btn.disabled = false;
                         btn.innerHTML = method === 'mpesa' 
                             ? '<i class="fas fa-mobile-alt"></i> Pay with M-Pesa'
                             : '<i class="fas fa-credit-card"></i> Pay Now';
                     });
-                }, 2000);
-
-            }, 1500);
+                }
+            })
+            .catch(error => {
+                console.error('Order error:', error);
+                showToast('❌ Something went wrong. Please try again.', 'error');
+                btns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = method === 'mpesa' 
+                        ? '<i class="fas fa-mobile-alt"></i> Pay with M-Pesa'
+                        : '<i class="fas fa-credit-card"></i> Pay Now';
+                });
+            });
         }
 
         // ============================================================
@@ -774,7 +1291,7 @@
             const iconEl = document.getElementById('toastIcon');
             
             msgEl.textContent = message;
-            subEl.textContent = subMessage;
+            subEl.textContent = subMessage || '';
             
             const icons = {
                 success: 'fas fa-check-circle text-[#0b2b1e] text-xl',
@@ -814,13 +1331,20 @@
         });
 
         // ============================================================
-        // AUTO-FOCUS FIRST INPUT
+        // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
             const firstInput = document.querySelector('#step1 input');
             if (firstInput) setTimeout(() => firstInput.focus(), 300);
-            console.log('✅ ACACIAMART Checkout loaded');
-            console.log('💰 Total: KSh {{ total }}');
+            
+            // Auto-detect location
+            setTimeout(detectLocation, 500);
+            
+            console.log('✅ ACACIAMART Checkout with Distance-Based Shipping loaded');
+            console.log('📍 Store Location: Nairobi CBD (Lat: ' + storeLat + ', Lng: ' + storeLng + ')');
+            console.log('💰 Minimum Shipping Fee: KSh 100');
+            console.log('📏 Rate: KSh 50 per km after 5km free');
+            console.log('🔝 Maximum Shipping Fee: KSh 5,000');
         });
     </script>
 </body>
