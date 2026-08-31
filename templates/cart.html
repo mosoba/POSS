@@ -11,17 +11,12 @@
         * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f6f9fc; color: #0b1a2f; min-height: 100vh; }
 
-        /* ===== ANIMATIONS ===== */
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
 
-        /* ===== HEADER (glassmorphism) ===== */
         .app-header {
             background: rgba(255,255,255,0.72);
             backdrop-filter: blur(18px) saturate(160%);
-            -webkit-backdrop-filter: blur(18px) saturate(160%);
             border-bottom: 1px solid rgba(0,0,0,0.04);
             position: sticky;
             top: 0;
@@ -78,7 +73,6 @@
         }
         .back-link i { margin-right: 6px; }
 
-        /* ===== CART ITEMS ===== */
         .cart-item {
             background: white;
             border: 1px solid #e6edf0;
@@ -130,7 +124,6 @@
             font-size: 1.15rem;
         }
 
-        /* ===== PRODUCT SPECS ===== */
         .product-specs {
             background: #f6f9fc;
             border-radius: 12px;
@@ -205,7 +198,6 @@
             transform: scale(1.1);
         }
 
-        /* ===== SUMMARY CARD ===== */
         .summary-card {
             background: white;
             border: 1px solid #e6edf0;
@@ -240,8 +232,6 @@
             font-weight: 700;
             color: #0b1a2f;
         }
-        .summary-row .value.free { color: #0b2b1e; }
-        .summary-row .value.gold { color: #c7a86b; }
 
         .summary-total {
             display: flex;
@@ -298,7 +288,6 @@
         .btn-continue:hover { color: #0b1a2f; }
         .btn-continue i { margin-right: 4px; }
 
-        /* ===== EMPTY CART ===== */
         .empty-cart {
             text-align: center;
             padding: 80px 20px;
@@ -341,7 +330,23 @@
             box-shadow: 0 12px 30px rgba(11,43,30,0.25);
         }
 
-        /* ===== TOAST ===== */
+        .shipping-note {
+            background: #f0fdf4;
+            border: 1px solid #d1fae5;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.75rem;
+            color: #065f46;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .shipping-note i {
+            color: #0b2b1e;
+            font-size: 0.9rem;
+        }
+
         .toast {
             position: fixed;
             bottom: 30px;
@@ -357,7 +362,6 @@
         }
         .toast.hidden { display: none; }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .cart-item { padding: 16px; }
             .cart-item-image { width: 60px; height: 60px; }
@@ -367,8 +371,6 @@
             .app-header .brand-text { font-size: 1.1rem; }
             .back-link { font-size: 0.8rem; padding: 6px 12px; }
             .empty-cart { padding: 40px 20px; }
-            .product-specs .spec-tag { font-size: 0.55rem; padding: 1px 8px; }
-            .product-description { font-size: 0.75rem; }
         }
         @media (max-width: 480px) {
             .cart-item { padding: 12px; border-radius: 16px; }
@@ -378,7 +380,6 @@
             .quantity-display { width: 22px; font-size: 0.8rem; }
             .btn-checkout { font-size: 0.9rem; padding: 12px 24px; }
             .summary-total .value { font-size: 1.2rem; }
-            .product-specs { padding: 6px 10px; }
         }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -389,7 +390,6 @@
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
     <header class="app-header" id="mainHeader">
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
             <a href="/" class="flex items-center gap-3">
@@ -408,7 +408,6 @@
         </div>
     </header>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <section class="max-w-7xl mx-auto px-4 py-8">
         <div class="flex items-center justify-between mb-8 flex-wrap gap-2">
             <h1 class="text-2xl md:text-3xl font-extrabold text-[#0b1a2f] flex items-center gap-3">
@@ -423,7 +422,6 @@
 
         {% if cart_items %}
         <div class="grid lg:grid-cols-3 gap-8">
-            <!-- ===== CART ITEMS ===== -->
             <div class="lg:col-span-2 space-y-4">
                 {% for item in cart_items %}
                 <div class="cart-item" id="cart-item-{{ item.id }}">
@@ -436,7 +434,6 @@
                             <div class="cart-item-type">{{ item.type|title }}</div>
                             <div class="cart-item-price">KSh {{ "%.0f"|format(item.price) }}</div>
                             
-                            <!-- ===== DESCRIPTION ===== -->
                             {% if item.description %}
                             <div class="product-description">
                                 <i class="fas fa-align-left text-[#c7a86b] mr-1 text-xs"></i>
@@ -444,7 +441,6 @@
                             </div>
                             {% endif %}
                             
-                            <!-- ===== SPECIFICATIONS ===== -->
                             {% if item.specs and item.specs|length > 0 %}
                             <div class="product-specs">
                                 <div class="flex flex-wrap">
@@ -473,7 +469,6 @@
                 </div>
                 {% endfor %}
 
-                <!-- Continue Shopping Link (Mobile) -->
                 <div class="text-center md:hidden mt-4">
                     <a href="/" class="text-[#0b2b1e] font-semibold hover:underline">
                         <i class="fas fa-arrow-left mr-1"></i> Continue Shopping
@@ -481,7 +476,6 @@
                 </div>
             </div>
 
-            <!-- ===== ORDER SUMMARY ===== -->
             <div class="lg:col-span-1">
                 <div class="summary-card">
                     <h3 class="summary-title">Order Summary</h3>
@@ -490,32 +484,33 @@
                         <span>Subtotal</span>
                         <span class="value">KSh {{ "%.0f"|format(subtotal) }}</span>
                     </div>
+                    
                     <div class="summary-row">
                         <span>Shipping</span>
-                        <span class="value {% if shipping == 0 %}free{% endif %}">
-                            {% if shipping == 0 %}
-                                <i class="fas fa-check-circle text-[#0b2b1e]"></i> Free
-                            {% else %}
-                                KSh {{ "%.0f"|format(shipping) }}
-                            {% endif %}
+                        <span class="value" style="color: #0b2b1e;">
+                            <i class="fas fa-map-pin"></i> Calculated at Checkout
                         </span>
                     </div>
-                    <div class="summary-row" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+                    
+                    <div class="shipping-note">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Shipping cost based on your location. <strong>Min KSh 100</strong> · Free over KSh 50,000</span>
+                    </div>
+
+                    <div class="summary-row" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-top: 4px;">
                         <span>Estimated Tax</span>
                         <span class="value">Included</span>
                     </div>
 
                     <div class="summary-total">
                         <span>Total</span>
-                        <span class="value">KSh {{ "%.0f"|format(total) }}</span>
+                        <span class="value">KSh {{ "%.0f"|format(subtotal) }}</span>
                     </div>
 
-                    {% if shipping > 0 %}
                     <p class="text-xs text-[#8a9ba8] mt-2 flex items-center gap-1">
                         <i class="fas fa-info-circle"></i> 
-                        Add KSh {{ "%.0f"|format(50000 - subtotal) }} more for free shipping
+                        Final total calculated at checkout
                     </p>
-                    {% endif %}
 
                     <a href="{{ url_for('shop.checkout_page') }}" class="btn-checkout mt-4">
                         <i class="fas fa-lock"></i> Proceed to Checkout
@@ -525,7 +520,6 @@
                         <i class="fas fa-arrow-left"></i> Continue Shopping
                     </a>
 
-                    <!-- Security Badge -->
                     <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-4 text-xs text-[#8a9ba8]">
                         <span><i class="fas fa-lock text-[#0b2b1e]"></i> Secure</span>
                         <span><i class="fas fa-credit-card text-[#c7a86b]"></i> M-Pesa / Card</span>
@@ -535,7 +529,6 @@
             </div>
         </div>
         {% else %}
-        <!-- ===== EMPTY CART ===== -->
         <div class="empty-cart">
             <div class="icon"><i class="fas fa-shopping-bag"></i></div>
             <h2>Your cart is empty</h2>
@@ -551,7 +544,6 @@
         </div>
         {% endif %}
 
-        <!-- Recommended Products (Optional) -->
         {% if cart_items %}
         <div class="mt-12">
             <h3 class="font-bold text-[#0b1a2f] text-lg mb-4">You might also like</h3>
@@ -581,7 +573,6 @@
         {% endif %}
     </section>
 
-    <!-- ===== TOAST ===== -->
     <div id="toast" class="toast hidden">
         <div class="flex items-center gap-3">
             <i class="fas fa-check-circle text-[#0b2b1e] text-xl"></i>
@@ -590,7 +581,6 @@
     </div>
 
     <script>
-        // ===== UPDATE CART =====
         function updateCart(itemId, action) {
             const btn = event?.target?.closest?.('button') || document.querySelector(`[onclick*="${itemId}"]`);
             if (btn) {
@@ -638,32 +628,16 @@
             });
         }
 
-        // ===== UPDATE TOTALS =====
         function updateTotals(data) {
             if (data.subtotal !== undefined) {
                 const subtotalEl = document.querySelector('.summary-row:first-child .value');
                 if (subtotalEl) subtotalEl.textContent = `KSh ${data.subtotal.toLocaleString()}`;
                 
                 const totalEl = document.querySelector('.summary-total .value');
-                if (totalEl) totalEl.textContent = `KSh ${data.total.toLocaleString()}`;
-                
-                const shippingEl = document.querySelector('.summary-row:nth-child(2) .value');
-                if (shippingEl) {
-                    if (data.shipping === 0) {
-                        shippingEl.innerHTML = '<i class="fas fa-check-circle text-[#0b2b1e]"></i> Free';
-                    } else {
-                        shippingEl.textContent = `KSh ${data.shipping.toLocaleString()}`;
-                    }
-                }
-                
-                const cartCount = document.getElementById('cartCount');
-                if (cartCount && data.total_items !== undefined) {
-                    cartCount.textContent = data.total_items;
-                }
+                if (totalEl) totalEl.textContent = `KSh ${data.subtotal.toLocaleString()}`;
             }
         }
 
-        // ===== TOAST =====
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
@@ -673,12 +647,10 @@
             window.toastTimeout = setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
-        // ===== HEADER SCROLL =====
         window.addEventListener('scroll', () => {
             document.getElementById('mainHeader').classList.toggle('scrolled', window.scrollY > 20);
         });
 
-        // ===== KEYBOARD SUPPORT =====
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const toast = document.getElementById('toast');
