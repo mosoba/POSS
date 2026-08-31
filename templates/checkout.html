@@ -14,7 +14,6 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .app-header {
@@ -344,7 +343,6 @@
             color: #0b1a2f;
         }
 
-        /* Location Detection */
         .location-detection {
             background: #f0fdf4;
             border: 2px dashed #0b2b1e;
@@ -363,14 +361,6 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             flex-shrink: 0;
-        }
-        .location-detection .icon-success {
-            color: #10b981;
-            font-size: 1.2rem;
-        }
-        .location-detection .icon-error {
-            color: #dc2626;
-            font-size: 1.2rem;
         }
 
         .toast {
@@ -419,6 +409,24 @@
             border-radius: 8px;
             font-weight: 700;
             letter-spacing: 1px;
+        }
+
+        .shipping-breakdown {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 4px;
+            font-size: 0.7rem;
+        }
+        .shipping-breakdown .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            color: #5a6d7a;
+        }
+        .shipping-breakdown .row .highlight {
+            color: #0b2b1e;
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -513,12 +521,11 @@
                             </div>
                         </div>
                         
-                        <!-- Location Detection -->
                         <div class="location-detection" id="locationStatus">
                             <div class="spinner" id="locationSpinner"></div>
                             <div id="locationMessage">
                                 <span class="font-medium text-sm">Detecting your location...</span>
-                                <p class="text-xs text-gray-500">We'll calculate the shipping distance from our store</p>
+                                <p class="text-xs text-gray-500">We'll calculate shipping based on distance & order value</p>
                             </div>
                             <button onclick="detectLocation()" class="text-xs bg-[#0b2b1e] text-white px-3 py-1 rounded-full font-semibold ml-auto hover:bg-[#061a12] transition" id="locationRetryBtn" style="display:none;">
                                 <i class="fas fa-redo"></i> Retry
@@ -587,7 +594,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Shipping Cost Display -->
+                            <!-- Shipping Cost Display with Breakdown -->
                             <div class="bg-[#f0fdf4] border border-[#d1fae5] rounded-xl p-4">
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -601,9 +608,18 @@
                                         <p class="text-xs text-gray-400" id="shippingMethodLabel">Minimum fee</p>
                                     </div>
                                 </div>
+                                <div class="shipping-breakdown" id="shippingBreakdown">
+                                    <div class="row"><span>📦 Order Value</span><span id="breakdownSubtotal">KSh 0</span></div>
+                                    <div class="row"><span>📍 Distance</span><span id="breakdownDistance">0 km</span></div>
+                                    <div class="row"><span>💵 Value-based (2%)</span><span id="breakdownValueFee">KSh 0</span></div>
+                                    <div class="row"><span>📏 Distance-based (KSh 50/km)</span><span id="breakdownDistanceFee">KSh 0</span></div>
+                                    <div class="row" style="border-top:1px solid #e2e8f0;padding-top:4px;margin-top:2px;">
+                                        <span class="highlight">Total Shipping</span>
+                                        <span class="highlight" id="breakdownTotal">KSh 100</span>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Delivery Notes -->
                             <div>
                                 <label class="form-label"><i class="fas fa-pen"></i> Delivery Instructions (Optional)</label>
                                 <div class="input-wrapper">
@@ -692,7 +708,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Shipping Status -->
                                 <div class="shipping-status">
                                     <div class="flex items-center justify-between">
                                         <span class="font-semibold text-sm text-[#0b1a2f]">
@@ -720,11 +735,10 @@
                                     </div>
                                     <div class="mt-3 text-xs text-gray-400 flex justify-between flex-wrap gap-1">
                                         <span id="estimatedDelivery">🚚 Estimated delivery: 1-3 business days</span>
-                                        <span id="shippingMethodDisplay">📦 Distance-based shipping</span>
+                                        <span id="shippingMethodDisplay">📦 Distance & value based shipping</span>
                                     </div>
                                 </div>
                                 
-                                <!-- Delivery Details -->
                                 <div class="mt-4 p-3 bg-white rounded-lg border border-gray-100 text-sm">
                                     <div class="flex items-start gap-2">
                                         <i class="fas fa-map-marker-alt text-[#0b2b1e] mt-0.5"></i>
@@ -775,7 +789,7 @@
                     <div class="border-t border-gray-100 mt-4 pt-4 space-y-2 text-sm">
                         <div class="summary-item">
                             <span class="text-gray-500">Subtotal</span>
-                            <span class="text-[#0b1a2f] font-semibold">KSh {{ "%.0f"|format(subtotal) }}</span>
+                            <span class="text-[#0b1a2f] font-semibold" id="summarySubtotal">KSh {{ "%.0f"|format(subtotal) }}</span>
                         </div>
                         <div class="summary-item" id="shippingSummary">
                             <span class="text-gray-500">Shipping</span>
@@ -793,7 +807,7 @@
                             <i class="fas fa-store text-[#0b2b1e]"></i> Our Store Location
                         </p>
                         <p class="text-gray-500">Nairobi CBD, Kenya</p>
-                        <p class="text-gray-400 text-[0.6rem]">Distance-based shipping from our store</p>
+                        <p class="text-gray-400 text-[0.6rem]">Shipping based on distance & order value</p>
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-3 text-xs text-gray-400">
@@ -822,19 +836,20 @@
     <script>
         let currentStep = 1;
         let orderPlaced = false;
-        let shippingCost = 100; // Minimum fee
+        let shippingCost = 100;
         let shippingDistance = 0;
+        let subtotal = {{ subtotal }};
         let totalAmount = {{ total }};
-        let storeLat = -1.286389; // Nairobi CBD coordinates
+        let storeLat = -1.286389;
         let storeLng = 36.817223;
         let userLat = null;
         let userLng = null;
 
         // ============================================================
-        // HAVERSINE FORMULA - Calculate distance between two coordinates
+        // HAVERSINE FORMULA
         // ============================================================
         function haversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth's radius in km
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
@@ -842,30 +857,95 @@
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                 Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c; // Distance in km
+            return R * c;
         }
 
         // ============================================================
-        // CALCULATE SHIPPING COST BASED ON DISTANCE
+        // CALCULATE SHIPPING COST (Distance + Value based)
         // ============================================================
-        function calculateShippingCost(distanceKm) {
+        function calculateShippingCost(distanceKm, orderValue) {
             // MINIMUM FEE: KSh 100
-            // BASE RATE: KSh 50 per km after 5km free distance
-            // MAXIMUM: KSh 5000 cap
+            // VALUE-BASED: 2% of order value
+            // DISTANCE-BASED: KSh 50 per km after 5km free
+            // MAXIMUM: KSh 5,000 cap
+            // FREE SHIPPING: Orders over KSh 50,000
             
             const MIN_FEE = 100;
-            const FREE_DISTANCE = 5; // 5km free
+            const FREE_DISTANCE = 5;
             const RATE_PER_KM = 50;
             const MAX_SHIPPING = 5000;
+            const FREE_SHIPPING_THRESHOLD = 50000;
+            const VALUE_PERCENTAGE = 0.02; // 2%
             
-            if (distanceKm <= FREE_DISTANCE) {
-                return MIN_FEE;
+            // FREE SHIPPING for high-value orders
+            if (orderValue >= FREE_SHIPPING_THRESHOLD) {
+                return 0;
             }
             
-            const extraDistance = distanceKm - FREE_DISTANCE;
-            const cost = MIN_FEE + (extraDistance * RATE_PER_KM);
+            // Value-based fee
+            const valueFee = orderValue * VALUE_PERCENTAGE;
             
-            return Math.min(cost, MAX_SHIPPING);
+            // Distance-based fee
+            let distanceFee = 0;
+            if (distanceKm > FREE_DISTANCE) {
+                distanceFee = (distanceKm - FREE_DISTANCE) * RATE_PER_KM;
+            }
+            
+            // Total shipping = max(valueFee, distanceFee) + minimum
+            let totalFee = Math.max(valueFee, distanceFee);
+            
+            // Ensure minimum fee
+            if (totalFee < MIN_FEE) {
+                totalFee = MIN_FEE;
+            }
+            
+            // Apply cap
+            return Math.min(totalFee, MAX_SHIPPING);
+        }
+
+        // ============================================================
+        // UPDATE SHIPPING DISPLAY WITH BREAKDOWN
+        // ============================================================
+        function updateShippingDisplay(distance) {
+            shippingDistance = distance;
+            shippingCost = calculateShippingCost(distance, subtotal);
+            
+            const costDisplay = document.getElementById('shippingCostDisplay');
+            const costDisplay2 = document.getElementById('shippingCostDisplay2');
+            const totalDisplay = document.getElementById('totalDisplay');
+            const orderTotal = document.getElementById('orderTotal');
+            const distanceInfo = document.getElementById('shippingDistanceInfo');
+            const methodLabel = document.getElementById('shippingMethodLabel');
+            
+            // Update breakdown
+            const valueFee = subtotal * 0.02;
+            const distanceFee = distance > 5 ? (distance - 5) * 50 : 0;
+            const minFee = 100;
+            
+            document.getElementById('breakdownSubtotal').textContent = 'KSh ' + subtotal.toLocaleString();
+            document.getElementById('breakdownDistance').textContent = distance.toFixed(1) + ' km';
+            document.getElementById('breakdownValueFee').textContent = 'KSh ' + Math.round(valueFee).toLocaleString();
+            document.getElementById('breakdownDistanceFee').textContent = 'KSh ' + Math.round(distanceFee).toLocaleString();
+            document.getElementById('breakdownTotal').textContent = 'KSh ' + Math.round(shippingCost).toLocaleString();
+            
+            totalAmount = subtotal + shippingCost;
+            
+            costDisplay.textContent = shippingCost === 0 ? 'FREE 🎉' : 'KSh ' + shippingCost.toLocaleString();
+            costDisplay2.textContent = shippingCost === 0 ? 'FREE 🎉' : 'KSh ' + shippingCost.toLocaleString();
+            totalDisplay.textContent = 'KSh ' + totalAmount.toLocaleString();
+            if (orderTotal) orderTotal.textContent = 'KSh ' + totalAmount.toLocaleString();
+            
+            distanceInfo.textContent = `Distance: ${distance.toFixed(1)} km from our store | Order: KSh ${subtotal.toLocaleString()}`;
+            
+            if (shippingCost === 0) {
+                methodLabel.textContent = '🎉 FREE SHIPPING (Order over KSh 50,000)';
+            } else if (shippingCost === 100) {
+                methodLabel.textContent = 'Minimum fee (within 5km)';
+            } else if (shippingCost >= 5000) {
+                methodLabel.textContent = 'Maximum fee (long distance)';
+            } else {
+                methodLabel.textContent = `Value (2%) + Distance (KSh 50/km)`;
+            }
         }
 
         // ============================================================
@@ -895,7 +975,7 @@
                     
                     const distance = haversineDistance(storeLat, storeLng, userLat, userLng);
                     shippingDistance = distance;
-                    shippingCost = calculateShippingCost(distance);
+                    shippingCost = calculateShippingCost(distance, subtotal);
                     
                     spinner.style.display = 'none';
                     messageEl.innerHTML = `
@@ -931,96 +1011,34 @@
         }
 
         // ============================================================
-        // CALCULATE SHIPPING FROM ADDRESS (Manual entry)
+        // CALCULATE SHIPPING FROM ADDRESS
         // ============================================================
         function calculateShippingFromAddress() {
             const city = document.getElementById('city').value.trim().toLowerCase();
-            const address = document.getElementById('address').value.trim().toLowerCase();
             
-            // If no location detected yet, try to estimate based on city
             if (userLat === null || userLng === null) {
-                // Rough distance estimates for major Kenyan cities
                 const cityDistances = {
-                    'nairobi': 0,
-                    'kiambu': 15,
-                    'thika': 45,
-                    'nakuru': 160,
-                    'eldoret': 310,
-                    'kisumu': 350,
-                    'mombasa': 480,
-                    'malindi': 520,
-                    'meru': 230,
-                    'nyeri': 150,
-                    'nanyuki': 200,
-                    'naivasha': 90,
-                    'machakos': 65,
-                    'kitui': 180,
-                    'garissa': 380,
-                    'kisii': 300,
-                    'kakamega': 330,
-                    'bungoma': 350,
-                    'busia': 390,
-                    'kitale': 340,
-                    'kapenguria': 370,
-                    'lodwar': 680,
-                    'isiolo': 280,
-                    'marsabit': 550,
-                    'wajir': 600,
-                    'mandera': 700
+                    'nairobi': 0, 'kiambu': 15, 'thika': 45, 'nakuru': 160,
+                    'eldoret': 310, 'kisumu': 350, 'mombasa': 480, 'malindi': 520,
+                    'meru': 230, 'nyeri': 150, 'nanyuki': 200, 'naivasha': 90,
+                    'machakos': 65, 'kitui': 180, 'garissa': 380, 'kisii': 300,
+                    'kakamega': 330, 'bungoma': 350, 'busia': 390, 'kitale': 340,
+                    'kapenguria': 370, 'lodwar': 680, 'isiolo': 280, 'marsabit': 550,
+                    'wajir': 600, 'mandera': 700
                 };
                 
-                let estimatedDistance = 0;
-                let found = false;
-                
+                let estimatedDistance = 5;
                 for (const [cityName, dist] of Object.entries(cityDistances)) {
                     if (city.includes(cityName) || cityName.includes(city)) {
                         estimatedDistance = dist;
-                        found = true;
                         break;
                     }
                 }
                 
-                if (found) {
-                    shippingDistance = estimatedDistance;
-                    shippingCost = calculateShippingCost(estimatedDistance);
-                    updateShippingDisplay(estimatedDistance);
-                    showToast('📍 Estimated distance: ' + estimatedDistance.toFixed(1) + ' km', 'info');
-                } else {
-                    // Default: use minimum fee
-                    shippingDistance = 5;
-                    shippingCost = 100;
-                    updateShippingDisplay(5);
-                }
-            }
-        }
-
-        // ============================================================
-        // UPDATE SHIPPING DISPLAY
-        // ============================================================
-        function updateShippingDisplay(distance) {
-            const costDisplay = document.getElementById('shippingCostDisplay');
-            const costDisplay2 = document.getElementById('shippingCostDisplay2');
-            const totalDisplay = document.getElementById('totalDisplay');
-            const orderTotal = document.getElementById('orderTotal');
-            const distanceInfo = document.getElementById('shippingDistanceInfo');
-            const methodLabel = document.getElementById('shippingMethodLabel');
-            
-            const subtotal = {{ subtotal }};
-            totalAmount = subtotal + shippingCost;
-            
-            costDisplay.textContent = 'KSh ' + shippingCost.toLocaleString();
-            costDisplay2.textContent = 'KSh ' + shippingCost.toLocaleString();
-            totalDisplay.textContent = 'KSh ' + totalAmount.toLocaleString();
-            if (orderTotal) orderTotal.textContent = 'KSh ' + totalAmount.toLocaleString();
-            
-            distanceInfo.textContent = `Distance: ${distance.toFixed(1)} km from our store`;
-            
-            if (shippingCost === 100) {
-                methodLabel.textContent = 'Minimum fee (within 5km)';
-            } else if (shippingCost >= 5000) {
-                methodLabel.textContent = 'Maximum fee (long distance)';
-            } else {
-                methodLabel.textContent = `KSh ${(shippingCost / distance).toFixed(1)} per km`;
+                shippingDistance = estimatedDistance;
+                shippingCost = calculateShippingCost(estimatedDistance, subtotal);
+                updateShippingDisplay(estimatedDistance);
+                showToast('📍 Estimated distance: ' + estimatedDistance.toFixed(1) + ' km', 'info');
             }
         }
 
@@ -1060,7 +1078,8 @@
                 shipping_distance: shippingDistance,
                 shipping_cost: shippingCost,
                 user_lat: userLat,
-                user_lng: userLng
+                user_lng: userLng,
+                subtotal: subtotal
             };
         }
 
@@ -1167,7 +1186,6 @@
                 }
             });
 
-            const subtotal = {{ subtotal }};
             const trackingNumber = generateTrackingNumber();
             const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
@@ -1178,6 +1196,12 @@
                 subtotal: subtotal,
                 shipping: shippingCost,
                 shipping_distance: shippingDistance,
+                shipping_calculation: {
+                    value_based: subtotal * 0.02,
+                    distance_based: shippingDistance > 5 ? (shippingDistance - 5) * 50 : 0,
+                    minimum_fee: 100,
+                    free_shipping_threshold: 50000
+                },
                 total: totalAmount,
                 payment_method: method,
                 status: 'processing',
@@ -1222,13 +1246,9 @@
                     document.getElementById('deliveryAddress').textContent = fullAddress;
                     
                     const notes = document.getElementById('deliveryNotesDisplay');
-                    if (data.delivery_notes) {
-                        notes.textContent = '📝 ' + data.delivery_notes;
-                    } else {
-                        notes.textContent = 'No special instructions';
-                    }
+                    notes.textContent = data.delivery_notes ? '📝 ' + data.delivery_notes : 'No special instructions';
                     
-                    document.getElementById('shippingMethodDisplay').textContent = `📦 Distance: ${shippingDistance.toFixed(1)} km · Shipping: KSh ${shippingCost.toFixed(0)}`;
+                    document.getElementById('shippingMethodDisplay').textContent = `📦 Distance: ${shippingDistance.toFixed(1)} km · Value: KSh ${subtotal.toFixed(0)} · Shipping: KSh ${shippingCost.toFixed(0)}`;
                     document.getElementById('estimatedDelivery').textContent = '🚚 Estimated delivery: ' + orderData.estimated_delivery;
                     
                     goToStep(3);
@@ -1337,14 +1357,19 @@
             const firstInput = document.querySelector('#step1 input');
             if (firstInput) setTimeout(() => firstInput.focus(), 300);
             
+            // Update subtotal display
+            document.getElementById('summarySubtotal').textContent = 'KSh ' + subtotal.toLocaleString();
+            
             // Auto-detect location
             setTimeout(detectLocation, 500);
             
-            console.log('✅ ACACIAMART Checkout with Distance-Based Shipping loaded');
-            console.log('📍 Store Location: Nairobi CBD (Lat: ' + storeLat + ', Lng: ' + storeLng + ')');
-            console.log('💰 Minimum Shipping Fee: KSh 100');
-            console.log('📏 Rate: KSh 50 per km after 5km free');
-            console.log('🔝 Maximum Shipping Fee: KSh 5,000');
+            console.log('✅ ACACIAMART Checkout with Distance + Value Based Shipping');
+            console.log('📍 Store: Nairobi CBD');
+            console.log('💰 Subtotal: KSh ' + subtotal.toLocaleString());
+            console.log('📏 Free shipping over KSh 50,000');
+            console.log('💵 Value-based: 2% of order value');
+            console.log('📏 Distance-based: KSh 50/km after 5km free');
+            console.log('🔝 Maximum: KSh 5,000');
         });
     </script>
 </body>
