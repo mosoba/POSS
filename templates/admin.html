@@ -2825,49 +2825,58 @@ function filterProductsTable(searchTerm) {
 async function searchAllProducts(term) {
     console.log('🔍 Searching for:', term);
     
-    try {
-        const response = await fetch(`/admin/api/products?per_page=1000&t=${Date.now()}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const allProducts = data.products || [];
-            const filtered = allProducts.filter(product => {
-                const name = (product.name || '').toLowerCase();
-                const category = (product.category || '').toLowerCase();
-                const id = (product.id || '').toLowerCase();
-                const barcode = (product.barcode || '').toLowerCase();
-                
-                return name.includes(term) || 
-                       category.includes(term) || 
-                       id.includes(term) || 
-                       barcode.includes(term);
-            });
-            
-            renderProductsTable(filtered);
-            
-            const totalEl = document.getElementById('productsTotal');
-            if (totalEl) totalEl.textContent = filtered.length;
-            
-            const endEl = document.getElementById('productsEnd');
-            if (endEl) endEl.textContent = filtered.length;
-            
-            const startEl = document.getElementById('productsStart');
-            if (startEl) startEl.textContent = filtered.length > 0 ? '1' : '0';
-            
-            const paginationLinks = document.getElementById('productsPaginationLinks');
-            if (paginationLinks) {
-                if (filtered.length > 0) {
-                    paginationLinks.innerHTML = `<span class="text-xs text-blue-600">🔍 Found ${filtered.length} results for "${term}"</span>`;
-                } else {
-                    paginationLinks.innerHTML = `<span class="text-xs text-red-500">❌ No products found for "${term}"</span>`;
-                }
-            }
-            
-            showToast(`✅ Found ${filtered.length} products matching "${term}"`, 'info');
+    // If search is empty, show all rows
+    if (!term || term.trim() === '') {
+        const rows = document.querySelectorAll('#productsTableBody tr');
+        rows.forEach(row => row.style.display = '');
+        const totalEl = document.getElementById('productsTotal');
+        if (totalEl) totalEl.textContent = '{{ total_products }}';
+        const paginationLinks = document.getElementById('productsPaginationLinks');
+        if (paginationLinks) {
+            loadProductsPage(1);
         }
-    } catch (error) {
-        console.error('❌ Search error:', error);
-        showToast('❌ Search failed', 'error');
+        return;
+    }
+    
+    // Search the current table rows directly
+    const rows = document.querySelectorAll('#productsTableBody tr');
+    let found = 0;
+    const termLower = term.toLowerCase().trim();
+    
+    rows.forEach(row => {
+        // Get the product name from the first column
+        const nameCell = row.querySelector('td:first-child .font-semibold');
+        const productName = nameCell ? nameCell.textContent.toLowerCase() : '';
+        
+        // Get all text from the row
+        const rowText = row.textContent.toLowerCase();
+        
+        // Check if term matches product name or any text in the row
+        const match = productName.includes(termLower) || rowText.includes(termLower);
+        
+        row.style.display = match ? '' : 'none';
+        if (match) found++;
+    });
+    
+    console.log('✅ Found', found, 'products matching "' + term + '"');
+    
+    // Update results count
+    const totalEl = document.getElementById('productsTotal');
+    if (totalEl) totalEl.textContent = found;
+    
+    const endEl = document.getElementById('productsEnd');
+    if (endEl) endEl.textContent = found;
+    
+    const startEl = document.getElementById('productsStart');
+    if (startEl) startEl.textContent = found > 0 ? '1' : '0';
+    
+    const paginationLinks = document.getElementById('productsPaginationLinks');
+    if (paginationLinks) {
+        if (found > 0) {
+            paginationLinks.innerHTML = `<span class="text-xs text-blue-600">🔍 Found ${found} results for "${term}"</span>`;
+        } else {
+            paginationLinks.innerHTML = `<span class="text-xs text-red-500">❌ No products found for "${term}"</span>`;
+        }
     }
 }
 
