@@ -154,50 +154,42 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         PROFITABILITY SECTION - PAID SALES ONLY
-         ============================================================ -->
-    <div class="profitability-section" style="margin-top: 20px; padding: 16px 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
-        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-            📊 Total Business Profitability <span style="font-size: 0.6rem; font-weight: 400; color: var(--gray-400);">(Paid Sales Only)</span>
-        </h3>
+  <!-- ============================================================
+     PROFITABILITY SECTION - PAID SALES ONLY (REMOVED CONFLICTING CARDS)
+     ============================================================ -->
+<div class="profitability-section" style="margin-top: 20px; padding: 16px 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
+    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+        📊 Total Business Profitability <span style="font-size: 0.6rem; font-weight: 400; color: var(--gray-400);">(Paid Sales Only)</span>
+    </h3>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #3b82f6;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue (Paid)</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #3b82f6;" id="profitTotalRevenue">KSh 0</div>
-                <div style="font-size: 0.5rem; color: var(--gray-400);">Cash + POS + Credit Payments</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #10b981;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Cash & POS Sales</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);" id="profitCashPos">KSh 0</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #059669;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Credit Payments Received</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #059669;" id="profitCreditPaid">KSh 0</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #ef4444;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Credit Outstanding</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #ef4444;" id="profitOutstanding">KSh 0</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #f59e0b;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Collection Rate</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #f59e0b;" id="profitCollectionRate">0%</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #8b5cf6;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Total Profit</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #8b5cf6;" id="profitTotalProfit">KSh 0</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #7c3aed;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Profit Margin</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #7c3aed;" id="profitMargin">0%</div>
-            </div>
-            <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #6366f1;">
-                <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Total Credit Sales</div>
-                <div style="font-size: 1.1rem; font-weight: 700; color: #6366f1;" id="profitTotalCredit">KSh 0</div>
-            </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #3b82f6;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue (Paid)</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #3b82f6;" id="profitTotalRevenue">KSh 0</div>
+            <div style="font-size: 0.5rem; color: var(--gray-400);">Cash + POS + Credit Payments</div>
+        </div>
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #10b981;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Cash & POS Sales</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);" id="profitCashPos">KSh 0</div>
+        </div>
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #059669;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Credit Payments Received</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #059669;" id="profitCreditPaid">KSh 0</div>
+        </div>
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #ef4444;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Credit Outstanding</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #ef4444;" id="profitOutstanding">KSh 0</div>
+        </div>
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #f59e0b;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Collection Rate</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #f59e0b;" id="profitCollectionRate">0%</div>
+        </div>
+        <div class="stat-card p-3" style="background: var(--bg-input); border-left: 3px solid #f59e0b;">
+            <div style="font-size: 0.55rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;">Total Credit Sales</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #6366f1;" id="profitTotalCredit">KSh 0</div>
         </div>
     </div>
+</div>
 
     <!-- ============================================================
          CHARTS - MOBILE OPTIMIZED WITH FIXED INITIALIZATION
