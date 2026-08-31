@@ -175,6 +175,128 @@ def admin_logout():
 
 
 # ============================================================
+# ✅ PRODUCT SEARCH API - SEARCH ACROSS ALL PAGES
+# ============================================================
+
+@admin_bp.route('/admin/api/products/search', methods=['GET'])
+@admin_required
+def api_product_search():
+    """Search products across all pages - returns ALL matching products"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 500))
+        
+        if not query:
+            return jsonify({
+                'success': True,
+                'products': [],
+                'total': 0,
+                'query': ''
+            })
+        
+        print(f"🔍 Searching products for: '{query}'")
+        
+        # Load all products
+        all_products = load_products()
+        
+        # Clean products
+        cleaned_products = []
+        for p in all_products:
+            clean_p = dict(p)
+            if clean_p.get('stock') is None:
+                clean_p['stock'] = 0
+            if clean_p.get('price') is None:
+                clean_p['price'] = 0
+            if clean_p.get('name') is None:
+                clean_p['name'] = 'Unnamed Product'
+            if clean_p.get('category') is None:
+                clean_p['category'] = 'Uncategorized'
+            if clean_p.get('image') is None:
+                clean_p['image'] = ''
+            if clean_p.get('description') is None:
+                clean_p['description'] = ''
+            if clean_p.get('cost_price') is None:
+                clean_p['cost_price'] = 0
+            if clean_p.get('badge') is None:
+                clean_p['badge'] = ''
+            cleaned_products.append(clean_p)
+        
+        all_products = cleaned_products
+        
+        # Search in multiple fields
+        query_lower = query.lower()
+        results = []
+        
+        for product in all_products:
+            # Check all searchable fields
+            name_match = query_lower in product.get('name', '').lower()
+            category_match = query_lower in product.get('category', '').lower()
+            desc_match = query_lower in product.get('description', '').lower()
+            barcode_match = query_lower in product.get('barcode', '').lower()
+            id_match = query_lower in product.get('id', '').lower()
+            
+            # Also check specs if it's a list
+            specs = product.get('specs', [])
+            if isinstance(specs, list):
+                specs_str = ' '.join(specs).lower()
+                specs_match = query_lower in specs_str
+            else:
+                specs_match = query_lower in str(specs).lower()
+            
+            if name_match or category_match or desc_match or barcode_match or id_match or specs_match:
+                # Add relevance score
+                score = 0
+                if name_match:
+                    score += 10
+                    if query_lower == product.get('name', '').lower():
+                        score += 5
+                if category_match:
+                    score += 5
+                if desc_match:
+                    score += 3
+                if barcode_match:
+                    score += 3
+                if id_match:
+                    score += 2
+                if specs_match:
+                    score += 2
+                
+                product['_score'] = score
+                results.append(product)
+        
+        # Sort by relevance score (highest first)
+        results.sort(key=lambda x: x.get('_score', 0), reverse=True)
+        
+        # Remove temporary score field
+        for r in results:
+            r.pop('_score', None)
+        
+        # Limit results
+        results = results[:limit]
+        
+        print(f"✅ Found {len(results)} products matching '{query}'")
+        
+        return jsonify({
+            'success': True,
+            'products': results,
+            'total': len(results),
+            'query': query,
+            'limit': limit
+        })
+        
+    except Exception as e:
+        print(f"❌ Product search error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'products': [],
+            'total': 0
+        }), 500
+
+
+# ============================================================
 # ADMIN DASHBOARD
 # ============================================================
 
@@ -897,12 +1019,12 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # ✅ FIX: Check if items is a list or string
+        # Check if items is a list or string
         items_data = data.get('items', '')
         print(f"📦 Items type: {type(items_data)}")
         print(f"📦 Items: {items_data}")
         
-        # ✅ If items is a list, use it directly
+        # If items is a list, use it directly
         if isinstance(items_data, list):
             items_list = items_data
             print(f"📦 Items is a LIST: {items_list}")
@@ -932,7 +1054,7 @@ def api_record_credit_purchase():
                                 'price': float(products[0].get('price', 0))
                             })
         
-        # ✅ STOCK DEDUCTION
+        # STOCK DEDUCTION
         print(f"📦 Processing {len(items_list)} items for stock deduction...")
         
         for item in items_list:
@@ -965,10 +1087,10 @@ def api_record_credit_purchase():
                         timeout=10
                     )
         
-        # ✅ Record credit purchase
+        # Record credit purchase
         result = record_credit_purchase(
             customer_id=data['customer_id'],
-            items=items_list,  # ← Send the processed list
+            items=items_list,
             total_amount=float(data['total_amount']),
             staff_name=data['staff_name'],
             notes=data.get('notes', '')
@@ -1455,7 +1577,7 @@ def admin_pos_place_order():
                     products = response.json()
                     if products and len(products) > 0:
                         product = products[0]
-                        # ✅ SAVE COST PRICE TO ORDER ITEM
+                        # SAVE COST PRICE TO ORDER ITEM
                         item['cost_price'] = product.get('cost_price', 0)
                         
                         current_stock = product.get('stock', 0)
@@ -1523,7 +1645,7 @@ def admin_pos_place_order():
 
         order_data = {
             'order_id': order_id,
-            'items': items,  # ✅ items now have cost_price
+            'items': items,
             'subtotal': subtotal,
             'shipping': shipping,
             'total': total,
@@ -1836,7 +1958,7 @@ def admin_api_analytics():
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
     
-    # ✅ ADD CREDIT DATA
+    # ADD CREDIT DATA
     try:
         from utils.credit import get_all_credit_transactions, get_all_credit_customers
         
@@ -1852,10 +1974,10 @@ def admin_api_analytics():
             if tx.get('transaction_type') == 'purchase':
                 amount = float(tx.get('amount', 0))
                 cost = float(tx.get('total_cost', 0))
-                profit = float(tx.get('profit', 0))  # ✅ FIXED: Use stored profit
+                profit = float(tx.get('profit', 0))
                 credit_sales += amount
                 credit_cost += cost
-                credit_profit += profit  # ✅ FIXED: Use stored profit
+                credit_profit += profit
         
         # Merge with regular orders
         analytics['total_revenue'] = analytics.get('total_revenue', 0) + credit_sales
