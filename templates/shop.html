@@ -1,129 +1,279 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     
     <!-- ===== SEO ===== -->
-    <title>Price Point · Premium Electronics Kenya</title>
-    <meta name="description" content="Price Point Kenya - Shop premium electronics including phones, laptops, and accessories. Best prices in Kenya with fast delivery and warranty." />
-    <meta name="keywords" content="electronics, phones, laptops, Kenya, online store, gadgets, premium tech" />
+    <title>ACACIAMART · Your One-Stop Shop Kenya</title>
+    <meta name="description" content="ACACIAMART Kenya - Shop everything from electronics, fashion, groceries, home goods, beauty, and more. Best prices in Kenya with fast delivery." />
+    <meta name="keywords" content="shopping, Kenya, online store, groceries, fashion, electronics, home goods" />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#059669" />
     <link rel="canonical" href="https://www.apexbuilt.site" />
 
-    <!-- Preconnects for performance/SEO -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="Price Point · Premium Electronics Kenya" />
-    <meta property="og:description" content="Shop premium electronics in Kenya. Phones, laptops, accessories with fast delivery." />
-    <meta property="og:image" content="https://www.apexbuilt.site/static/logo.png" />
-    <meta property="og:url" content="https://www.apexbuilt.site" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="en_KE" />
-    <meta property="og:site_name" content="Price Point Kenya" />
-    
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Price Point · Premium Electronics Kenya" />
-    <meta name="twitter:description" content="Shop premium electronics in Kenya. Phones, laptops, accessories with fast delivery." />
-    <meta name="twitter:image" content="https://www.apexbuilt.site/static/logo.png" />
-    
-    <!-- Favicon -->
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
-
-    <!-- ===== STRUCTURED DATA (SEO) ===== -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ElectronicsStore",
-      "name": "Price Point Kenya",
-      "url": "https://www.apexbuilt.site",
-      "image": "https://www.apexbuilt.site/static/logo.png",
-      "telephone": "+254700123456",
-      "email": "info@apexbuilt.site",
-      "priceRange": "KSh",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Nairobi",
-        "addressRegion": "Nairobi CBD",
-        "addressCountry": "KE"
-      },
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
-          "opens": "08:00",
-          "closes": "18:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Saturday"],
-          "opens": "09:00",
-          "closes": "16:00"
-        }
-      ],
-      "sameAs": []
-    }
-    </script>
-    
-    <!-- ===== GOOGLE ADSENSE ===== -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9089705612009536" crossorigin="anonymous"></script>
-    
-    <!-- ===== STYLES ===== -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    
+    <!-- ===== STYLES - MATCHING POS THEME ===== -->
     <style>
-        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        /* ============================================================
+           RESET & VARIABLES - SAME AS POS
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #10b981;
+            --primary-bg: #ecfdf5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* ===== DARK MODE - SAME AS POS ===== */
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+            --gray-50: #1e293b;
+            --gray-100: #334155;
+            --gray-200: #475569;
+            --gray-300: #64748b;
+            --gray-400: #94a3b8;
+            --gray-500: #cbd5e1;
+            --gray-800: #f1f5f9;
+            --gray-900: #ffffff;
+            --primary-bg: #064e3b;
+            --danger-bg: #7f1d1d;
+            --warning-bg: #78350f;
+        }
+
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .panel,
+        [data-theme="dark"] .modal,
+        [data-theme="dark"] .product-card,
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .quick-btn,
+        [data-theme="dark"] .bundle-card,
+        [data-theme="dark"] .testimonial-card,
+        [data-theme="dark"] .app-header {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .search-box input,
+        [data-theme="dark"] .cart-item,
+        [data-theme="dark"] .search-hint,
+        [data-theme="dark"] .category-scroll {
+            background: var(--bg-input);
+        }
+
+        [data-theme="dark"] .product-card .product-name,
+        [data-theme="dark"] .panel-title,
+        [data-theme="dark"] .stat-info .value,
+        [data-theme="dark"] .hero-title,
+        [data-theme="dark"] .hero-subtitle,
+        [data-theme="dark"] .bundle-card .bundle-name,
+        [data-theme="dark"] .footer-heading,
+        [data-theme="dark"] .testimonial-card .quote,
+        [data-theme="dark"] .testimonial-card .name,
+        [data-theme="dark"] .app-footer {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .hero-section .hero-bg {
+            background: linear-gradient(135deg, rgba(5,150,105,0.85) 0%, rgba(4,120,87,0.7) 100%),
+                        url('https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600&h=600&fit=crop&auto=format') center/cover no-repeat;
+        }
+
         html { scroll-behavior: smooth; }
-        body { background: #f8fafc; color: #0f172a; overflow-x: hidden; width: 100%; }
 
-        /* Prevent flash-of-unstyled-nav on load */
-        [x-cloak], .preload-hide { visibility: hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            width: 100%;
+        }
 
-        /* ===== ANIMATIONS ===== */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes cardPop { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-        @keyframes zoomIn { from { transform: scale(1.1); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        /* ============================================================
+           UTILITY CLASSES
+           ============================================================ */
+        .flex { display: flex; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-1 { gap: 4px; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .w-full { width: 100%; }
+        .max-w-7xl { max-width: 1280px; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .px-2 { padding-left: 8px; padding-right: 8px; }
+        .px-3 { padding-left: 12px; padding-right: 12px; }
+        .px-4 { padding-left: 16px; padding-right: 16px; }
+        .py-2 { padding-top: 8px; padding-bottom: 8px; }
+        .py-3 { padding-top: 12px; padding-bottom: 12px; }
+        .py-4 { padding-top: 16px; padding-bottom: 16px; }
+        .p-1 { padding: 4px; }
+        .p-2 { padding: 8px; }
+        .p-3 { padding: 12px; }
+        .p-4 { padding: 16px; }
+        .mb-1 { margin-bottom: 4px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .ml-auto { margin-left: auto; }
+        .ml-2 { margin-left: 8px; }
+        .text-xs { font-size: 0.7rem; }
+        .text-sm { font-size: 0.8rem; }
+        .text-base { font-size: 0.9rem; }
+        .text-lg { font-size: 1.05rem; }
+        .text-xl { font-size: 1.2rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .font-extrabold { font-weight: 800; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .sticky { position: sticky; }
+        .top-0 { top: 0; }
+        .top-1\/2 { top: 50%; }
+        .-translate-y-1\/2 { transform: translateY(-50%); }
+        .left-0 { left: 0; }
+        .right-0 { right: 0; }
+        .right-3 { right: 12px; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .overflow-hidden { overflow: hidden; }
+        .overflow-y-auto { overflow-y: auto; }
+        .hidden { display: none; }
+        .inline-flex { display: inline-flex; }
+        .block { display: block; }
+        .flex-1 { flex: 1; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .min-w-0 { min-width: 0; }
+        .object-contain { object-fit: contain; }
+        .rounded { border-radius: 6px; }
+        .rounded-lg { border-radius: 10px; }
+        .rounded-xl { border-radius: 12px; }
+        .rounded-full { border-radius: 9999px; }
+        .border { border: 1px solid var(--border-color); }
+        .border-2 { border-width: 2px; }
+        .border-primary { border-color: var(--primary); }
+        .shadow { box-shadow: var(--shadow); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+        .cursor-pointer { cursor: pointer; }
+        .transition-all { transition: var(--transition); }
+
+        /* ============================================================
+           ANIMATIONS
+           ============================================================ */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes cardPop {
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(1.1); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
         .animate-slide-up { animation: slideUp 0.6s ease-out forwards; }
         .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
         .animate-card-pop { animation: cardPop 0.4s ease-out forwards; }
         .animate-zoom { animation: zoomIn 1s ease-out forwards; }
-        .animate-float { animation: float 3s ease-in-out infinite; }
 
-        /* ===== HEADER / NAVBAR ===== */
+        /* ============================================================
+           HEADER - MATCHES POS
+           ============================================================ */
         .app-header {
-            background: rgba(255,255,255,0.97);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid #eef2f6;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 1000;
             transition: box-shadow 0.3s ease, background 0.3s ease;
             width: 100%;
         }
-        .app-header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-        .brand-text { font-size: 1.25rem; font-weight: 800; white-space: nowrap; }
-        .brand-text span { color: #2563eb; }
+        .app-header.scrolled { box-shadow: var(--shadow-lg); }
 
-        .nav-links {
-            display: none;
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            white-space: nowrap;
         }
+        .brand-text .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links { display: none; }
         @media (min-width: 768px) {
             .nav-links { display: flex; align-items: center; gap: 2px; }
         }
 
         .nav-link {
-            color: #475569;
+            color: var(--text-secondary);
             font-weight: 500;
             font-size: 0.85rem;
             padding: 6px 14px;
@@ -132,11 +282,15 @@
             text-decoration: none;
             white-space: nowrap;
         }
-        .nav-link:hover, .nav-link.active { background: #f1f5f9; color: #0f172a; }
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
         .nav-link i { margin-right: 6px; }
 
         .cart-count {
-            background: #2563eb;
+            background: var(--primary);
             color: white;
             border-radius: 50%;
             padding: 1px 6px;
@@ -158,9 +312,9 @@
             max-height: 0;
             overflow: hidden;
             opacity: 0;
-            background: white;
-            border-bottom: 1px solid #eef2f6;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
             transition: max-height 0.3s ease, opacity 0.25s ease;
         }
         #mobileMenu.open {
@@ -173,10 +327,34 @@
         #mobileToggle.open .icon-bars { display: none; }
         #mobileToggle.open .icon-close { display: inline-block; }
 
-        /* ===== HERO ===== */
+        /* ============================================================
+           THEME TOGGLE - MATCHES POS
+           ============================================================ */
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        /* ============================================================
+           HERO
+           ============================================================ */
         .hero-section {
             position: relative;
-            min-height: 420px;
+            min-height: 400px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -186,8 +364,8 @@
         .hero-section .hero-bg {
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(15,23,42,0.75) 0%, rgba(15,23,42,0.5) 50%, rgba(15,23,42,0.3) 100%),
-                        url('https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600&h=600&fit=crop&auto=format') center/cover no-repeat;
+            background: linear-gradient(135deg, rgba(5,150,105,0.85) 0%, rgba(4,120,87,0.7) 50%, rgba(5,150,105,0.5) 100%),
+                        url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=600&fit=crop&auto=format') center/cover no-repeat;
             z-index: 0;
         }
         .hero-section .hero-content {
@@ -205,7 +383,7 @@
             margin-bottom: 0.5rem;
             text-shadow: 0 4px 30px rgba(0,0,0,0.2);
         }
-        .hero-title .highlight { color: #60a5fa; }
+        .hero-title .highlight { color: #34d399; }
         .hero-subtitle {
             font-size: 1.1rem;
             color: rgba(255,255,255,0.85);
@@ -225,11 +403,11 @@
             border-radius: 9999px;
             font-weight: 600;
             font-size: 0.75rem;
-            color: #93c5fd;
+            color: #a7f3d0;
             border: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 1rem;
         }
-        .hero-badge i { color: #60a5fa; }
+        .hero-badge i { color: #34d399; }
 
         .hero-btn-primary {
             background: white;
@@ -271,49 +449,51 @@
             margin-top: 24px;
         }
         .hero-features span { color: rgba(255,255,255,0.75); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
-        .hero-features span i { color: #60a5fa; }
+        .hero-features span i { color: #34d399; }
 
-        /* ===== SEARCH BAR ===== */
+        /* ============================================================
+           SEARCH - MATCHES POS
+           ============================================================ */
         .search-container {
-            background: white;
-            border-radius: 14px;
-            padding: 10px 14px;
-            border: 1px solid #eef2f6;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .search-container:focus-within { border-color: #2563eb; box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
+        .search-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(5,150,105,0.08);
+        }
         .search-input {
             width: 100%;
-            padding: 10px 14px 10px 40px;
-            border-radius: 10px;
+            padding: 8px 12px 8px 36px;
             border: none;
             outline: none;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            background: #f8fafc;
+            background: transparent;
+            color: var(--text-primary);
             -webkit-appearance: none;
             position: relative;
             z-index: 2;
         }
-        .search-input:focus { background: white; }
-        .search-input::placeholder { color: #94a3b8; font-size: 0.85rem; }
+        .search-input::placeholder { color: var(--text-muted); font-size: 0.85rem; }
         .search-icon {
             position: absolute;
-            left: 14px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 0.95rem;
             pointer-events: none;
             z-index: 1;
         }
         .search-clear {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
+            color: var(--text-muted);
             background: none;
             border: none;
             cursor: pointer;
@@ -324,9 +504,11 @@
             display: none;
             z-index: 3;
         }
-        .search-clear:hover { background: #f1f5f9; color: #0f172a; }
+        .search-clear:hover { background: var(--bg-input); color: var(--text-primary); }
 
-        /* ===== CATEGORY PILLS ===== */
+        /* ============================================================
+           CATEGORY PILLS - MATCHES POS
+           ============================================================ */
         .category-scroll {
             display: flex;
             gap: 6px;
@@ -338,15 +520,15 @@
             max-width: 100%;
         }
         .category-scroll::-webkit-scrollbar { display: none; }
-        
+
         .category-pill {
-            background: white;
-            border: 1px solid #eef2f6;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
             padding: 6px 14px;
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            color: #64748b;
+            color: var(--text-secondary);
             transition: all 0.2s;
             cursor: pointer;
             white-space: nowrap;
@@ -358,8 +540,16 @@
             min-height: 36px;
         }
         .category-pill:active { transform: scale(0.96); }
-        .category-pill:hover { background: #f1f5f9; transform: translateY(-1px); }
-        .category-pill.active { background: #1e293b; color: white; border-color: #1e293b; }
+        .category-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+        .category-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
         .category-pill .count {
             background: rgba(255,255,255,0.15);
             padding: 0px 6px;
@@ -370,26 +560,33 @@
         .category-pill.active .count { background: rgba(255,255,255,0.2); }
         .category-pill i { font-size: 0.65rem; }
 
-        /* ===== PRODUCT CARDS ===== */
+        /* ============================================================
+           PRODUCT CARDS - MATCHES POS
+           ============================================================ */
         .product-card {
-            background: white;
-            border-radius: 14px;
+            background: var(--bg-card);
+            border-radius: 12px;
             padding: 12px;
-            border: 1px solid #eef2f6;
+            border: 1px solid var(--border-color);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             height: 100%;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow);
         }
-        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.04); border-color: #2563eb; }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
         .product-card:active { transform: scale(0.97); }
         .product-card .product-image {
             width: 100%;
             height: 170px;
             object-fit: contain;
-            background: #f8fafc;
-            border-radius: 10px;
+            background: var(--bg-input);
+            border-radius: 8px;
             padding: 8px;
             margin-bottom: 8px;
             transition: transform 0.4s;
@@ -397,8 +594,8 @@
         .product-card:hover .product-image { transform: scale(1.03); }
         .product-card .product-name {
             font-weight: 600;
-            font-size: 0.88rem;
-            color: #0f172a;
+            font-size: 0.85rem;
+            color: var(--text-primary);
             margin-bottom: 2px;
             flex-grow: 1;
             line-height: 1.3;
@@ -409,15 +606,15 @@
         }
         .product-card .product-category {
             font-size: 0.6rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
             font-weight: 600;
         }
         .product-card .product-price {
             font-weight: 700;
-            font-size: 1.05rem;
-            color: #0f172a;
+            font-size: 1rem;
+            color: var(--primary);
             margin: 4px 0;
         }
         .product-card .product-rating {
@@ -429,7 +626,7 @@
             position: absolute;
             top: 8px;
             left: 8px;
-            background: #2563eb;
+            background: var(--primary);
             color: white;
             font-size: 0.55rem;
             font-weight: 700;
@@ -443,8 +640,8 @@
         .product-card .badge.trending { background: #8b5cf6; }
 
         .product-description {
-            color: #64748b;
-            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
             line-height: 1.4;
             margin-top: 4px;
             display: -webkit-box;
@@ -460,22 +657,21 @@
         }
         .product-specs .spec-tag {
             display: inline-block;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
             border-radius: 9999px;
             padding: 1px 10px;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 500;
-            color: #475569;
+            color: var(--text-secondary);
         }
-        .product-specs .spec-tag i { color: #2563eb; margin-right: 3px; font-size: 0.5rem; }
-        .product-specs .spec-more { font-size: 0.6rem; color: #94a3b8; display: inline-flex; align-items: center; }
+        .product-specs .spec-tag i { color: var(--primary); margin-right: 3px; font-size: 0.5rem; }
 
         .btn-add-to-cart {
-            background: #f1f5f9;
-            color: #0f172a;
+            background: var(--bg-input);
+            color: var(--text-primary);
             border: none;
-            padding: 9px;
+            padding: 8px;
             border-radius: 9999px;
             font-weight: 600;
             font-size: 0.78rem;
@@ -487,28 +683,44 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            min-height: 44px;
+            min-height: 40px;
         }
         .btn-add-to-cart:active { transform: scale(0.96); }
-        .btn-add-to-cart:hover:not(:disabled) { background: #2563eb; color: white; }
-        .btn-add-to-cart:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+        .btn-add-to-cart:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-add-to-cart:disabled {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
 
-        /* ===== SORT SELECT ===== */
+        /* ============================================================
+           SORT SELECT - MATCHES POS
+           ============================================================ */
         .sort-select {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 9999px;
             padding: 6px 14px;
-            font-size: 0.78rem;
-            background: white;
+            font-size: 0.7rem;
+            background: var(--bg-card);
             outline: none;
             transition: all 0.3s ease;
-            color: #0f172a;
-            font-weight: 500;
+            color: var(--text-primary);
+            font-weight: 600;
             min-height: 36px;
+            cursor: pointer;
         }
-        .sort-select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.06); }
+        .sort-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(5,150,105,0.08);
+        }
 
-        /* ===== PRODUCT GRID ===== */
+        /* ============================================================
+           PRODUCT GRID
+           ============================================================ */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
@@ -516,42 +728,58 @@
         }
         .product-grid .product-card { animation: cardPop 0.4s ease-out forwards; }
 
-        .no-products { text-align: center; padding: 40px 20px; background: white; border-radius: 16px; border: 1px solid #eef2f6; }
-        .no-products i { font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px; }
-        .no-products h3 { font-weight: 600; color: #0f172a; font-size: 1.1rem; margin-bottom: 4px; }
-        .no-products p { color: #94a3b8; font-size: 0.85rem; }
+        .no-products {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .no-products i { font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px; }
+        .no-products h3 { font-weight: 600; color: var(--text-primary); font-size: 1.1rem; margin-bottom: 4px; }
+        .no-products p { color: var(--text-muted); font-size: 0.85rem; }
 
-        /* ===== BUNDLE CARDS ===== */
+        /* ============================================================
+           BUNDLE CARDS
+           ============================================================ */
         .bundle-card {
-            background: white;
-            border-radius: 14px;
+            background: var(--bg-card);
+            border-radius: 12px;
             padding: 16px;
-            border: 1px solid #eef2f6;
+            border: 1px solid var(--border-color);
             transition: all 0.3s;
             text-align: center;
             height: 100%;
+            box-shadow: var(--shadow);
         }
-        .bundle-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.04); border-color: #f59e0b; }
-        .bundle-card.popular { border-color: #f59e0b; background: #fffbeb; }
+        .bundle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--warning);
+        }
+        .bundle-card.popular { border-color: var(--warning); background: var(--warning-bg); }
         .bundle-card .bundle-image { height: 100px; object-fit: contain; margin-bottom: 8px; }
-        .bundle-card .bundle-name { font-weight: 700; font-size: 0.9rem; }
-        .bundle-card .bundle-price { font-weight: 700; font-size: 1.1rem; color: #0f172a; }
+        .bundle-card .bundle-name { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+        .bundle-card .bundle-price { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
         .bundle-card .bundle-savings { color: #10b981; font-weight: 600; font-size: 0.75rem; }
 
-        /* ===== TESTIMONIALS ===== */
+        /* ============================================================
+           TESTIMONIALS
+           ============================================================ */
         .testimonial-card {
-            background: white;
-            border-radius: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
             padding: 24px;
-            border: 1px solid #eef2f6;
+            border: 1px solid var(--border-color);
             transition: all 0.3s;
             text-align: center;
             height: 100%;
+            box-shadow: var(--shadow);
         }
         .testimonial-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.04);
-            border-color: #2563eb;
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
         }
         .testimonial-card .avatar {
             width: 64px;
@@ -564,33 +792,24 @@
             font-size: 1.5rem;
             color: white;
         }
-        .testimonial-card .stars {
-            color: #f59e0b;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
+        .testimonial-card .stars { color: #f59e0b; font-size: 0.9rem; margin-bottom: 8px; }
         .testimonial-card .quote {
-            color: #475569;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             line-height: 1.6;
             font-style: italic;
         }
-        .testimonial-card .name {
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 12px;
-        }
-        .testimonial-card .title {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
+        .testimonial-card .name { font-weight: 700; color: var(--text-primary); margin-top: 12px; }
+        .testimonial-card .title { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* ===== MAP ===== */
+        /* ============================================================
+           MAP
+           ============================================================ */
         .map-container {
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid #eef2f6;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
         }
         .map-container iframe {
             width: 100%;
@@ -599,39 +818,43 @@
             display: block;
         }
 
-        /* ===== TOAST ===== */
+        /* ============================================================
+           TOAST - MATCHES POS
+           ============================================================ */
         .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1e293b;
+            padding: 12px 28px;
+            border-radius: 12px;
             color: white;
-            padding: 14px 28px;
-            border-radius: 14px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            z-index: 9999;
-            animation: slideUp 0.4s ease-out;
-            max-width: 90%;
-            width: auto;
-            min-width: 200px;
-            text-align: center;
             font-weight: 500;
-            font-size: 0.9rem;
-            pointer-events: none;
+            font-size: 0.85rem;
+            z-index: 9999;
+            animation: slideUp 0.4s ease;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 90%;
+            backdrop-filter: blur(10px);
         }
-        .toast.success { background: #065f46; }
-        .toast.error { background: #991b1b; }
+        .toast.success { background: linear-gradient(135deg, #065f46, #047857); }
+        .toast.error { background: linear-gradient(135deg, #991b1b, #dc2626); }
+        .toast.info { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
         .toast.hidden { display: none; }
 
-        /* ===== FOOTER ===== */
+        /* ============================================================
+           FOOTER
+           ============================================================ */
         .app-footer {
-            background: #0f172a;
-            color: #94a3b8;
+            background: var(--gray-900);
+            color: var(--text-muted);
             padding: 40px 0 20px;
             margin-top: 30px;
         }
-        .app-footer a { color: #94a3b8; text-decoration: none; transition: color 0.2s; }
+        .app-footer a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
         .app-footer a:hover { color: white; }
         .app-footer .footer-heading { color: white; font-weight: 600; font-size: 0.8rem; margin-bottom: 0.8rem; }
         .app-footer .footer-grid {
@@ -653,12 +876,14 @@
             .app-footer .footer-bottom { flex-direction: row; justify-content: space-between; text-align: left; }
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
         .container-full { max-width: 1280px; margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; width: 100%; }
         @media (min-width: 1280px) { .container-full { padding-left: 32px; padding-right: 32px; } }
 
         @media (max-width: 768px) {
-            .hero-section { min-height: 350px; padding: 30px 16px; }
+            .hero-section { min-height: 320px; padding: 30px 16px; }
             .hero-title { font-size: 2rem; }
             .hero-subtitle { font-size: 0.9rem; }
             .hero-features { gap: 12px; }
@@ -666,23 +891,22 @@
             .product-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
             .product-card .product-image { height: 140px; }
             .product-card .product-name { font-size: 0.8rem; }
-            .product-card .product-price { font-size: 0.95rem; }
+            .product-card .product-price { font-size: 0.9rem; }
             .product-card { padding: 10px; }
             .btn-add-to-cart { font-size: 0.7rem; padding: 7px; }
             .category-pill { font-size: 0.7rem; padding: 5px 12px; }
-            .search-container { padding: 8px 12px; }
-            .search-input { font-size: 0.85rem; padding: 8px 12px 8px 36px; }
-            .search-icon { left: 12px; font-size: 0.85rem; }
+            .search-container { padding: 6px 10px; }
+            .search-input { font-size: 0.85rem; padding: 6px 10px 6px 32px; }
+            .search-icon { left: 10px; font-size: 0.85rem; }
             .toast { font-size: 0.8rem; padding: 12px 20px; min-width: 160px; bottom: 20px; }
-            .container-full { padding-left: 12px; padding-right: 12px; }
             .hero-btn-primary, .hero-btn-secondary { padding: 10px 24px; font-size: 0.85rem; }
             .product-description { font-size: 0.7rem; }
-            .product-specs .spec-tag { font-size: 0.55rem; padding: 1px 8px; }
+            .product-specs .spec-tag { font-size: 0.5rem; padding: 1px 8px; }
             .map-container iframe { height: 250px; }
         }
 
         @media (max-width: 480px) {
-            .hero-section { min-height: 300px; padding: 20px 12px; }
+            .hero-section { min-height: 280px; padding: 20px 12px; }
             .hero-title { font-size: 1.5rem; }
             .hero-subtitle { font-size: 0.8rem; }
             .hero-features { gap: 8px; flex-wrap: wrap; }
@@ -696,10 +920,9 @@
             .btn-add-to-cart { font-size: 0.65rem; padding: 6px; min-height: 36px; }
             .category-pill { font-size: 0.6rem; padding: 4px 10px; min-height: 30px; }
             .category-pill .count { font-size: 0.5rem; padding: 0px 4px; }
-            .search-input { font-size: 0.8rem; padding: 6px 10px 6px 32px; }
-            .search-container { padding: 6px 10px; border-radius: 10px; }
-            .search-icon { left: 10px; font-size: 0.75rem; }
-            .search-clear { font-size: 0.7rem; right: 8px; }
+            .search-input { font-size: 0.8rem; padding: 5px 8px 5px 28px; }
+            .search-container { padding: 4px 8px; border-radius: 8px; }
+            .search-icon { left: 8px; font-size: 0.75rem; }
             .sort-select { font-size: 0.65rem; padding: 4px 10px; min-height: 30px; }
             .product-rating { font-size: 0.55rem; }
             .hero-badge { font-size: 0.65rem; padding: 3px 12px; }
@@ -707,9 +930,6 @@
             .bundle-card .bundle-image { height: 70px; }
             .toast { font-size: 0.75rem; padding: 10px 16px; min-width: 140px; bottom: 15px; }
             .container-full { padding-left: 8px; padding-right: 8px; }
-            .hero-btn-primary, .hero-btn-secondary { padding: 8px 18px; font-size: 0.75rem; }
-            .product-description { display: none; }
-            .product-specs { display: none; }
             .testimonial-card { padding: 16px; }
             .testimonial-card .avatar { width: 48px; height: 48px; font-size: 1.2rem; }
             .map-container iframe { height: 200px; }
@@ -717,18 +937,6 @@
             .app-footer .footer-grid > div { display: flex; flex-direction: column; align-items: center; }
         }
 
-        @media (max-width: 380px) {
-            .product-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-            .product-card .product-image { height: 90px; }
-            .product-card .product-name { font-size: 0.6rem; }
-            .product-card .product-price { font-size: 0.75rem; }
-            .product-card .badge { display: none; }
-            .category-pill i { display: none; }
-            .category-pill { font-size: 0.5rem; padding: 3px 8px; min-height: 26px; }
-            .hero-title { font-size: 1.2rem; }
-        }
-
-        /* ===== SR ONLY ===== */
         .sr-only {
             position: absolute;
             width: 1px;
@@ -740,22 +948,30 @@
             white-space: nowrap;
             border: 0;
         }
+
+        /* ============================================================
+           SCROLLBAR - MATCHES POS
+           ============================================================ */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- ===== HEADER / NAVBAR ===== -->
+    <!-- ===== HEADER ===== -->
     <header class="app-header" id="mainHeader" role="banner">
         <div class="container-full flex items-center justify-between h-14 relative">
-            <a href="/" class="flex items-center gap-2" aria-label="Price Point Home">
-                <i class="fas fa-bolt text-blue-600 text-xl"></i>
-                <span class="brand-text">Price<span>Point</span></span>
+            <a href="/" class="flex items-center gap-2" aria-label="ACACIAMART Home">
+                <i class="fas fa-shopping-bag text-primary text-xl"></i>
+                <span class="brand-text">ACACIA<span class="highlight">MART</span></span>
+                <span class="text-[0.55rem] font-bold text-primary bg-primary-bg px-2 py-0.5 rounded-full">KE</span>
             </a>
             
-            <!-- Navigation Links (desktop) -->
+            <!-- Navigation Links -->
             <nav class="nav-links" aria-label="Main navigation">
                 <a href="/" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                <a href="#shop" class="nav-link"><i class="fas fa-mobile-alt"></i> Products</a>
+                <a href="#shop" class="nav-link"><i class="fas fa-shopping-bag"></i> Shop</a>
                 <a href="#bundles" class="nav-link"><i class="fas fa-tag"></i> Bundles</a>
                 <a href="#testimonials" class="nav-link"><i class="fas fa-star"></i> Reviews</a>
                 <a href="#location" class="nav-link"><i class="fas fa-map-marker-alt"></i> Location</a>
@@ -763,15 +979,18 @@
             </nav>
 
             <div class="flex items-center gap-3">
-                <a href="/cart" class="relative text-gray-700 hover:text-blue-600 transition" aria-label="Shopping cart">
+                <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <a href="/cart" class="relative text-gray-700 hover:text-primary transition" aria-label="Shopping cart">
                     <i class="fas fa-shopping-bag text-lg"></i>
-                    <span class="cart-count" id="cartCount" aria-label="Cart items">0</span>
+                    <span class="cart-count" id="cartCount">0</span>
                 </a>
-                <a href="#shop" class="hidden sm:inline-block bg-[#1e293b] text-white px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-[#0f172a] transition" aria-label="Go to shop">
+                <a href="#shop" class="hidden sm:inline-block bg-primary text-white px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-primary-dark transition" aria-label="Go to shop">
                     <i class="fas fa-plus"></i> Shop
                 </a>
                 <!-- Mobile Menu Toggle -->
-                <button id="mobileToggle" class="md:hidden text-gray-700 hover:text-blue-600 transition w-9 h-9 flex items-center justify-center" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
+                <button id="mobileToggle" class="md:hidden text-gray-700 hover:text-primary transition w-9 h-9 flex items-center justify-center" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
                     <i class="fas fa-bars text-xl icon-bars"></i>
                     <i class="fas fa-times text-xl icon-close"></i>
                 </button>
@@ -781,7 +1000,7 @@
             <div id="mobileMenu" class="md:hidden" role="navigation" aria-label="Mobile navigation">
                 <div class="container-full py-3 flex flex-col gap-1">
                     <a href="/" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-                    <a href="#shop" class="nav-link"><i class="fas fa-mobile-alt"></i> Products</a>
+                    <a href="#shop" class="nav-link"><i class="fas fa-shopping-bag"></i> Shop</a>
                     <a href="#bundles" class="nav-link"><i class="fas fa-tag"></i> Bundles</a>
                     <a href="#testimonials" class="nav-link"><i class="fas fa-star"></i> Reviews</a>
                     <a href="#location" class="nav-link"><i class="fas fa-map-marker-alt"></i> Location</a>
@@ -791,327 +1010,314 @@
         </div>
     </header>
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <main id="main-content" role="main">
-
-        <!-- ===== HERO ===== -->
-        <section class="hero-section" aria-label="Hero banner">
-            <div class="hero-bg"></div>
-            <div class="hero-content animate-zoom">
-                <div class="hero-badge animate-fade-in">
-                    <i class="fas fa-bolt text-sm"></i> Kenya's Trusted Tech Store
-                </div>
-                <h1 class="hero-title animate-slide-up">
-                    Premium Tech,<br><span class="highlight">Ready for Kenya.</span>
-                </h1>
-                <p class="hero-subtitle animate-slide-up" style="animation-delay:0.1s;">
-                    Shop genuine phones, laptops, audio, and accessories with fast delivery across Kenya.
-                </p>
-                <div class="flex flex-wrap justify-center gap-3 animate-slide-up" style="animation-delay:0.2s;">
-                    <a href="#shop" class="hero-btn-primary" aria-label="Shop now">
-                        <i class="fas fa-bolt"></i> Shop Now
-                    </a>
-                    <a href="#bundles" class="hero-btn-secondary" aria-label="View deals">
-                        <i class="fas fa-tag"></i> View Deals
-                    </a>
-                </div>
-                <div class="hero-features animate-fade-in" style="animation-delay:0.3s;">
-                    <span><i class="fas fa-truck" aria-hidden="true"></i> Same-Day Nairobi</span>
-                    <span><i class="fas fa-credit-card" aria-hidden="true"></i> Secure Payment</span>
-                    <span><i class="fas fa-shield-alt" aria-hidden="true"></i> Official Warranty</span>
-                </div>
+    <!-- ===== HERO ===== -->
+    <section class="hero-section" aria-label="Hero banner">
+        <div class="hero-bg"></div>
+        <div class="hero-content animate-zoom">
+            <div class="hero-badge animate-fade-in">
+                <i class="fas fa-store text-sm"></i> Kenya's One-Stop Shop
             </div>
-        </section>
-
-        <!-- ===== SEARCH & FILTERS ===== -->
-        <section class="py-3 bg-white border-b border-gray-100 sticky top-14 z-40" id="categorySection" aria-label="Search and filters">
-            <div class="container-full">
-                <!-- Search Bar -->
-                <div class="search-container mb-2">
-                    <div class="relative">
-                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
-                        <label for="searchInput" class="sr-only">Search for products</label>
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            placeholder="Search products by name, brand, or category..." 
-                            class="search-input"
-                            oninput="filterProducts()"
-                            autocomplete="off"
-                        />
-                        <button onclick="clearSearch()" class="search-clear" id="clearBtn" aria-label="Clear search">
-                            <i class="fas fa-times" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Category Pills + Sort -->
-                <div class="flex items-center justify-between gap-2">
-                    <div class="category-scroll flex-1" id="categoryList" role="tablist">
-                        <span class="category-pill active" data-category="all" onclick="filterByCategory('all', this)" role="tab" aria-selected="true">
-                            <i class="fas fa-th-large" aria-hidden="true"></i> All
-                            <span class="count">{{ all_products|length }}</span>
-                        </span>
-                        {% for category, info in categories.items() %}
-                        <span class="category-pill" data-category="{{ category }}" onclick="filterByCategory('{{ category }}', this)" role="tab" aria-selected="false">
-                            <i class="fas {{ info.icon }}" aria-hidden="true"></i> {{ category }}
-                            <span class="count">{{ info.count }}</span>
-                        </span>
-                        {% endfor %}
-                    </div>
-                    <div class="flex-shrink-0 ml-1">
-                        <label for="sortSelect" class="sr-only">Sort products</label>
-                        <select id="sortSelect" onchange="sortProducts()" class="sort-select">
-                            <option value="name">Sort</option>
-                            <option value="price-low">Price ↑</option>
-                            <option value="price-high">Price ↓</option>
-                            <option value="rating">Rating</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Result Count -->
-                <div class="mt-1.5 text-xs text-gray-400" aria-live="polite">
-                    Showing <span id="visibleCount">{{ all_products|length }}</span> of <span id="totalCount">{{ all_products|length }}</span> products
-                </div>
+            <h1 class="hero-title animate-slide-up">
+                Everything You Need,<br><span class="highlight">One Store.</span>
+            </h1>
+            <p class="hero-subtitle animate-slide-up" style="animation-delay:0.1s;">
+                Shop thousands of products across all categories. From fashion to gadgets, groceries to home goods.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 animate-slide-up" style="animation-delay:0.2s;">
+                <a href="#shop" class="hero-btn-primary" aria-label="Shop now">
+                    <i class="fas fa-bolt"></i> Start Shopping
+                </a>
+                <a href="#bundles" class="hero-btn-secondary" aria-label="View deals">
+                    <i class="fas fa-tag"></i> View Deals
+                </a>
             </div>
-        </section>
+            <div class="hero-features animate-fade-in" style="animation-delay:0.3s;">
+                <span><i class="fas fa-truck" aria-hidden="true"></i> Same-Day Nairobi</span>
+                <span><i class="fas fa-credit-card" aria-hidden="true"></i> Secure Payment</span>
+                <span><i class="fas fa-shield-alt" aria-hidden="true"></i> Buyer Protection</span>
+                <span><i class="fas fa-undo" aria-hidden="true"></i> Easy Returns</span>
+            </div>
+        </div>
+    </section>
 
-        <!-- ===== PRODUCTS ===== -->
-        <section id="shop" class="py-4 bg-[#f8fafc]" aria-label="Products">
-            <div class="container-full">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-lg md:text-2xl font-extrabold text-[#0f172a]" id="categoryTitle">🔥 All Products</h2>
-                        <p class="text-xs text-gray-400" id="categorySubtitle">Browse our complete collection</p>
-                    </div>
-                </div>
-                <div class="product-grid" id="productGrid">
-                    {% for id, product in all_products.items() %}
-                    <div class="product-card" data-category="{{ product.category }}" data-product-id="{{ id }}" data-name="{{ product.name }}" data-price="{{ product.price }}" data-rating="{{ product.rating or 0 }}" data-stock="{{ product.stock|int|default(0) }}">
-                        {% if product.badge %}
-                        <div class="badge {% if product.badge == 'Best Seller' %}best-seller{% elif product.badge == 'New' %}new{% elif product.badge == 'Trending' %}trending{% endif %}">
-                            {{ product.badge }}
-                        </div>
-                        {% endif %}
-                        <img src="{{ product.image }}" alt="{{ product.name }} - Price Point Kenya" class="product-image" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200&h=200&fit=crop&auto=format'">
-                        <div class="product-category">{{ product.category }}</div>
-                        <div class="product-name">{{ product.name }}</div>
-                        
-                        {% if product.description %}
-                        <div class="product-description">
-                            <i class="fas fa-align-left text-blue-500 mr-1 text-xs" aria-hidden="true"></i>
-                            {{ product.description }}
-                        </div>
-                        {% endif %}
-                        
-                        {% if product.specs and product.specs|length > 0 %}
-                        <div class="product-specs">
-                            {% for spec in product.specs[:3] %}
-                            <span class="spec-tag">
-                                <i class="fas fa-check-circle" aria-hidden="true"></i> {{ spec }}
-                            </span>
-                            {% endfor %}
-                            {% if product.specs|length > 3 %}
-                            <span class="spec-more">+{{ product.specs|length - 3 }} more</span>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        
-                        <div class="product-rating" aria-label="Rating: {{ product.rating }} out of 5 stars">
-                            {% set rating = product.rating|round(0, 'floor') %}
-                            {% for i in range(5) %}
-                                {% if i < rating %}
-                                    <i class="fas fa-star" aria-hidden="true"></i>
-                                {% else %}
-                                    <i class="far fa-star" aria-hidden="true"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span class="text-gray-400 text-[0.5rem]">({{ product.reviews or 0 }})</span>
-                        </div>
-                        <div class="product-price">KSh {{ "%.0f"|format(product.price) }}</div>
-                        {% set stock = product.stock|int|default(0) %}
-                        <button onclick="addToCart('{{ id }}')" class="btn-add-to-cart" {% if stock <= 0 %}disabled{% endif %} aria-label="Add {{ product.name }} to cart">
-                            {% if stock <= 0 %}
-                                <i class="fas fa-times-circle" aria-hidden="true"></i> Out of Stock
-                            {% else %}
-                                <i class="fas fa-plus" aria-hidden="true"></i> Add to Cart
-                            {% endif %}
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div id="noProducts" class="no-products" style="display: none;">
-                    <i class="fas fa-box-open" aria-hidden="true"></i>
-                    <h3>No products found</h3>
-                    <p>Try adjusting your search or filter</p>
-                    <button onclick="resetFilters()" class="mt-3 px-5 py-2 bg-[#1e293b] text-white rounded-full text-sm font-semibold hover:bg-[#0f172a] transition" aria-label="Reset filters">
-                        <i class="fas fa-undo" aria-hidden="true"></i> Reset
+    <!-- ===== SEARCH & FILTERS ===== -->
+    <section class="py-3 bg-card border-b border-border sticky top-14 z-40" id="categorySection" aria-label="Search and filters">
+        <div class="container-full">
+            <!-- Search Bar -->
+            <div class="search-container mb-2">
+                <div class="relative">
+                    <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                    <label for="searchInput" class="sr-only">Search for products</label>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search thousands of products..." 
+                        class="search-input"
+                        oninput="filterProducts()"
+                        autocomplete="off"
+                    />
+                    <button onclick="clearSearch()" class="search-clear" id="clearBtn" aria-label="Clear search">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
-        </section>
 
-        <!-- ===== BUNDLES ===== -->
-        <section id="bundles" class="py-6 bg-white" aria-label="Product bundles">
-            <div class="container-full">
-                <div class="text-center mb-5">
-                    <h2 class="text-lg md:text-2xl font-extrabold text-[#0f172a]">Complete Your Setup</h2>
-                    <p class="text-xs text-gray-400">Curated bundles for the best value</p>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {% for id, bundle in bundles.items() %}
-                    <div class="bundle-card {% if bundle.popular %}popular{% endif %}">
-                        {% if bundle.popular %}
-                        <span class="text-[0.55rem] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full inline-block mb-1">⭐ Best Value</span>
-                        {% endif %}
-                        <img src="{{ bundle.image }}" alt="{{ bundle.name }} bundle" class="bundle-image w-full object-contain" loading="lazy" onerror="this.style.display='none'">
-                        <div class="bundle-name">{{ bundle.name }}</div>
-                        <div class="text-gray-500 text-[0.6rem]">{{ bundle.products|length }} Products</div>
-                        <div class="bundle-price">KSh {{ "%.0f"|format(bundle.price) }}</div>
-                        <div class="bundle-savings">Save KSh {{ "%.0f"|format(bundle.savings) }}</div>
-                        <button onclick="addToCart('{{ id }}')" class="mt-3 w-full py-1.5 rounded-full bg-[#1e293b] text-white text-sm font-semibold hover:bg-[#0f172a] transition" aria-label="Add {{ bundle.name }} to cart">
-                            <i class="fas fa-plus" aria-hidden="true"></i> Add Bundle
-                        </button>
-                    </div>
+            <!-- Category Pills -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="category-scroll flex-1" id="categoryList" role="tablist">
+                    <span class="category-pill active" data-category="all" onclick="filterByCategory('all', this)" role="tab" aria-selected="true">
+                        <i class="fas fa-th-large" aria-hidden="true"></i> All
+                        <span class="count">{{ all_products|length }}</span>
+                    </span>
+                    {% for category, info in categories.items() %}
+                    <span class="category-pill" data-category="{{ category }}" onclick="filterByCategory('{{ category }}', this)" role="tab" aria-selected="false">
+                        <i class="fas {{ info.icon }}" aria-hidden="true"></i> {{ category }}
+                        <span class="count">{{ info.count }}</span>
+                    </span>
                     {% endfor %}
                 </div>
-            </div>
-        </section>
-
-        <!-- ===== TESTIMONIALS ===== -->
-        <section id="testimonials" class="py-8 bg-[#f8fafc]" aria-label="Customer testimonials">
-            <div class="container-full">
-                <div class="text-center mb-6">
-                    <h2 class="text-lg md:text-2xl font-extrabold text-[#0f172a]">What Our Customers Say</h2>
-                    <p class="text-xs text-gray-400">Real reviews from real customers</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Testimonial 1 -->
-                    <div class="testimonial-card animate-slide-up">
-                        <div class="avatar" style="background: linear-gradient(135deg, #2563eb, #7c3aed);">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <p class="quote">"Price Point delivered my MacBook Air M3 within 4 hours! Genuine product, great price, and excellent customer service. Highly recommend!"</p>
-                        <div class="name">John Mwangi</div>
-                        <div class="title">Nairobi, Kenya</div>
-                    </div>
-
-                    <!-- Testimonial 2 -->
-                    <div class="testimonial-card animate-slide-up" style="animation-delay: 0.1s;">
-                        <div class="avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <p class="quote">"I bought the iPhone 15 Pro Max and it was delivered the next day. The pricing is competitive and the phone is 100% genuine. Trustworthy store!"</p>
-                        <div class="name">Sarah Akinyi</div>
-                        <div class="title">Mombasa, Kenya</div>
-                    </div>
-
-                    <!-- Testimonial 3 -->
-                    <div class="testimonial-card animate-slide-up" style="animation-delay: 0.2s;">
-                        <div class="avatar" style="background: linear-gradient(135deg, #10b981, #059669);">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <p class="quote">"Excellent service! I ordered the Anker Power Bank and received it within 24 hours. The quality is top-notch. Will definitely shop here again."</p>
-                        <div class="name">David Ochieng</div>
-                        <div class="title">Kisumu, Kenya</div>
-                    </div>
+                <div class="flex-shrink-0 ml-1">
+                    <label for="sortSelect" class="sr-only">Sort products</label>
+                    <select id="sortSelect" onchange="sortProducts()" class="sort-select">
+                        <option value="name">Sort</option>
+                        <option value="price-low">Price ↑</option>
+                        <option value="price-high">Price ↓</option>
+                        <option value="rating">Rating</option>
+                    </select>
                 </div>
             </div>
-        </section>
+            
+            <!-- Result Count -->
+            <div class="mt-1.5 text-xs text-muted" aria-live="polite">
+                Showing <span id="visibleCount">{{ all_products|length }}</span> of <span id="totalCount">{{ all_products|length }}</span> products
+            </div>
+        </div>
+    </section>
 
-        <!-- ===== LOCATION MAP ===== -->
-        <section id="location" class="py-8 bg-white" aria-label="Store location">
-            <div class="container-full">
-                <div class="text-center mb-6">
-                    <h2 class="text-lg md:text-2xl font-extrabold text-[#0f172a]">📍 Find Us</h2>
-                    <p class="text-xs text-gray-400">Visit our store or contact us for delivery</p>
+    <!-- ===== PRODUCTS ===== -->
+    <section id="shop" class="py-4" aria-label="Products">
+        <div class="container-full">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg md:text-2xl font-extrabold text-primary" id="categoryTitle">🔥 All Products</h2>
+                    <p class="text-xs text-muted" id="categorySubtitle">Browse our complete collection</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="md:col-span-2">
-                        <div class="map-container">
-                            <!-- Google Maps Embed - Nairobi CBD Location -->
-                            <iframe 
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255282.35853742383!2d36.68219671385957!3d-1.3028611!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f1172d84d49a7%3A0xf7cf0254b297924c!2sNairobi%2C%20Kenya!5e0!3m2!1sen!2s!4v1700000000000" 
-                                allowfullscreen="" 
-                                loading="lazy" 
-                                referrerpolicy="no-referrer-when-downgrade"
-                                title="Price Point Store Location Map"
-                            ></iframe>
-                        </div>
+                <div class="text-sm text-muted hidden md:block">
+                    <i class="fas fa-box text-primary"></i> {{ all_products|length }} items
+                </div>
+            </div>
+            <div class="product-grid" id="productGrid">
+                {% for id, product in all_products.items() %}
+                <div class="product-card" data-category="{{ product.category }}" data-product-id="{{ id }}" data-name="{{ product.name }}" data-price="{{ product.price }}" data-rating="{{ product.rating or 0 }}" data-stock="{{ product.stock|int|default(0) }}">
+                    {% if product.badge %}
+                    <div class="badge {% if product.badge == 'Best Seller' %}best-seller{% elif product.badge == 'New' %}new{% elif product.badge == 'Trending' %}trending{% endif %}">
+                        {{ product.badge }}
                     </div>
-                    <div class="flex flex-col justify-center gap-4">
-                        <div class="bg-[#f8fafc] p-4 rounded-xl border border-gray-100">
-                            <h3 class="font-bold text-[#0f172a] text-sm">📍 Address</h3>
-                            <p class="text-sm text-gray-600 mt-1">Nairobi CBD,<br />Kenya</p>
-                        </div>
-                        <div class="bg-[#f8fafc] p-4 rounded-xl border border-gray-100">
-                            <h3 class="font-bold text-[#0f172a] text-sm">📞 Contact</h3>
-                            <p class="text-sm text-gray-600 mt-1">+254 700 123 456<br />info@apexbuilt.site</p>
-                        </div>
-                        <div class="bg-[#f8fafc] p-4 rounded-xl border border-gray-100">
-                            <h3 class="font-bold text-[#0f172a] text-sm">🕐 Hours</h3>
-                            <p class="text-sm text-gray-600 mt-1">Mon-Fri: 8AM - 6PM<br />Sat: 9AM - 4PM</p>
-                        </div>
+                    {% endif %}
+                    <img src="{{ product.image }}" alt="{{ product.name }} - ACACIAMART" class="product-image" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200&h=200&fit=crop&auto=format'">
+                    <div class="product-category">{{ product.category }}</div>
+                    <div class="product-name">{{ product.name }}</div>
+                    
+                    {% if product.description %}
+                    <div class="product-description">
+                        <i class="fas fa-align-left text-primary mr-1 text-xs" aria-hidden="true"></i>
+                        {{ product.description }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if product.specs and product.specs|length > 0 %}
+                    <div class="product-specs">
+                        {% for spec in product.specs[:3] %}
+                        <span class="spec-tag">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i> {{ spec }}
+                        </span>
+                        {% endfor %}
+                        {% if product.specs|length > 3 %}
+                        <span class="spec-more text-xs text-muted">+{{ product.specs|length - 3 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="product-rating" aria-label="Rating: {{ product.rating }} out of 5 stars">
+                        {% set rating = product.rating|round(0, 'floor') %}
+                        {% for i in range(5) %}
+                            {% if i < rating %}
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="far fa-star" aria-hidden="true"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="text-muted text-[0.5rem]">({{ product.reviews or 0 }})</span>
+                    </div>
+                    <div class="product-price">KSh {{ "%.0f"|format(product.price) }}</div>
+                    {% set stock = product.stock|int|default(0) %}
+                    <button onclick="addToCart('{{ id }}')" class="btn-add-to-cart" {% if stock <= 0 %}disabled{% endif %} aria-label="Add {{ product.name }} to cart">
+                        {% if stock <= 0 %}
+                            <i class="fas fa-times-circle" aria-hidden="true"></i> Out of Stock
+                        {% else %}
+                            <i class="fas fa-plus" aria-hidden="true"></i> Add to Cart
+                        {% endif %}
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="noProducts" class="no-products" style="display: none;">
+                <i class="fas fa-box-open" aria-hidden="true"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your search or filter</p>
+                <button onclick="resetFilters()" class="mt-3 px-5 py-2 bg-primary text-white rounded-full text-sm font-semibold hover:bg-primary-dark transition" aria-label="Reset filters">
+                    <i class="fas fa-undo" aria-hidden="true"></i> Reset
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== BUNDLES ===== -->
+    <section id="bundles" class="py-6 bg-card border-y border-border" aria-label="Product bundles">
+        <div class="container-full">
+            <div class="text-center mb-5">
+                <h2 class="text-lg md:text-2xl font-extrabold text-primary">🎁 Shop Smart Bundles</h2>
+                <p class="text-xs text-muted">Save more with curated bundles</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {% for id, bundle in bundles.items() %}
+                <div class="bundle-card {% if bundle.popular %}popular{% endif %}">
+                    {% if bundle.popular %}
+                    <span class="text-[0.55rem] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full inline-block mb-1">⭐ Best Value</span>
+                    {% endif %}
+                    <img src="{{ bundle.image }}" alt="{{ bundle.name }}" class="bundle-image w-full object-contain" loading="lazy" onerror="this.style.display='none'">
+                    <div class="bundle-name">{{ bundle.name }}</div>
+                    <div class="text-muted text-[0.6rem]">{{ bundle.products|length }} Products</div>
+                    <div class="bundle-price">KSh {{ "%.0f"|format(bundle.price) }}</div>
+                    <div class="bundle-savings">Save KSh {{ "%.0f"|format(bundle.savings) }}</div>
+                    <button onclick="addToCart('{{ id }}')" class="mt-3 w-full py-1.5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition" aria-label="Add {{ bundle.name }} to cart">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Add Bundle
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TESTIMONIALS ===== -->
+    <section id="testimonials" class="py-8" aria-label="Customer testimonials">
+        <div class="container-full">
+            <div class="text-center mb-6">
+                <h2 class="text-lg md:text-2xl font-extrabold text-primary">💬 What Our Customers Say</h2>
+                <p class="text-xs text-muted">Real reviews from real customers</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="testimonial-card animate-slide-up">
+                    <div class="avatar" style="background: linear-gradient(135deg, #059669, #10b981);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="quote">"ACACIAMART has everything! I shop for groceries, electronics, and clothes all in one place. Fast delivery and great prices!"</p>
+                    <div class="name">John Mwangi</div>
+                    <div class="title">Nairobi, Kenya</div>
+                </div>
+                <div class="testimonial-card animate-slide-up" style="animation-delay: 0.1s;">
+                    <div class="avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="quote">"I love the variety! From fashion to home goods, ACACIAMART is my go-to store. The customer service is excellent!"</p>
+                    <div class="name">Sarah Akinyi</div>
+                    <div class="title">Mombasa, Kenya</div>
+                </div>
+                <div class="testimonial-card animate-slide-up" style="animation-delay: 0.2s;">
+                    <div class="avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="quote">"Finally a one-stop shop in Kenya! I buy everything from groceries to gadgets. The prices are unbeatable!"</p>
+                    <div class="name">David Ochieng</div>
+                    <div class="title">Kisumu, Kenya</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== LOCATION ===== -->
+    <section id="location" class="py-8 bg-card border-y border-border" aria-label="Store location">
+        <div class="container-full">
+            <div class="text-center mb-6">
+                <h2 class="text-lg md:text-2xl font-extrabold text-primary">📍 Find Us</h2>
+                <p class="text-xs text-muted">Visit our store or contact us for delivery</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <div class="map-container">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255282.35853742383!2d36.68219671385957!3d-1.3028611!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f1172d84d49a7%3A0xf7cf0254b297924c!2sNairobi%2C%20Kenya!5e0!3m2!1sen!2s!4v1700000000000" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="ACACIAMART Store Location"
+                        ></iframe>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center gap-4">
+                    <div class="bg-input p-4 rounded-xl border border-border">
+                        <h3 class="font-bold text-primary text-sm">📍 Address</h3>
+                        <p class="text-sm text-secondary mt-1">Nairobi CBD,<br />Kenya</p>
+                    </div>
+                    <div class="bg-input p-4 rounded-xl border border-border">
+                        <h3 class="font-bold text-primary text-sm">📞 Contact</h3>
+                        <p class="text-sm text-secondary mt-1">+254 700 123 456<br />info@acaciamart.co.ke</p>
+                    </div>
+                    <div class="bg-input p-4 rounded-xl border border-border">
+                        <h3 class="font-bold text-primary text-sm">🕐 Hours</h3>
+                        <p class="text-sm text-secondary mt-1">Mon-Fri: 8AM - 6PM<br />Sat: 9AM - 4PM</p>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ===== WHY US ===== -->
-        <section id="about" class="py-6 bg-[#f8fafc]" aria-label="Why choose us">
-            <div class="container-full">
-                <div class="text-center mb-5">
-                    <h2 class="text-base md:text-2xl font-extrabold text-[#0f172a]">Why Price Point?</h2>
-                    <p class="text-xs text-gray-400">Kenya's trusted electronics store</p>
+    <!-- ===== WHY US ===== -->
+    <section id="about" class="py-6" aria-label="Why choose us">
+        <div class="container-full">
+            <div class="text-center mb-5">
+                <h2 class="text-base md:text-2xl font-extrabold text-primary">Why ACACIAMART?</h2>
+                <p class="text-xs text-muted">Kenya's trusted one-stop shop</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto bg-primary-bg rounded-full flex items-center justify-center text-xl text-primary mb-2" aria-hidden="true">🛒</div>
+                    <h3 class="font-semibold text-sm">Thousands of Products</h3>
+                    <p class="text-xs text-muted">All categories</p>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="text-center">
-                        <div class="w-12 h-12 mx-auto bg-blue-50 rounded-full flex items-center justify-center text-xl text-blue-600 mb-2" aria-hidden="true">📦</div>
-                        <h3 class="font-semibold text-sm">Same-Day Nairobi</h3>
-                        <p class="text-xs text-gray-500">Fast delivery</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-12 h-12 mx-auto bg-blue-50 rounded-full flex items-center justify-center text-xl text-blue-600 mb-2" aria-hidden="true">🚚</div>
-                        <h3 class="font-semibold text-sm">Next-Day Countrywide</h3>
-                        <p class="text-xs text-gray-500">Reliable delivery</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-12 h-12 mx-auto bg-blue-50 rounded-full flex items-center justify-center text-xl text-blue-600 mb-2" aria-hidden="true">✅</div>
-                        <h3 class="font-semibold text-sm">Genuine Products</h3>
-                        <p class="text-xs text-gray-500">100% authentic</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-12 h-12 mx-auto bg-blue-50 rounded-full flex items-center justify-center text-xl text-blue-600 mb-2" aria-hidden="true">🛡️</div>
-                        <h3 class="font-semibold text-sm">Official Warranty</h3>
-                        <p class="text-xs text-gray-500">Peace of mind</p>
-                    </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto bg-primary-bg rounded-full flex items-center justify-center text-xl text-primary mb-2" aria-hidden="true">🚚</div>
+                    <h3 class="font-semibold text-sm">Fast Delivery</h3>
+                    <p class="text-xs text-muted">Same-day Nairobi</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto bg-primary-bg rounded-full flex items-center justify-center text-xl text-primary mb-2" aria-hidden="true">✅</div>
+                    <h3 class="font-semibold text-sm">Genuine Products</h3>
+                    <p class="text-xs text-muted">100% authentic</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto bg-primary-bg rounded-full flex items-center justify-center text-xl text-primary mb-2" aria-hidden="true">🛡️</div>
+                    <h3 class="font-semibold text-sm">Buyer Protection</h3>
+                    <p class="text-xs text-muted">Peace of mind</p>
                 </div>
             </div>
-        </section>
-
-    </main>
+        </div>
+    </section>
 
     <!-- ===== FOOTER ===== -->
     <footer class="app-footer" role="contentinfo">
@@ -1119,9 +1325,9 @@
             <div class="footer-grid">
                 <div>
                     <h3 class="text-white text-xl font-bold flex items-center gap-2 justify-center md:justify-start">
-                        <i class="fas fa-bolt text-blue-500" aria-hidden="true"></i> Price<span class="text-blue-500">Point</span>
+                        <i class="fas fa-shopping-bag text-primary" aria-hidden="true"></i> ACACIA<span class="text-primary">MART</span>
                     </h3>
-                    <p class="mt-2 text-xs">Premium electronics for every need in Kenya.</p>
+                    <p class="mt-2 text-xs">Everything you need, one store.</p>
                     <div class="flex gap-3 mt-3 justify-center md:justify-start">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook text-gray-400 hover:text-white transition text-lg"></i></a>
                         <a href="#" aria-label="Twitter"><i class="fab fa-twitter text-gray-400 hover:text-white transition text-lg"></i></a>
@@ -1150,13 +1356,13 @@
                     <p class="text-xs text-gray-400 mb-2">Get deals & new arrivals</p>
                     <form class="flex gap-1 max-w-xs mx-auto md:mx-0">
                         <label for="emailInput" class="sr-only">Email address</label>
-                        <input id="emailInput" type="email" placeholder="Email" class="flex-1 min-w-0 px-2 py-1.5 rounded-lg bg-white/10 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs" />
-                        <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-semibold text-xs hover:bg-blue-700 transition flex-shrink-0">Subscribe</button>
+                        <input id="emailInput" type="email" placeholder="Email" class="flex-1 min-w-0 px-2 py-1.5 rounded-lg bg-white/10 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 text-xs" />
+                        <button type="submit" class="px-3 py-1.5 bg-primary text-white rounded-lg font-semibold text-xs hover:bg-primary-dark transition flex-shrink-0">Subscribe</button>
                     </form>
                 </div>
             </div>
             <div class="footer-bottom mt-6 pt-4 border-t border-gray-800 text-xs text-gray-500">
-                <p>© 2026 <span class="text-white font-medium">Price Point Kenya</span>. All rights reserved.</p>
+                <p>© 2026 <span class="text-white font-medium">ACACIAMART Kenya</span>. All rights reserved.</p>
                 <div class="flex gap-3">
                     <a href="#" class="hover:text-white transition">Privacy</a>
                     <a href="#" class="hover:text-white transition">Terms</a>
@@ -1172,9 +1378,28 @@
         <span id="toastMessage">Added to cart!</span>
     </div>
 
+    <!-- ===== FONT AWESOME ===== -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
     <script>
         // ============================================================
-        // MOBILE MENU TOGGLE
+        // DARK MODE - MATCHES POS
+        // ============================================================
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('store-theme', isDark ? 'light' : 'dark');
+            document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+        }
+
+        if (localStorage.getItem('store-theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeIcon').textContent = '☀️';
+        }
+
+        // ============================================================
+        // MOBILE MENU
         // ============================================================
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
@@ -1183,6 +1408,7 @@
             toggle.classList.toggle('open', isOpen);
             toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
+
         function closeMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             const toggle = document.getElementById('mobileToggle');
@@ -1190,11 +1416,11 @@
             toggle.classList.remove('open');
             toggle.setAttribute('aria-expanded', 'false');
         }
-        // Close mobile menu whenever a nav link inside it is tapped
+
         document.getElementById('mobileMenu').addEventListener('click', function(e) {
             if (e.target.closest('a')) closeMobileMenu();
         });
-        // Close mobile menu on outside click
+
         document.addEventListener('click', function(e) {
             const menu = document.getElementById('mobileMenu');
             const toggle = document.getElementById('mobileToggle');
@@ -1202,7 +1428,7 @@
                 closeMobileMenu();
             }
         });
-        // Close mobile menu on resize to desktop
+
         window.addEventListener('resize', function() {
             if (window.innerWidth >= 768) closeMobileMenu();
         });
@@ -1290,7 +1516,7 @@
             } else {
                 const activePill = document.querySelector(`.category-pill[data-category="${category}"]`);
                 const categoryName = activePill ? activePill.textContent.trim().replace(/\d/g, '').trim() : category;
-                title.textContent = `📱 ${categoryName}`;
+                title.textContent = `📦 ${categoryName}`;
                 subtitle.textContent = `Browse our ${categoryName} collection`;
             }
         }
@@ -1368,16 +1594,13 @@
                 .then(data => {
                     document.getElementById('cartCount').textContent = data.count || 0;
                 })
-                .catch(() => {});
+                .catch(() => {
+                    try {
+                        const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+                        document.getElementById('cartCount').textContent = cart.length;
+                    } catch(e) {}
+                });
         }
-        
-        function updateCartCountFallback() {
-            try {
-                const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
-                document.getElementById('cartCount').textContent = cart.length;
-            } catch(e) {}
-        }
-        updateCartCountFallback();
 
         // ============================================================
         // ADD TO CART
