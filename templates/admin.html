@@ -342,26 +342,18 @@
 </div>
 
 <!-- ============================================================
-     PRODUCTS SECTION - UPDATED WITH COST & PROFIT + SEARCH BAR
+     PRODUCTS SECTION - UPDATED WITH COST & PROFIT
      ============================================================ -->
 <div id="products-section" class="section hidden">
     <!-- Search & Actions -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
         <div class="relative flex-1 max-w-full sm:max-w-md">
             <i class="fas fa-search absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs sm:text-sm"></i>
-            <input type="text" id="productSearch" placeholder="Search all products..." class="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition outline-none text-xs sm:text-sm" oninput="filterProductsTable(this.value)" />
-            <button onclick="clearProductSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden" id="clearSearchBtn">
-                <i class="fas fa-times-circle"></i>
-            </button>
+            <input type="text" id="productSearch" placeholder="Search products..." class="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition outline-none text-xs sm:text-sm" oninput="filterProductsTable(this.value)" />
         </div>
-        <div class="flex gap-2 flex-wrap">
-            <button onclick="showSection('add-product')" class="btn-gradient text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 whitespace-nowrap">
-                <i class="fas fa-plus text-xs sm:text-sm"></i> Add Product
-            </button>
-            <button onclick="loadProductsPage(1)" class="btn-outline text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 whitespace-nowrap">
-                <i class="fas fa-sync-alt text-xs sm:text-sm"></i> Refresh
-            </button>
-        </div>
+        <button onclick="showSection('add-product')" class="btn-gradient text-xs sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4 whitespace-nowrap">
+            <i class="fas fa-plus text-xs sm:text-sm"></i> Add Product
+        </button>
     </div>
 
     <!-- Products Table -->
@@ -709,7 +701,7 @@
 </div>
 
 <!-- ============================================================
-     CREDIT MANAGEMENT SECTION - WITH PROFIT TRACKING
+     ✅ CREDIT MANAGEMENT SECTION - WITH PROFIT TRACKING
      ============================================================ -->
 <div id="credit-section" class="section hidden">
     <!-- Header -->
@@ -754,7 +746,7 @@
         </div>
     </div>
 
-    <!-- Profit Stats -->
+    <!-- ✅ PROFIT STATS - NEW -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="stat-card p-3" style="border-left: 4px solid #10b981;">
             <p class="text-xs text-gray-500">💰 Total Credit Sales</p>
@@ -1489,7 +1481,7 @@
 {% endblock %}
 
 <!-- ============================================================
-     SCRIPTS - COMPLETE WITH SEARCH ACROSS ALL PAGES
+     SCRIPTS - COMPLETE WITH PROFIT FUNCTIONS
      ============================================================ -->
 {% block scripts %}
 <script>
@@ -1501,8 +1493,7 @@ function showToast(message, type) {
         success: 'bg-green-500',
         error: 'bg-red-500',
         warning: 'bg-amber-500',
-        info: 'bg-blue-500',
-        danger: 'bg-red-500'
+        info: 'bg-blue-500'
     };
 
     const toast = document.createElement('div');
@@ -1577,225 +1568,7 @@ function showSection(sectionName) {
 }
 
 // ============================================================
-// GLOBAL SEARCH STATE
-// ============================================================
-let currentSearchTerm = '';
-let isSearching = false;
-let searchTimeout = null;
-
-// ============================================================
-// ✅ PRODUCT SEARCH - ACROSS ALL PAGES
-// ============================================================
-function filterProductsTable(searchTerm) {
-    const term = searchTerm.trim();
-    currentSearchTerm = term;
-    
-    // Show/hide clear button
-    const clearBtn = document.getElementById('clearSearchBtn');
-    if (clearBtn) {
-        if (term.length > 0) {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
-    }
-    
-    // Clear previous timeout
-    clearTimeout(searchTimeout);
-    
-    if (!term) {
-        // If empty, show first page normally
-        loadProductsPage(1);
-        return;
-    }
-    
-    // Debounce search
-    searchTimeout = setTimeout(() => {
-        searchAllProductsAcrossPages(term);
-    }, 400);
-}
-
-function searchAllProductsAcrossPages(term) {
-    console.log('🔍 Searching ALL products for:', term);
-    isSearching = true;
-    
-    const tbody = document.getElementById('productsTableBody');
-    tbody.innerHTML = `
-        <tr><td colspan="8" class="text-center py-8">
-            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-            <p class="text-gray-400 mt-2">Searching all products for "${term}"...</p>
-        </td></tr>
-    `;
-    
-    // Build search URL - get ALL matching products
-    let url = '/admin/api/products/search?';
-    url += 'q=' + encodeURIComponent(term);
-    url += '&limit=500';
-    url += '&t=' + Date.now();
-    
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            isSearching = false;
-            
-            if (data.success) {
-                const products = data.products || [];
-                const total = data.total || products.length;
-                
-                if (products.length === 0) {
-                    // No results found
-                    tbody.innerHTML = `
-                        <tr><td colspan="8" class="text-center py-12">
-                            <div class="text-4xl mb-3">🔍</div>
-                            <p class="text-gray-500 font-medium">No products found for "<strong>${term}</strong>"</p>
-                            <p class="text-xs text-gray-400 mt-1">Try adjusting your search terms</p>
-                            <button onclick="clearProductSearch()" class="mt-3 text-blue-600 hover:underline text-sm">
-                                <i class="fas fa-undo"></i> Clear Search
-                            </button>
-                        </td></tr>
-                    `;
-                    
-                    updateSearchPagination(0, term);
-                } else {
-                    // Render results
-                    renderProductsTable(products);
-                    
-                    // Update pagination to show search results
-                    updateSearchPagination(products.length, term);
-                }
-            } else {
-                throw new Error(data.message || 'Search failed');
-            }
-        })
-        .catch(err => {
-            console.error('❌ Search error:', err);
-            isSearching = false;
-            tbody.innerHTML = `
-                <tr><td colspan="8" class="text-center py-8 text-red-500">
-                    <i class="fas fa-exclamation-circle text-2xl"></i>
-                    <p class="mt-2">Error searching: ${err.message}</p>
-                    <button onclick="clearProductSearch()" class="mt-3 text-blue-600 hover:underline text-sm">
-                        <i class="fas fa-undo"></i> Reset
-                    </button>
-                </td></tr>
-            `;
-        });
-}
-
-function updateSearchPagination(count, term) {
-    const startEl = document.getElementById('productsStart');
-    const endEl = document.getElementById('productsEnd');
-    const totalEl = document.getElementById('productsTotal');
-    const paginationLinks = document.getElementById('productsPaginationLinks');
-    
-    if (count > 0) {
-        if (startEl) startEl.textContent = '1';
-        if (endEl) endEl.textContent = count;
-        if (totalEl) totalEl.textContent = count;
-        
-        if (paginationLinks) {
-            paginationLinks.innerHTML = `
-                <div class="flex items-center gap-3 text-sm flex-wrap">
-                    <span class="text-blue-600 font-medium">🔍 Found ${count} products for "${term}"</span>
-                    <button onclick="clearProductSearch()" class="text-gray-400 hover:text-gray-600 text-xs">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-            `;
-        }
-    } else {
-        if (startEl) startEl.textContent = '0';
-        if (endEl) endEl.textContent = '0';
-        if (totalEl) totalEl.textContent = '0';
-        
-        if (paginationLinks) {
-            paginationLinks.innerHTML = `
-                <div class="flex items-center gap-3 text-sm flex-wrap">
-                    <span class="text-red-500">❌ No products found for "${term}"</span>
-                    <button onclick="clearProductSearch()" class="text-gray-400 hover:text-gray-600 text-xs">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-            `;
-        }
-    }
-}
-
-// ============================================================
-// ✅ CLEAR PRODUCT SEARCH
-// ============================================================
-function clearProductSearch() {
-    const searchInput = document.getElementById('productSearch');
-    if (searchInput) {
-        searchInput.value = '';
-    }
-    const clearBtn = document.getElementById('clearSearchBtn');
-    if (clearBtn) {
-        clearBtn.classList.add('hidden');
-    }
-    currentSearchTerm = '';
-    isSearching = false;
-    
-    // Reset to first page
-    loadProductsPage(1);
-    
-    showToast('🔍 Search cleared', 'info');
-}
-
-// ============================================================
-// ✅ OVERRIDE: loadProductsPage to respect search state
-// ============================================================
-const originalLoadProductsPage = window.loadProductsPage || function(page) {};
-
-loadProductsPage = function(page) {
-    // If we're searching, don't load paginated results
-    if (currentSearchTerm && currentSearchTerm.trim() !== '') {
-        console.log('⏳ In search mode, ignoring page change');
-        return;
-    }
-    
-    // Call original function
-    originalLoadProductsPage(page);
-};
-
-// ============================================================
-// ✅ KEYBOARD SHORTCUT: Press ESC to clear search
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('productSearch');
-    const clearBtn = document.getElementById('clearSearchBtn');
-    
-    if (searchInput && clearBtn) {
-        // Show/hide clear button based on input
-        searchInput.addEventListener('input', function() {
-            if (this.value.trim().length > 0) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-            }
-        });
-        
-        // ESC to clear
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                clearProductSearch();
-                this.blur();
-            }
-        });
-        
-        // Focus shortcut: Ctrl+/
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                e.preventDefault();
-                searchInput.focus();
-                searchInput.select();
-            }
-        });
-    }
-});
-
-// ============================================================
-// LOAD PROFITABILITY DATA
+// ✅ LOAD PROFITABILITY DATA
 // ============================================================
 function loadProfitability() {
     fetch('/admin/api/profitability/summary')
@@ -1808,6 +1581,8 @@ function loadProfitability() {
                 document.getElementById('profitCreditPaid').textContent = 'KSh ' + (s.credit_payments_received || 0).toLocaleString();
                 document.getElementById('profitOutstanding').textContent = 'KSh ' + (s.outstanding_credit || 0).toLocaleString();
                 document.getElementById('profitCollectionRate').textContent = (s.collection_rate || 0) + '%';
+                document.getElementById('profitTotalProfit').textContent = 'KSh ' + (s.total_profit || 0).toLocaleString();
+                document.getElementById('profitMargin').textContent = (s.profit_margin || 0) + '%';
                 document.getElementById('profitTotalCredit').textContent = 'KSh ' + (s.total_credit_sales || 0).toLocaleString();
             }
         })
@@ -1815,7 +1590,7 @@ function loadProfitability() {
 }
 
 // ============================================================
-// CHARTS INITIALIZATION
+// ✅ CHARTS INITIALIZATION
 // ============================================================
 var revenueChart = null;
 var categoryChart = null;
@@ -1958,231 +1733,140 @@ function updateChartsOnResize() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Admin dashboard loading...');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+
+    if (section) {
+        console.log('📌 Loading section from URL:', section);
+        setTimeout(function() {
+            showSection(section);
+        }, 300);
+    }
+
+    loadAnalyticsData();
+    loadProfitability();
+
+    setTimeout(initCharts, 800);
+    setTimeout(waitForChartJS, 500);
+    setTimeout(loadOfflineOrdersForDashboard, 2000);
+
+    window.addEventListener('online', function() {
+        console.log('📡 Back online - checking for offline orders...');
+        showToast('🔄 Back online! Syncing orders...', 'info');
+        setTimeout(loadOfflineOrdersForDashboard, 2000);
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            updateChartsOnResize();
+        }, 300);
+    });
+
+    function updateLiveTime() {
+        const now = new Date();
+        document.getElementById('liveTime').textContent = now.toLocaleTimeString();
+    }
+    updateLiveTime();
+    setInterval(updateLiveTime, 30000);
+
+    loadCreditCount();
+    loadSupplierCount();
+
+    // 🔥 NEW: Fix collection rate to never exceed 100%
+    setTimeout(function() {
+        var rateEl = document.getElementById('creditCollectionRate');
+        if (rateEl) {
+            var currentText = rateEl.textContent;
+            var currentValue = parseFloat(currentText);
+            if (currentValue > 100) {
+                rateEl.textContent = '100%';
+                console.log('✅ Collection rate capped at 100% (was ' + currentValue + '%)');
+            }
+        }
+    }, 1000);
+});
 // ============================================================
-// LOAD ANALYTICS DATA
+// AUTO-SHOW SECTION ON PAGE LOAD
 // ============================================================
-function loadAnalyticsData() {
-    console.log('📊 Loading analytics data...');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Admin dashboard loading...');
 
-    fetch('/admin/api/analytics?t=' + Date.now())
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            console.log('✅ Analytics data loaded:', data);
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
 
-            // UPDATE TOTALS
-            var totalRevenue = data.total_revenue || 0;
-            var totalCost = data.total_cost || 0;
-            var totalProfit = data.total_profit || 0;
+    if (section) {
+        console.log('📌 Loading section from URL:', section);
+        setTimeout(function() {
+            showSection(section);
+        }, 300);
+    }
 
-            document.getElementById('totalRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
-            document.getElementById('totalCost').textContent = 'KSh ' + totalCost.toLocaleString();
-            document.getElementById('totalProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
-            document.getElementById('totalOrders').textContent = data.total_orders || 0;
+    loadAnalyticsData();
+    loadProfitability();
 
-            document.getElementById('revRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
-            document.getElementById('revProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
+    setTimeout(initCharts, 800);
+    setTimeout(waitForChartJS, 500);
+    setTimeout(loadOfflineOrdersForDashboard, 2000);
 
-            var margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
-            document.getElementById('profitMarginDisplay').textContent = margin + '%';
+    window.addEventListener('online', function() {
+        console.log('📡 Back online - checking for offline orders...');
+        showToast('🔄 Back online! Syncing orders...', 'info');
+        setTimeout(loadOfflineOrdersForDashboard, 2000);
+    });
 
-            // UPDATE CREDIT BREAKDOWN
-            var creditSales = data.credit_sales || 0;
-            var cashSales = totalRevenue - creditSales;
-            var creditPercentage = totalRevenue > 0 ? ((creditSales / totalRevenue) * 100).toFixed(1) : 0;
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            updateChartsOnResize();
+        }, 300);
+    });
 
-            var cashEl = document.getElementById('cashSales');
-            var creditEl = document.getElementById('creditSales');
-            var totalEl = document.getElementById('totalRevenueMerged');
-            var percentEl = document.getElementById('creditPercentage');
+    function updateLiveTime() {
+        const now = new Date();
+        document.getElementById('liveTime').textContent = now.toLocaleTimeString();
+    }
+    updateLiveTime();
+    setInterval(updateLiveTime, 30000);
 
-            if (cashEl) cashEl.textContent = 'KSh ' + cashSales.toLocaleString();
-            if (creditEl) creditEl.textContent = 'KSh ' + creditSales.toLocaleString();
-            if (totalEl) totalEl.textContent = 'KSh ' + totalRevenue.toLocaleString();
-            if (percentEl) percentEl.textContent = creditPercentage + '%';
+    loadCreditCount();
+    loadSupplierCount();
+});
 
-            // MONTHLY PERFORMANCE TABLE
-            var monthlyTable = document.getElementById('monthlyTable');
-            if (monthlyTable && data.monthly_data) {
-                var months = Object.keys(data.monthly_data).sort();
-                if (months.length > 0) {
-                    var html = '';
-                    for (var i = 0; i < months.length; i++) {
-                        var month = months[i];
-                        var m = data.monthly_data[month];
-                        html += '<tr>' +
-                            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (m.revenue || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (m.cost || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (m.profit || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (m.margin || 0) + '%</td>' +
-                        '</tr>';
-                    }
-                    monthlyTable.innerHTML = html;
-                }
-            }
-
-            // TOP SELLING PRODUCTS
-            var productTable = document.getElementById('productTable');
-            if (productTable && data.product_sales) {
-                var productNames = Object.keys(data.product_sales);
-                if (productNames.length > 0) {
-                    var html = '';
-                    var count = Math.min(productNames.length, 10);
-                    for (var j = 0; j < count; j++) {
-                        var name = productNames[j];
-                        var p = data.product_sales[name];
-                        html += '<tr>' +
-                            '<td class="text-xs sm:text-sm font-semibold text-[#0f172a]">' + name + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (p.revenue || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (p.cost || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (p.profit || 0).toLocaleString() + '</td>' +
-                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (p.margin || 0) + '%</td>' +
-                        '</tr>';
-                    }
-                    productTable.innerHTML = html;
-                } else {
-                    productTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No products sold yet</td></tr>';
-                }
-            }
-
-            // UPDATE CHARTS
-            if (revenueChart && data.monthly_data) {
-                try {
-                    var months = Object.keys(data.monthly_data).sort();
-                    var revenueValues = [];
-                    for (var k = 0; k < months.length; k++) {
-                        revenueValues.push(data.monthly_data[months[k]].revenue || 0);
-                    }
-                    revenueChart.data.labels = months;
-                    revenueChart.data.datasets[0].data = revenueValues;
-                    revenueChart.update();
-                } catch(e) {
-                    console.log('⚠️ Could not update revenue chart:', e);
-                }
-            }
-
-            if (categoryChart && data.category_sales) {
-                try {
-                    var categories = Object.keys(data.category_sales);
-                    var values = [];
-                    for (var l = 0; l < categories.length; l++) {
-                        values.push(data.category_sales[categories[l]].revenue || 0);
-                    }
-                    if (categories.length > 0) {
-                        var colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#14b8a6'];
-                        categoryChart.data.labels = categories;
-                        categoryChart.data.datasets[0].data = values;
-                        categoryChart.data.datasets[0].backgroundColor = colors.slice(0, categories.length);
-                        categoryChart.update();
-                    }
-                } catch(e) {
-                    console.log('⚠️ Could not update category chart:', e);
+// ============================================================
+// LOAD COUNTS
+// ============================================================
+function loadCreditCount() {
+    fetch('/admin/api/credit/customers/count')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var countEl = document.getElementById('creditCount');
+                if (countEl) {
+                    countEl.textContent = data.total || 0;
                 }
             }
         })
-        .catch(function(err) {
-            console.error('Error loading analytics:', err);
-        });
+        .catch(err => console.error('Error loading credit count:', err));
 }
 
-// ============================================================
-// ORIGINAL PRODUCTS PAGE LOAD FUNCTION (to be overridden)
-// ============================================================
-// This gets defined by the inline script in the template
-// We'll keep a reference and override it above
-
-// ============================================================
-// ORDER STATUS UPDATE
-// ============================================================
-function updateOrderStatus(orderId, status) {
-    showToast(`📦 Order ${orderId} status updated to ${status}`, 'success');
-}
-
-// ============================================================
-// SIDEBAR FUNCTIONS
-// ============================================================
-function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const backdrop = document.getElementById('backdrop');
-    if (sidebar) sidebar.classList.remove('open');
-    if (backdrop) backdrop.classList.remove('active');
-}
-
-// ============================================================
-// SYNC BAR FUNCTIONS
-// ============================================================
-function showSyncBar(count, orders) {
-    const bar = document.getElementById('syncStatusBar');
-    const countEl = document.getElementById('offlineOrderCount');
-    const detailsEl = document.getElementById('offlineOrderDetails');
-    const badgeEl = document.getElementById('offlineBadge');
-
-    if (count > 0) {
-        bar.classList.remove('hidden');
-        countEl.textContent = count;
-        detailsEl.textContent = count + ' order(s) pending sync. Click Sync Now to upload to cloud.';
-        badgeEl.classList.remove('hidden');
-        badgeEl.textContent = '📦 ' + count + ' offline';
-    } else {
-        bar.classList.add('hidden');
-        badgeEl.classList.add('hidden');
-    }
-}
-
-function dismissSyncBar() {
-    document.getElementById('syncStatusBar').classList.add('hidden');
-}
-
-function syncOfflineOrdersFromDashboard() {
-    showToast('🔄 Syncing offline orders...', 'info');
-    setTimeout(() => {
-        showToast('✅ All orders synced successfully!', 'success');
-        dismissSyncBar();
-    }, 2000);
-}
-
-function loadOfflineOrdersForDashboard() {
-    console.log('📦 Checking for offline orders...');
-}
-
-// ============================================================
-// HANDLE FILE UPLOAD
-// ============================================================
-function handleFileUpload(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imagePreview').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-// ============================================================
-// BARCODE SCANNER FUNCTIONS
-// ============================================================
-function scanBarcode() {
-    const barcodeInput = document.getElementById('prodBarcode');
-    if (barcodeInput) {
-        barcodeInput.placeholder = 'Scanning...';
-        barcodeInput.focus();
-        showToast('📷 Scan barcode or type it in', 'info');
-    }
-}
-
-function scanBarcodeEdit() {
-    const barcodeInput = document.getElementById('editProdBarcode');
-    if (barcodeInput) {
-        barcodeInput.placeholder = 'Scanning...';
-        barcodeInput.focus();
-        showToast('📷 Scan barcode or type it in', 'info');
-    }
+function loadSupplierCount() {
+    fetch('/admin/api/suppliers/count')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var countEl = document.getElementById('supplierCount');
+                if (countEl) {
+                    countEl.textContent = data.total || 0;
+                }
+            }
+        })
+        .catch(err => console.error('Error loading supplier count:', err));
 }
 
 // ============================================================
@@ -2299,41 +1983,7 @@ function renderOrderDetails(order) {
 }
 
 // ============================================================
-// DELETE PRODUCT
-// ============================================================
-function deleteProduct(productId) {
-    if (!isOnline()) {
-        showToast('📡 You are offline. Please connect to the internet to delete products.', 'warning');
-        return;
-    }
-
-    if (!confirm('⚠️ Are you sure you want to delete this product?')) {
-        return;
-    }
-
-    console.log('🗑️ Deleting product:', productId);
-    showToast('🔄 Deleting...', 'info');
-
-    fetch('/admin/api/product/' + productId, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            showToast('✅ ' + result.message, 'success');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast('❌ ' + (result.message || 'Failed to delete'), 'error');
-        }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        showToast('❌ Error deleting product. Please try again.', 'error');
-    });
-}
-
-// ============================================================
-// EDIT PRODUCT
+// ✅ FIXED: EDIT PRODUCT - WITH COST PRICE
 // ============================================================
 function editProduct(productId) {
     if (!isOnline()) {
@@ -2434,7 +2084,7 @@ function editProduct(productId) {
 }
 
 // ============================================================
-// SAVE EDITED PRODUCT
+// ✅ FIXED: SAVE EDITED PRODUCT - WITH COST PRICE
 // ============================================================
 function saveEditedProduct(event) {
     event.preventDefault();
@@ -2524,7 +2174,7 @@ function saveEditedProduct(event) {
 }
 
 // ============================================================
-// SAVE PRODUCT
+// ✅ FIXED: SAVE PRODUCT - WITH COST PRICE
 // ============================================================
 function saveProduct(event) {
     event.preventDefault();
@@ -2634,7 +2284,654 @@ function saveProduct(event) {
 }
 
 // ============================================================
-// CREDIT CUSTOMER FUNCTIONS
+// BARCODE SCANNER FUNCTIONS
+// ============================================================
+function scanBarcode() {
+    const barcodeInput = document.getElementById('prodBarcode');
+    if (barcodeInput) {
+        barcodeInput.placeholder = 'Scanning...';
+        barcodeInput.focus();
+        showToast('📷 Scan barcode or type it in', 'info');
+    }
+}
+
+function scanBarcodeEdit() {
+    const barcodeInput = document.getElementById('editProdBarcode');
+    if (barcodeInput) {
+        barcodeInput.placeholder = 'Scanning...';
+        barcodeInput.focus();
+        showToast('📷 Scan barcode or type it in', 'info');
+    }
+}
+
+// ============================================================
+// DELETE PRODUCT
+// ============================================================
+function deleteProduct(productId) {
+    if (!isOnline()) {
+        showToast('📡 You are offline. Please connect to the internet to delete products.', 'warning');
+        return;
+    }
+
+    if (!confirm('⚠️ Are you sure you want to delete this product?')) {
+        return;
+    }
+
+    console.log('🗑️ Deleting product:', productId);
+    showToast('🔄 Deleting...', 'info');
+
+    fetch('/admin/api/product/' + productId, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast('✅ ' + result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('❌ ' + (result.message || 'Failed to delete'), 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        showToast('❌ Error deleting product. Please try again.', 'error');
+    });
+}
+
+// ============================================================
+// AJAX PAGINATION - PRODUCTS
+// ============================================================
+function loadProductsPage(page) {
+    console.log('📄 Loading products page:', page);
+
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = `
+        <tr><td colspan="8" class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+            <p class="text-gray-400 mt-2">Loading...</p>
+        </td></tr>
+    `;
+
+    const url = new URL(window.location);
+    url.searchParams.set('products_page', page);
+    url.searchParams.set('section', 'products');
+    window.history.pushState({}, '', url);
+
+    fetch('/admin/api/products?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderProductsTable(data.products);
+                updateProductsPagination(data);
+            } else {
+                showToast('❌ Failed to load products', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error loading products:', err);
+            showToast('❌ Error loading products', 'error');
+        });
+}
+
+function renderProductsTable(products) {
+    const tbody = document.getElementById('productsTableBody');
+    if (!products || products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">No products found</td></tr>`;
+        return;
+    }
+
+    let html = '';
+    products.forEach(product => {
+        const stockClass = product.stock < 10 ? 'danger' : product.stock < 30 ? 'warning' : 'success';
+        const profit = (product.price || 0) - (product.cost_price || 0);
+        html += `
+        <tr class="product-row" data-name="${product.name}" data-category="${product.category}" data-id="${product.id}">
+            <td>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100">
+                        ${product.image ? `<img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-box text-gray-300 text-base sm:text-xl\\'></i>'">` : '<i class="fas fa-box text-gray-300 text-base sm:text-xl"></i>'}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs sm:text-sm font-semibold text-[#0f172a] truncate max-w-[80px] sm:max-w-none">${product.name}</p>
+                        <p class="text-[8px] sm:text-xs text-gray-400 font-mono">${(product.id || '').slice(0, 8)}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="hidden sm:table-cell"><span class="badge badge-info text-[8px] sm:text-[10px]">${product.category || 'Uncategorized'}</span></td>
+            <td class="text-right font-semibold text-xs sm:text-sm">KSh ${(product.price || 0).toLocaleString()}</td>
+            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh ${(product.cost_price || 0).toLocaleString()}</td>
+            <td class="text-right hidden lg:table-cell ${profit > 0 ? 'text-green-600' : 'text-red-600'} font-bold text-xs sm:text-sm">
+                KSh ${Math.abs(profit).toLocaleString()}
+            </td>
+            <td class="text-center"><span class="badge badge-${stockClass} text-[8px] sm:text-[10px]">${product.stock || 0}</span></td>
+            <td class="text-center hidden sm:table-cell">${product.badge ? `<span class="badge badge-purple text-[8px] sm:text-[10px]">${product.badge}</span>` : '<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>'}</td>
+            <td>
+                <div class="flex gap-0.5 sm:gap-1 justify-center">
+                    <button class="btn-outline text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1" onclick="editProduct('${product.id}')"><i class="fas fa-pen text-[8px] sm:text-[10px]"></i></button>
+                    <button class="btn-danger text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1" onclick="deleteProduct('${product.id}')"><i class="fas fa-trash text-[8px] sm:text-[10px]"></i></button>
+                </div>
+            </td>
+        </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function updateProductsPagination(data) {
+    const container = document.getElementById('productsPaginationLinks');
+    const startEl = document.getElementById('productsStart');
+    const endEl = document.getElementById('productsEnd');
+    const totalEl = document.getElementById('productsTotal');
+
+    if (!container) return;
+
+    if (startEl) startEl.textContent = data.start || 1;
+    if (endEl) endEl.textContent = data.end || data.total;
+    if (totalEl) totalEl.textContent = data.total;
+
+    let html = '';
+    if (data.page > 1) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+    }
+    for (let p = 1; p <= data.total_pages; p++) {
+        if (p === data.page) {
+            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+        } else if (p <= data.page + 2 && p >= data.page - 2) {
+            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${p})">${p}</a>`;
+        }
+    }
+    if (data.page < data.total_pages) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+    }
+    container.innerHTML = html;
+}
+
+// ============================================================
+// AJAX PAGINATION - ORDERS
+// ============================================================
+function loadOrdersPage(page) {
+    console.log('📄 Loading orders page:', page);
+
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = `
+        <tr><td colspan="6" class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+            <p class="text-gray-400 mt-2">Loading...</p>
+        </td></tr>
+    `;
+
+    const url = new URL(window.location);
+    url.searchParams.set('orders_page', page);
+    url.searchParams.set('section', 'orders');
+    window.history.pushState({}, '', url);
+
+    fetch('/admin/api/orders?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderOrdersTable(data.orders);
+                updateOrdersPagination(data);
+            } else {
+                showToast('❌ Failed to load orders', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error loading orders:', err);
+            showToast('❌ Error loading orders', 'error');
+        });
+}
+
+function renderOrdersTable(orders) {
+    const tbody = document.getElementById('ordersTableBody');
+    if (!orders || orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">No orders found</td></tr>`;
+        return;
+    }
+
+    let html = '';
+    orders.forEach(order => {
+        const statusColors = {
+            'pending': 'border-yellow-300 text-yellow-700 bg-yellow-50',
+            'confirmed': 'border-blue-300 text-blue-700 bg-blue-50',
+            'shipped': 'border-purple-300 text-purple-700 bg-purple-50',
+            'delivered': 'border-green-300 text-green-700 bg-green-50'
+        };
+        const statusClass = statusColors[order.status] || 'border-gray-300 text-gray-700 bg-gray-50';
+
+        html += `
+        <tr>
+            <td class="font-bold text-[#0f172a] font-mono text-[10px] sm:text-sm">${(order.order_id || order.id || '').slice(0, 8)}</td>
+            <td class="hidden sm:table-cell">
+                <div>
+                    <p class="text-xs sm:text-sm font-medium text-[#0f172a] truncate max-w-[100px]">${order.customer_name || order.customer?.name || 'Customer'}</p>
+                    <p class="text-[8px] sm:text-xs text-gray-400 truncate max-w-[100px]">${order.customer_email || order.customer?.email || ''}</p>
+                </div>
+            </td>
+            <td class="text-right font-bold text-xs sm:text-sm">KSh ${(order.total || 0).toLocaleString()}</td>
+            <td class="text-center">
+                <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="text-[8px] sm:text-[10px] font-bold border rounded-lg px-1 sm:px-2 py-0.5 sm:py-1 outline-none transition-all ${statusClass}">
+                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                    <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>📦 Shipped</option>
+                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🎯 Delivered</option>
+                </select>
+            </td>
+            <td class="text-xs sm:text-sm text-gray-400 hidden md:table-cell">${(order.created_at || '').slice(0, 10)}</td>
+            <td class="text-center">
+                <button onclick="viewOrder('${order.order_id}')" class="text-blue-500 hover:text-blue-700 transition text-[10px] sm:text-sm px-1.5 sm:px-2 py-1 rounded-lg hover:bg-blue-50"><i class="fas fa-eye"></i></button>
+            </td>
+        </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function updateOrdersPagination(data) {
+    const container = document.getElementById('ordersPaginationLinks');
+    const startEl = document.getElementById('ordersStart');
+    const endEl = document.getElementById('ordersEnd');
+    const totalEl = document.getElementById('ordersTotal');
+
+    if (!container) return;
+
+    if (startEl) startEl.textContent = data.start || 1;
+    if (endEl) endEl.textContent = data.end || data.total;
+    if (totalEl) totalEl.textContent = data.total;
+
+    let html = '';
+    if (data.page > 1) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+    }
+    for (let p = 1; p <= data.total_pages; p++) {
+        if (p === data.page) {
+            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+        } else if (p <= data.page + 2 && p >= data.page - 2) {
+            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${p})">${p}</a>`;
+        }
+    }
+    if (data.page < data.total_pages) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+    }
+    container.innerHTML = html;
+}
+
+// ============================================================
+// AJAX PAGINATION - CUSTOMERS
+// ============================================================
+function loadCustomersPage(page) {
+    console.log('📄 Loading customers page:', page);
+
+    const tbody = document.getElementById('customersTableBody');
+    tbody.innerHTML = `
+        <tr><td colspan="5" class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+            <p class="text-gray-400 mt-2">Loading...</p>
+        </td></tr>
+    `;
+
+    const url = new URL(window.location);
+    url.searchParams.set('customers_page', page);
+    url.searchParams.set('section', 'customers');
+    window.history.pushState({}, '', url);
+
+    fetch('/admin/api/customers?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderCustomersTable(data.customers);
+                updateCustomersPagination(data);
+            } else {
+                showToast('❌ Failed to load customers', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error loading customers:', err);
+            showToast('❌ Error loading customers', 'error');
+        });
+}
+
+function renderCustomersTable(customers) {
+    const tbody = document.getElementById('customersTableBody');
+    if (!customers || customers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">No customers found</td></tr>`;
+        return;
+    }
+
+    let html = '';
+    customers.forEach(customer => {
+        html += `
+        <tr>
+            <td class="font-semibold text-[#0f172a] text-xs sm:text-sm">${customer.name}</td>
+            <td class="text-gray-600 text-xs sm:text-sm hidden sm:table-cell truncate max-w-[120px]">${customer.email || 'N/A'}</td>
+            <td class="text-gray-600 text-xs sm:text-sm hidden md:table-cell">${customer.phone || 'N/A'}</td>
+            <td class="text-center"><span class="badge badge-info text-[8px] sm:text-[10px]">${customer.orders || 0}</span></td>
+            <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh ${(customer.total_spent || 0).toLocaleString()}</td>
+        </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function updateCustomersPagination(data) {
+    const container = document.getElementById('customersPaginationLinks');
+    const startEl = document.getElementById('customersStart');
+    const endEl = document.getElementById('customersEnd');
+    const totalEl = document.getElementById('customersTotal');
+
+    if (!container) return;
+
+    if (startEl) startEl.textContent = data.start || 1;
+    if (endEl) endEl.textContent = data.end || data.total;
+    if (totalEl) totalEl.textContent = data.total;
+
+    let html = '';
+    if (data.page > 1) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
+    }
+    for (let p = 1; p <= data.total_pages; p++) {
+        if (p === data.page) {
+            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
+        } else if (p <= data.page + 2 && p >= data.page - 2) {
+            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${p})">${p}</a>`;
+        }
+    }
+    if (data.page < data.total_pages) {
+        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
+    }
+    container.innerHTML = html;
+}
+
+// ============================================================
+// SYNC BAR FUNCTIONS
+// ============================================================
+function showSyncBar(count, orders) {
+    const bar = document.getElementById('syncStatusBar');
+    const countEl = document.getElementById('offlineOrderCount');
+    const detailsEl = document.getElementById('offlineOrderDetails');
+    const badgeEl = document.getElementById('offlineBadge');
+
+    if (count > 0) {
+        bar.classList.remove('hidden');
+        countEl.textContent = count;
+        detailsEl.textContent = count + ' order(s) pending sync. Click Sync Now to upload to cloud.';
+        badgeEl.classList.remove('hidden');
+        badgeEl.textContent = '📦 ' + count + ' offline';
+    } else {
+        bar.classList.add('hidden');
+        badgeEl.classList.add('hidden');
+    }
+}
+
+function dismissSyncBar() {
+    document.getElementById('syncStatusBar').classList.add('hidden');
+}
+
+// ============================================================
+function loadAnalyticsData() {
+    console.log('📊 Loading analytics data...');
+
+    fetch('/admin/api/analytics?t=' + Date.now())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('✅ Analytics data loaded:', data);
+
+            // ✅ UPDATE TOTALS (POS + Credit merged)
+            var totalRevenue = data.total_revenue || 0;
+            var totalCost = data.total_cost || 0;
+            var totalProfit = data.total_profit || 0;
+
+            // Update main stats
+            document.getElementById('totalRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
+            document.getElementById('totalCost').textContent = 'KSh ' + totalCost.toLocaleString();
+            document.getElementById('totalProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
+            document.getElementById('totalOrders').textContent = data.total_orders || 0;
+
+            // ✅ UPDATE PROFIT OVERVIEW CARDS
+            document.getElementById('revRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
+            document.getElementById('revProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
+
+            // Calculate and update margin
+            var margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
+            document.getElementById('profitMargin').textContent = margin + '%';
+
+            // ✅ UPDATE CREDIT BREAKDOWN
+            var creditSales = data.credit_sales || 0;
+            var cashSales = totalRevenue - creditSales;
+            var creditPercentage = totalRevenue > 0 ? ((creditSales / totalRevenue) * 100).toFixed(1) : 0;
+
+            var cashEl = document.getElementById('cashSales');
+            var creditEl = document.getElementById('creditSales');
+            var totalEl = document.getElementById('totalRevenueMerged');
+            var percentEl = document.getElementById('creditPercentage');
+
+            if (cashEl) cashEl.textContent = 'KSh ' + cashSales.toLocaleString();
+            if (creditEl) creditEl.textContent = 'KSh ' + creditSales.toLocaleString();
+            if (totalEl) totalEl.textContent = 'KSh ' + totalRevenue.toLocaleString();
+            if (percentEl) percentEl.textContent = creditPercentage + '%';
+
+            // ✅ MONTHLY PERFORMANCE TABLE
+            var monthlyTable = document.getElementById('monthlyTable');
+            if (monthlyTable && data.monthly_data) {
+                var months = Object.keys(data.monthly_data).sort();
+                if (months.length > 0) {
+                    var html = '';
+                    for (var i = 0; i < months.length; i++) {
+                        var month = months[i];
+                        var m = data.monthly_data[month];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (m.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (m.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (m.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (m.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
+                    monthlyTable.innerHTML = html;
+                }
+            }
+
+            // ✅ TOP SELLING PRODUCTS
+            var productTable = document.getElementById('productTable');
+            if (productTable && data.product_sales) {
+                var productNames = Object.keys(data.product_sales);
+                if (productNames.length > 0) {
+                    var html = '';
+                    var count = Math.min(productNames.length, 10);
+                    for (var j = 0; j < count; j++) {
+                        var name = productNames[j];
+                        var p = data.product_sales[name];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold text-[#0f172a]">' + name + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (p.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (p.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (p.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (p.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
+                    productTable.innerHTML = html;
+                } else {
+                    productTable.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No products sold yet</td></tr>';
+                }
+            }
+
+            // ✅ UPDATE CHARTS
+            if (revenueChart && data.monthly_data) {
+                try {
+                    var months = Object.keys(data.monthly_data).sort();
+                    var revenueValues = [];
+                    for (var k = 0; k < months.length; k++) {
+                        revenueValues.push(data.monthly_data[months[k]].revenue || 0);
+                    }
+                    revenueChart.data.labels = months;
+                    revenueChart.data.datasets[0].data = revenueValues;
+                    revenueChart.update();
+                } catch(e) {
+                    console.log('⚠️ Could not update revenue chart:', e);
+                }
+            }
+
+            if (categoryChart && data.category_sales) {
+                try {
+                    var categories = Object.keys(data.category_sales);
+                    var values = [];
+                    for (var l = 0; l < categories.length; l++) {
+                        values.push(data.category_sales[categories[l]].revenue || 0);
+                    }
+                    if (categories.length > 0) {
+                        var colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#14b8a6'];
+                        categoryChart.data.labels = categories;
+                        categoryChart.data.datasets[0].data = values;
+                        categoryChart.data.datasets[0].backgroundColor = colors.slice(0, categories.length);
+                        categoryChart.update();
+                    }
+                } catch(e) {
+                    console.log('⚠️ Could not update category chart:', e);
+                }
+            }
+        })
+        .catch(function(err) {
+            console.error('Error loading analytics:', err);
+        });
+}
+
+// ============================================================
+// FILTER FUNCTIONS
+// ============================================================
+let searchTimeout = null;
+
+function filterProductsTable(searchTerm) {
+    const term = searchTerm.trim();
+
+    if (!term) {
+        loadProductsPage(1);
+        return;
+    }
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        searchAllProducts(term);
+    }, 300);
+}
+
+async function searchAllProducts(term) {
+    console.log('🔍 Searching for:', term);
+
+    // If search is empty, show all rows
+    if (!term || term.trim() === '') {
+        const rows = document.querySelectorAll('#productsTableBody tr');
+        rows.forEach(row => row.style.display = '');
+        const totalEl = document.getElementById('productsTotal');
+        if (totalEl) totalEl.textContent = '{{ total_products }}';
+        const paginationLinks = document.getElementById('productsPaginationLinks');
+        if (paginationLinks) {
+            loadProductsPage(1);
+        }
+        return;
+    }
+
+    // Search the current table rows directly
+    const rows = document.querySelectorAll('#productsTableBody tr');
+    let found = 0;
+    const termLower = term.toLowerCase().trim();
+
+    rows.forEach(row => {
+        // Get the product name from the first column
+        const nameCell = row.querySelector('td:first-child .font-semibold');
+        const productName = nameCell ? nameCell.textContent.toLowerCase() : '';
+
+        // Get all text from the row
+        const rowText = row.textContent.toLowerCase();
+
+        // Check if term matches product name or any text in the row
+        const match = productName.includes(termLower) || rowText.includes(termLower);
+
+        row.style.display = match ? '' : 'none';
+        if (match) found++;
+    });
+
+    console.log('✅ Found', found, 'products matching "' + term + '"');
+
+    // Update results count
+    const totalEl = document.getElementById('productsTotal');
+    if (totalEl) totalEl.textContent = found;
+
+    const endEl = document.getElementById('productsEnd');
+    if (endEl) endEl.textContent = found;
+
+    const startEl = document.getElementById('productsStart');
+    if (startEl) startEl.textContent = found > 0 ? '1' : '0';
+
+    const paginationLinks = document.getElementById('productsPaginationLinks');
+    if (paginationLinks) {
+        if (found > 0) {
+            paginationLinks.innerHTML = `<span class="text-xs text-blue-600">🔍 Found ${found} results for "${term}"</span>`;
+        } else {
+            paginationLinks.innerHTML = `<span class="text-xs text-red-500">❌ No products found for "${term}"</span>`;
+        }
+    }
+}
+
+function filterCreditCustomers(searchTerm) {
+    const rows = document.querySelectorAll('#creditCustomersTableBody .credit-row');
+    const term = (searchTerm || document.getElementById('searchCreditCustomers')?.value || '').toLowerCase().trim();
+    const status = document.getElementById('creditStatusFilter')?.value || 'all';
+    const balanceFilter = document.getElementById('balanceFilter')?.value || 'all';
+
+    rows.forEach(row => {
+        const name = (row.dataset.name || '').toLowerCase();
+        const phone = (row.dataset.phone || '').toLowerCase();
+        const id = (row.dataset.customerId || '').toLowerCase();
+        const rowStatus = row.dataset.status || 'active';
+        const balance = parseFloat(row.dataset.balance || 0);
+        const limit = parseFloat(row.dataset.limit || 0);
+
+        const matchSearch = !term || name.includes(term) || phone.includes(term) || id.includes(term);
+        const matchStatus = status === 'all' || rowStatus === status;
+
+        let matchBalance = true;
+        if (balanceFilter === 'has_balance') matchBalance = balance > 0;
+        else if (balanceFilter === 'over_limit') matchBalance = balance > limit;
+        else if (balanceFilter === 'zero') matchBalance = balance === 0;
+
+        row.style.display = (matchSearch && matchStatus && matchBalance) ? '' : 'none';
+    });
+}
+
+function filterSuppliers(searchTerm) {
+    const rows = document.querySelectorAll('#suppliersTableBody .supplier-row');
+    const term = (searchTerm || document.getElementById('searchSuppliers')?.value || '').toLowerCase().trim();
+    const status = document.getElementById('supplierStatusFilter')?.value || 'all';
+    const category = document.getElementById('categoryFilter')?.value || 'all';
+
+    rows.forEach(row => {
+        const name = (row.dataset.name || '').toLowerCase();
+        const phone = (row.dataset.phone || '').toLowerCase();
+        const contact = (row.dataset.contact || '').toLowerCase();
+        const rowCategory = row.dataset.category || 'General';
+        const rowStatus = row.dataset.status || 'active';
+
+        const matchSearch = !term || name.includes(term) || phone.includes(term) || contact.includes(term);
+        const matchStatus = status === 'all' || rowStatus === status;
+        const matchCategory = category === 'all' || rowCategory === category;
+
+        row.style.display = (matchSearch && matchStatus && matchCategory) ? '' : 'none';
+    });
+}
+
+function clearSupplierFilters() {
+    document.getElementById('searchSuppliers').value = '';
+    document.getElementById('supplierStatusFilter').value = 'all';
+    document.getElementById('categoryFilter').value = 'all';
+    filterSuppliers('');
+}
+
+// ============================================================
+// CREDIT CUSTOMER CRUD FUNCTIONS
 // ============================================================
 function showAddCreditCustomerModal() {
     document.getElementById('creditModalTitle').textContent = 'Add Credit Customer';
@@ -3028,7 +3325,7 @@ function sendWhatsAppToOverdueCustomers() {
 }
 
 // ============================================================
-// SUPPLIER FUNCTIONS
+// SUPPLIER CRUD FUNCTIONS
 // ============================================================
 function showAddSupplierModal() {
     document.getElementById('modalTitle').textContent = 'Add Supplier';
@@ -3294,28 +3591,46 @@ function refreshSuppliers() {
     setTimeout(() => location.reload(), 500);
 }
 
-function syncOfflineCreditOrders() {
-    showToast('🔄 Syncing offline credit orders...', 'info');
-
-    fetch('/admin/api/credit/sync-offline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast(`✅ Synced ${data.orders_synced || 0} orders, ${data.payments_synced || 0} payments`, 'success');
-            setTimeout(() => location.reload(), 2000);
-        } else {
-            showToast('❌ Sync failed: ' + (data.message || 'Unknown error'), 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Sync error:', error);
-        showToast('❌ Error syncing offline orders', 'error');
-    });
+// ============================================================
+// SIDEBAR FUNCTIONS
+// ============================================================
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('backdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
 }
 
+function updateOrderStatus(orderId, status) {
+    showToast(`📦 Order ${orderId} status updated to ${status}`, 'success');
+}
+
+function handleFileUpload(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function loadOfflineOrdersForDashboard() {
+    console.log('📦 Checking for offline orders...');
+}
+
+function syncOfflineOrdersFromDashboard() {
+    showToast('🔄 Syncing offline orders...', 'info');
+    setTimeout(() => {
+        showToast('✅ All orders synced successfully!', 'success');
+        dismissSyncBar();
+    }, 2000);
+}
+
+// ============================================================
+// ✅ PROFIT DETAILS FUNCTION
+// ============================================================
 function viewProfitDetails(customerId) {
     showToast('Loading profit details...', 'info');
 
@@ -3443,475 +3758,28 @@ function updateCreditStats() {
         .catch(err => console.error('Error updating credit stats:', err));
 }
 
-// ============================================================
-// FILTER CREDIT CUSTOMERS
-// ============================================================
-function filterCreditCustomers(searchTerm) {
-    const rows = document.querySelectorAll('#creditCustomersTableBody .credit-row');
-    const term = (searchTerm || document.getElementById('searchCreditCustomers')?.value || '').toLowerCase().trim();
-    const status = document.getElementById('creditStatusFilter')?.value || 'all';
-    const balanceFilter = document.getElementById('balanceFilter')?.value || 'all';
+function syncOfflineCreditOrders() {
+    showToast('🔄 Syncing offline credit orders...', 'info');
 
-    rows.forEach(row => {
-        const name = (row.dataset.name || '').toLowerCase();
-        const phone = (row.dataset.phone || '').toLowerCase();
-        const id = (row.dataset.customerId || '').toLowerCase();
-        const rowStatus = row.dataset.status || 'active';
-        const balance = parseFloat(row.dataset.balance || 0);
-        const limit = parseFloat(row.dataset.limit || 0);
-
-        const matchSearch = !term || name.includes(term) || phone.includes(term) || id.includes(term);
-        const matchStatus = status === 'all' || rowStatus === status;
-
-        let matchBalance = true;
-        if (balanceFilter === 'has_balance') matchBalance = balance > 0;
-        else if (balanceFilter === 'over_limit') matchBalance = balance > limit;
-        else if (balanceFilter === 'zero') matchBalance = balance === 0;
-
-        row.style.display = (matchSearch && matchStatus && matchBalance) ? '' : 'none';
-    });
-}
-
-// ============================================================
-// FILTER SUPPLIERS
-// ============================================================
-function filterSuppliers(searchTerm) {
-    const rows = document.querySelectorAll('#suppliersTableBody .supplier-row');
-    const term = (searchTerm || document.getElementById('searchSuppliers')?.value || '').toLowerCase().trim();
-    const status = document.getElementById('supplierStatusFilter')?.value || 'all';
-    const category = document.getElementById('categoryFilter')?.value || 'all';
-
-    rows.forEach(row => {
-        const name = (row.dataset.name || '').toLowerCase();
-        const phone = (row.dataset.phone || '').toLowerCase();
-        const contact = (row.dataset.contact || '').toLowerCase();
-        const rowCategory = row.dataset.category || 'General';
-        const rowStatus = row.dataset.status || 'active';
-
-        const matchSearch = !term || name.includes(term) || phone.includes(term) || contact.includes(term);
-        const matchStatus = status === 'all' || rowStatus === status;
-        const matchCategory = category === 'all' || rowCategory === category;
-
-        row.style.display = (matchSearch && matchStatus && matchCategory) ? '' : 'none';
-    });
-}
-
-function clearSupplierFilters() {
-    document.getElementById('searchSuppliers').value = '';
-    document.getElementById('supplierStatusFilter').value = 'all';
-    document.getElementById('categoryFilter').value = 'all';
-    filterSuppliers('');
-}
-
-// ============================================================
-// PRODUCTS PAGINATION (Original function - preserved)
-// ============================================================
-// This function will be called by the pagination links in the template
-function loadProductsPage(page) {
-    console.log('📄 Loading products page:', page);
-    
-    // If we're in search mode, don't load paginated results
-    if (currentSearchTerm && currentSearchTerm.trim() !== '') {
-        console.log('⏳ In search mode, ignoring page change');
-        return;
-    }
-
-    const tbody = document.getElementById('productsTableBody');
-    tbody.innerHTML = `
-        <tr><td colspan="8" class="text-center py-8">
-            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-            <p class="text-gray-400 mt-2">Loading...</p>
-        </td></tr>
-    `;
-
-    const url = new URL(window.location);
-    url.searchParams.set('products_page', page);
-    url.searchParams.set('section', 'products');
-    window.history.pushState({}, '', url);
-
-    fetch('/admin/api/products?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderProductsTable(data.products);
-                updateProductsPagination(data);
-            } else {
-                showToast('❌ Failed to load products', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error loading products:', err);
-            showToast('❌ Error loading products', 'error');
-        });
-}
-
-// ============================================================
-// RENDER PRODUCTS TABLE
-// ============================================================
-function renderProductsTable(products) {
-    const tbody = document.getElementById('productsTableBody');
-    if (!products || products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">No products found</td></tr>`;
-        return;
-    }
-
-    let html = '';
-    products.forEach(product => {
-        const stockClass = product.stock < 10 ? 'danger' : product.stock < 30 ? 'warning' : 'success';
-        const profit = (product.price || 0) - (product.cost_price || 0);
-        html += `
-        <tr class="product-row" data-name="${product.name}" data-category="${product.category}" data-id="${product.id}">
-            <td>
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100">
-                        ${product.image ? `<img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-box text-gray-300 text-base sm:text-xl\\'></i>'">` : '<i class="fas fa-box text-gray-300 text-base sm:text-xl"></i>'}
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-xs sm:text-sm font-semibold text-[#0f172a] truncate max-w-[80px] sm:max-w-none">${product.name}</p>
-                        <p class="text-[8px] sm:text-xs text-gray-400 font-mono">${(product.id || '').slice(0, 8)}</p>
-                    </div>
-                </div>
-            </td>
-            <td class="hidden sm:table-cell"><span class="badge badge-info text-[8px] sm:text-[10px]">${product.category || 'Uncategorized'}</span></td>
-            <td class="text-right font-semibold text-xs sm:text-sm">KSh ${(product.price || 0).toLocaleString()}</td>
-            <td class="text-right text-gray-500 text-xs sm:text-sm hidden md:table-cell">KSh ${(product.cost_price || 0).toLocaleString()}</td>
-            <td class="text-right hidden lg:table-cell ${profit > 0 ? 'text-green-600' : 'text-red-600'} font-bold text-xs sm:text-sm">
-                KSh ${Math.abs(profit).toLocaleString()}
-            </td>
-            <td class="text-center"><span class="badge badge-${stockClass} text-[8px] sm:text-[10px]">${product.stock || 0}</span></td>
-            <td class="text-center hidden sm:table-cell">${product.badge ? `<span class="badge badge-purple text-[8px] sm:text-[10px]">${product.badge}</span>` : '<span class="badge badge-success text-[8px] sm:text-[10px]">In Stock</span>'}</td>
-            <td>
-                <div class="flex gap-0.5 sm:gap-1 justify-center">
-                    <button class="btn-outline text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1" onclick="editProduct('${product.id}')"><i class="fas fa-pen text-[8px] sm:text-[10px]"></i></button>
-                    <button class="btn-danger text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1" onclick="deleteProduct('${product.id}')"><i class="fas fa-trash text-[8px] sm:text-[10px]"></i></button>
-                </div>
-            </td>
-        </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-}
-
-function updateProductsPagination(data) {
-    const container = document.getElementById('productsPaginationLinks');
-    const startEl = document.getElementById('productsStart');
-    const endEl = document.getElementById('productsEnd');
-    const totalEl = document.getElementById('productsTotal');
-
-    if (!container) return;
-
-    if (startEl) startEl.textContent = data.start || 1;
-    if (endEl) endEl.textContent = data.end || data.total;
-    if (totalEl) totalEl.textContent = data.total;
-
-    let html = '';
-    if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
-    }
-    for (let p = 1; p <= data.total_pages; p++) {
-        if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
-        } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${p})">${p}</a>`;
+    fetch('/admin/api/credit/sync-offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`✅ Synced ${data.orders_synced || 0} orders, ${data.payments_synced || 0} payments`, 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showToast('❌ Sync failed: ' + (data.message || 'Unknown error'), 'error');
         }
-    }
-    if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadProductsPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
-    }
-    container.innerHTML = html;
-}
-
-// ============================================================
-// ORDERS PAGINATION
-// ============================================================
-function loadOrdersPage(page) {
-    console.log('📄 Loading orders page:', page);
-
-    const tbody = document.getElementById('ordersTableBody');
-    tbody.innerHTML = `
-        <tr><td colspan="6" class="text-center py-8">
-            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-            <p class="text-gray-400 mt-2">Loading...</p>
-        </td></tr>
-    `;
-
-    const url = new URL(window.location);
-    url.searchParams.set('orders_page', page);
-    url.searchParams.set('section', 'orders');
-    window.history.pushState({}, '', url);
-
-    fetch('/admin/api/orders?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderOrdersTable(data.orders);
-                updateOrdersPagination(data);
-            } else {
-                showToast('❌ Failed to load orders', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error loading orders:', err);
-            showToast('❌ Error loading orders', 'error');
-        });
-}
-
-function renderOrdersTable(orders) {
-    const tbody = document.getElementById('ordersTableBody');
-    if (!orders || orders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">No orders found</td></tr>`;
-        return;
-    }
-
-    let html = '';
-    orders.forEach(order => {
-        const statusColors = {
-            'pending': 'border-yellow-300 text-yellow-700 bg-yellow-50',
-            'confirmed': 'border-blue-300 text-blue-700 bg-blue-50',
-            'shipped': 'border-purple-300 text-purple-700 bg-purple-50',
-            'delivered': 'border-green-300 text-green-700 bg-green-50'
-        };
-        const statusClass = statusColors[order.status] || 'border-gray-300 text-gray-700 bg-gray-50';
-
-        html += `
-        <tr>
-            <td class="font-bold text-[#0f172a] font-mono text-[10px] sm:text-sm">${(order.order_id || order.id || '').slice(0, 8)}</td>
-            <td class="hidden sm:table-cell">
-                <div>
-                    <p class="text-xs sm:text-sm font-medium text-[#0f172a] truncate max-w-[100px]">${order.customer_name || order.customer?.name || 'Customer'}</p>
-                    <p class="text-[8px] sm:text-xs text-gray-400 truncate max-w-[100px]">${order.customer_email || order.customer?.email || ''}</p>
-                </div>
-            </td>
-            <td class="text-right font-bold text-xs sm:text-sm">KSh ${(order.total || 0).toLocaleString()}</td>
-            <td class="text-center">
-                <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="text-[8px] sm:text-[10px] font-bold border rounded-lg px-1 sm:px-2 py-0.5 sm:py-1 outline-none transition-all ${statusClass}">
-                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
-                    <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
-                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>📦 Shipped</option>
-                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🎯 Delivered</option>
-                </select>
-            </td>
-            <td class="text-xs sm:text-sm text-gray-400 hidden md:table-cell">${(order.created_at || '').slice(0, 10)}</td>
-            <td class="text-center">
-                <button onclick="viewOrder('${order.order_id}')" class="text-blue-500 hover:text-blue-700 transition text-[10px] sm:text-sm px-1.5 sm:px-2 py-1 rounded-lg hover:bg-blue-50"><i class="fas fa-eye"></i></button>
-            </td>
-        </tr>
-        `;
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        showToast('❌ Error syncing offline orders', 'error');
     });
-    tbody.innerHTML = html;
 }
 
-function updateOrdersPagination(data) {
-    const container = document.getElementById('ordersPaginationLinks');
-    const startEl = document.getElementById('ordersStart');
-    const endEl = document.getElementById('ordersEnd');
-    const totalEl = document.getElementById('ordersTotal');
-
-    if (!container) return;
-
-    if (startEl) startEl.textContent = data.start || 1;
-    if (endEl) endEl.textContent = data.end || data.total;
-    if (totalEl) totalEl.textContent = data.total;
-
-    let html = '';
-    if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
-    }
-    for (let p = 1; p <= data.total_pages; p++) {
-        if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
-        } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${p})">${p}</a>`;
-        }
-    }
-    if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadOrdersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
-    }
-    container.innerHTML = html;
-}
-
-// ============================================================
-// CUSTOMERS PAGINATION
-// ============================================================
-function loadCustomersPage(page) {
-    console.log('📄 Loading customers page:', page);
-
-    const tbody = document.getElementById('customersTableBody');
-    tbody.innerHTML = `
-        <tr><td colspan="5" class="text-center py-8">
-            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-            <p class="text-gray-400 mt-2">Loading...</p>
-        </td></tr>
-    `;
-
-    const url = new URL(window.location);
-    url.searchParams.set('customers_page', page);
-    url.searchParams.set('section', 'customers');
-    window.history.pushState({}, '', url);
-
-    fetch('/admin/api/customers?page=' + page + '&per_page={{ per_page }}&t=' + Date.now())
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderCustomersTable(data.customers);
-                updateCustomersPagination(data);
-            } else {
-                showToast('❌ Failed to load customers', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error loading customers:', err);
-            showToast('❌ Error loading customers', 'error');
-        });
-}
-
-function renderCustomersTable(customers) {
-    const tbody = document.getElementById('customersTableBody');
-    if (!customers || customers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">No customers found</td></tr>`;
-        return;
-    }
-
-    let html = '';
-    customers.forEach(customer => {
-        html += `
-        <tr>
-            <td class="font-semibold text-[#0f172a] text-xs sm:text-sm">${customer.name}</td>
-            <td class="text-gray-600 text-xs sm:text-sm hidden sm:table-cell truncate max-w-[120px]">${customer.email || 'N/A'}</td>
-            <td class="text-gray-600 text-xs sm:text-sm hidden md:table-cell">${customer.phone || 'N/A'}</td>
-            <td class="text-center"><span class="badge badge-info text-[8px] sm:text-[10px]">${customer.orders || 0}</span></td>
-            <td class="text-right font-semibold text-blue-600 text-xs sm:text-sm">KSh ${(customer.total_spent || 0).toLocaleString()}</td>
-        </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-}
-
-function updateCustomersPagination(data) {
-    const container = document.getElementById('customersPaginationLinks');
-    const startEl = document.getElementById('customersStart');
-    const endEl = document.getElementById('customersEnd');
-    const totalEl = document.getElementById('customersTotal');
-
-    if (!container) return;
-
-    if (startEl) startEl.textContent = data.start || 1;
-    if (endEl) endEl.textContent = data.end || data.total;
-    if (totalEl) totalEl.textContent = data.total;
-
-    let html = '';
-    if (data.page > 1) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page - 1})"><i class="fas fa-chevron-left"></i></a>`;
-    }
-    for (let p = 1; p <= data.total_pages; p++) {
-        if (p === data.page) {
-            html += `<span class="page-link active text-[10px] sm:text-xs">${p}</span>`;
-        } else if (p <= data.page + 2 && p >= data.page - 2) {
-            html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${p})">${p}</a>`;
-        }
-    }
-    if (data.page < data.total_pages) {
-        html += `<a href="javascript:void(0)" class="page-link text-[10px] sm:text-xs" onclick="loadCustomersPage(${data.page + 1})"><i class="fas fa-chevron-right"></i></a>`;
-    }
-    container.innerHTML = html;
-}
-
-// ============================================================
-// DOCUMENT READY - INITIALIZE EVERYTHING
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Admin dashboard loading with search across all pages...');
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
-
-    if (section) {
-        console.log('📌 Loading section from URL:', section);
-        setTimeout(function() {
-            showSection(section);
-        }, 300);
-    }
-
-    loadAnalyticsData();
-    loadProfitability();
-    updateCreditStats();
-
-    setTimeout(initCharts, 800);
-    setTimeout(waitForChartJS, 500);
-    setTimeout(loadOfflineOrdersForDashboard, 2000);
-
-    // Online/offline event listeners
-    window.addEventListener('online', function() {
-        console.log('📡 Back online - checking for offline orders...');
-        showToast('🔄 Back online! Syncing orders...', 'info');
-        setTimeout(loadOfflineOrdersForDashboard, 2000);
-    });
-
-    // Resize handler for charts
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            updateChartsOnResize();
-        }, 300);
-    });
-
-    // Live time updates
-    function updateLiveTime() {
-        const now = new Date();
-        document.getElementById('liveTime').textContent = now.toLocaleTimeString();
-    }
-    updateLiveTime();
-    setInterval(updateLiveTime, 30000);
-
-    // Load counts
-    loadCreditCount();
-    loadSupplierCount();
-
-    // Fix collection rate to never exceed 100%
-    setTimeout(function() {
-        var rateEl = document.getElementById('creditCollectionRate');
-        if (rateEl) {
-            var currentText = rateEl.textContent;
-            var currentValue = parseFloat(currentText);
-            if (currentValue > 100) {
-                rateEl.textContent = '100%';
-                console.log('✅ Collection rate capped at 100% (was ' + currentValue + '%)');
-            }
-        }
-    }, 1000);
-
-    console.log('✅ Admin dashboard fully loaded with cross-page search!');
-});
-
-function loadCreditCount() {
-    fetch('/admin/api/credit/customers/count')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var countEl = document.getElementById('creditCount');
-                if (countEl) {
-                    countEl.textContent = data.total || 0;
-                }
-            }
-        })
-        .catch(err => console.error('Error loading credit count:', err));
-}
-
-function loadSupplierCount() {
-    fetch('/admin/api/suppliers/count')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var countEl = document.getElementById('supplierCount');
-                if (countEl) {
-                    countEl.textContent = data.total || 0;
-                }
-            }
-        })
-        .catch(err => console.error('Error loading supplier count:', err));
-}
-
-console.log('✅ Complete admin panel with search across all pages loaded!');
+console.log('✅ Admin dashboard loaded successfully with charts and profit tracking!');
 </script>
 {% endblock %}
