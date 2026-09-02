@@ -42,6 +42,10 @@ def add_credit_customer(customer_data):
             customer_data['total_purchases'] = 0
         if not customer_data.get('total_payments'):
             customer_data['total_payments'] = 0
+        if not customer_data.get('total_cost'):
+            customer_data['total_cost'] = 0
+        if not customer_data.get('total_profit'):
+            customer_data['total_profit'] = 0
         
         clean_data = {k: v for k, v in customer_data.items() if v is not None}
         
@@ -182,7 +186,7 @@ def delete_credit_customer(customer_id):
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
 # ============================================================
-# ✅ UPDATED: CREDIT PURCHASE WITH ORDER CREATION
+# ✅ COMPLETE: CREDIT PURCHASE WITH ORDER CREATION
 # ============================================================
 
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
@@ -437,11 +441,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             'user_id': staff_name,
             'user_name': staff_name,
             'user_role': 'admin',
-            'staff_name': staff_name,
-            'is_credit': True,
-            'credit_customer_id': customer_id,
-            'credit_transaction_id': transaction_id,
-            'payment_method': 'credit'
+            'staff_name': staff_name
         }
         
         print(f"📤 Creating credit order entry: {order_id}")
@@ -488,7 +488,6 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         import traceback
         traceback.print_exc()
         return {'success': False, 'message': str(e)}
-
 
 # ============================================================
 # CREDIT PAYMENT
@@ -591,7 +590,6 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         import traceback
         traceback.print_exc()
         return {'success': False, 'message': str(e)}
-
 
 # ============================================================
 # OFFLINE CREDIT ORDER SUPPORT
@@ -711,7 +709,6 @@ def sync_credit_orders_offline():
         print(f"❌ Error syncing credit orders: {e}")
         return {'success': False, 'message': str(e)}
 
-
 # ============================================================
 # TRANSACTION FUNCTIONS
 # ============================================================
@@ -775,7 +772,6 @@ def get_customer_balance(customer_id):
         print(f"❌ Error getting balance: {e}")
         return None
 
-
 # ============================================================
 # PROFIT TRACKING FUNCTIONS
 # ============================================================
@@ -820,7 +816,7 @@ def get_customer_profit_summary(customer_id):
         return {'success': False, 'message': str(e)}
 
 # ============================================================
-# SUMMARY FUNCTIONS WITH COLLECTION RATE CAPPED AT 100%
+# SUMMARY FUNCTIONS
 # ============================================================
 
 def get_all_credit_profit_summary():
