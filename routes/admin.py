@@ -1947,24 +1947,23 @@ def api_process_return():
 
 # ============================================================
 # ANALYTICS API - MERGED WITH CREDIT
-# ============================================================
-
 @admin_bp.route('/admin/api/analytics')
 def admin_api_analytics():
     if not session.get('admin_logged_in'):
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # Get regular orders
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
     
+    # ✅ Preserve monthly_data and product_sales
+    monthly_data = analytics.get('monthly_data', {})
+    product_sales = analytics.get('product_sales', {})
+    
     # ADD CREDIT DATA
     try:
-        from utils.credit import get_all_credit_transactions, get_all_credit_customers
+        from utils.credit import get_all_credit_transactions
         
-        # Get credit transactions
         credit_transactions = get_all_credit_transactions()
-        credit_customers = get_all_credit_customers()
         
         credit_sales = 0
         credit_cost = 0
@@ -1980,20 +1979,37 @@ def admin_api_analytics():
                 credit_profit += profit
         
         # Merge with regular orders
-        analytics['total_revenue'] = analytics.get('total_revenue', 0) + credit_sales
-        analytics['total_cost'] = analytics.get('total_cost', 0) + credit_cost
-        analytics['total_profit'] = analytics.get('total_profit', 0) + credit_profit
+        total_revenue = analytics.get('total_revenue', 0) + credit_sales
+        total_cost = analytics.get('total_cost', 0) + credit_cost
+        total_profit = analytics.get('total_profit', 0) + credit_profit
         
-        # Add credit breakdown
+        # ✅ PRESERVE monthly_data and product_sales
+        analytics['monthly_data'] = monthly_data
+        analytics['product_sales'] = product_sales
+        analytics['total_revenue'] = total_revenue
+        analytics['total_cost'] = total_cost
+        analytics['total_profit'] = total_profit
         analytics['credit_sales'] = credit_sales
         analytics['credit_cost'] = credit_cost
         analytics['credit_profit'] = credit_profit
-        analytics['cash_sales'] = analytics.get('total_revenue', 0) - credit_sales
+        analytics['cash_sales'] = total_revenue - credit_sales
         
-        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Cost: KSh {credit_cost}, Profit: KSh {credit_profit}, Total: KSh {analytics['total_revenue']}")
+        # ✅ Calculate percentages
+        if total_revenue > 0:
+            analytics['credit_percentage'] = round((credit_sales / total_revenue) * 100, 2)
+            analytics['profit_margin'] = round((total_profit / total_revenue) * 100, 2)
+        else:
+            analytics['credit_percentage'] = 0
+            analytics['profit_margin'] = 0
+        
+        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Total: KSh {total_revenue}, Margin: {analytics['profit_margin']}%")
+        print(f"📊 Monthly data keys: {list(monthly_data.keys())}")
+        print(f"📊 Product sales count: {len(product_sales)}")
         
     except Exception as e:
         print(f"⚠️ Error merging credit data: {e}")
+        import traceback
+        traceback.print_exc()
     
     return jsonify(analytics)
 
@@ -2145,10 +2161,11 @@ def calculate_analytics_from_orders(orders):
     category_sales = {}
     monthly_data = {}
 
-    for order in orders:
-        if order.get('status') == 'cancelled':
-            continue
+    # ✅ FIX: Filter active orders only
+    ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+    active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
 
+    for order in active_orders:
         if order.get('source') == 'pos':
             pos_orders_count += 1
         else:
@@ -2264,6 +2281,7 @@ def calculate_analytics_from_orders(orders):
         monthly_data[month_key]['cost'] += order_cost
         monthly_data[month_key]['profit'] += (order_total - order_cost)
 
+    # ✅ Calculate margins
     for product in product_sales.values():
         if product['revenue'] > 0:
             product['margin'] = round((product['profit'] / product['revenue']) * 100, 1)
@@ -2287,7 +2305,7 @@ def calculate_analytics_from_orders(orders):
         'total_revenue': total_revenue,
         'total_cost': total_cost,
         'total_profit': total_profit,
-        'total_orders': len(orders),
+        'total_orders': len(active_orders),
         'total_items_sold': total_items_sold,
         'pos_orders_count': pos_orders_count,
         'web_orders_count': web_orders_count,
