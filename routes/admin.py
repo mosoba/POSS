@@ -167,7 +167,7 @@ def admin_logout():
     return redirect(url_for('admin.user_login'))
 
 # ============================================================
-# ✅ ENHANCED PRODUCT SEARCH API - SEARCH ACROSS ALL PAGES
+# PRODUCT SEARCH API
 # ============================================================
 
 @admin_bp.route('/admin/api/products/search', methods=['GET'])
@@ -187,14 +187,12 @@ def api_product_search():
         results = []
         
         for product in all_products:
-            # Safe string conversion for all fields
             name = str(product.get('name', '')).lower()
             category = str(product.get('category', '')).lower()
             description = str(product.get('description', '')).lower()
             barcode = str(product.get('barcode', '')).lower()
             product_id = str(product.get('id', '')).lower()
             
-            # Get stock safely
             stock = product.get('stock', 0)
             if isinstance(stock, str):
                 try:
@@ -204,19 +202,16 @@ def api_product_search():
             if stock is None:
                 stock = 0
             
-            # Apply stock filters
             if filter_low_stock and stock >= 10:
                 continue
             if filter_out_of_stock and stock > 0:
                 continue
             
-            # If no query, just return filtered results
             if not query:
                 product['_stock'] = stock
                 results.append(product)
                 continue
             
-            # Handle specs safely
             specs = product.get('specs')
             specs_match = False
             if specs is not None:
@@ -226,7 +221,6 @@ def api_product_search():
                 else:
                     specs_match = query_lower in str(specs).lower()
             
-            # Check all fields
             name_match = query_lower in name
             category_match = query_lower in category
             desc_match = query_lower in description
@@ -234,7 +228,6 @@ def api_product_search():
             id_match = query_lower in product_id
             
             if name_match or category_match or desc_match or barcode_match or id_match or specs_match:
-                # Add relevance score
                 score = 0
                 if name_match:
                     score += 10
@@ -255,7 +248,6 @@ def api_product_search():
                 product['_stock'] = stock
                 results.append(product)
         
-        # Sort by relevance (or stock for low stock filter)
         if query:
             results.sort(key=lambda x: x.get('_score', 0), reverse=True)
         elif filter_low_stock or filter_out_of_stock:
@@ -263,16 +255,11 @@ def api_product_search():
         else:
             results.sort(key=lambda x: x.get('name', ''))
         
-        # Remove temporary fields
         for r in results:
             r.pop('_score', None)
             r.pop('_stock', None)
         
         results = results[:limit]
-        
-        print(f"✅ Found {len(results)} products matching query" + 
-              (f" with low stock" if filter_low_stock else "") +
-              (f" out of stock" if filter_out_of_stock else ""))
         
         return jsonify({
             'success': True,
@@ -296,7 +283,7 @@ def api_product_search():
         }), 500
 
 # ============================================================
-# ✅ ENHANCED PRODUCTS API WITH PAGINATION AND FILTERS
+# PRODUCTS API WITH PAGINATION AND FILTERS
 # ============================================================
 
 @admin_bp.route('/admin/api/products', methods=['GET'])
@@ -312,12 +299,10 @@ def api_products_paginated():
         
         all_products = load_products()
         
-        # Apply filters
         filtered_products = []
         search_lower = search.lower() if search else ''
         
         for product in all_products:
-            # Get stock safely
             stock = product.get('stock', 0)
             if isinstance(stock, str):
                 try:
@@ -327,13 +312,11 @@ def api_products_paginated():
             if stock is None:
                 stock = 0
             
-            # Apply stock filters
             if filter_low_stock and stock >= 10:
                 continue
             if filter_out_of_stock and stock > 0:
                 continue
             
-            # Apply search filter
             if search:
                 name = str(product.get('name', '')).lower()
                 category = str(product.get('category', '')).lower()
@@ -350,7 +333,6 @@ def api_products_paginated():
             
             filtered_products.append(product)
         
-        # Sort by stock if low stock filter is applied
         if filter_low_stock or filter_out_of_stock:
             filtered_products.sort(key=lambda x: x.get('stock', 0))
         else:
@@ -381,7 +363,7 @@ def api_products_paginated():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ✅ LOW STOCK PRODUCTS API
+# LOW STOCK PRODUCTS API
 # ============================================================
 
 @admin_bp.route('/admin/api/products/low-stock', methods=['GET'])
@@ -408,7 +390,6 @@ def api_low_stock_products():
             elif stock < 10:
                 low_stock.append(product)
         
-        # Sort by stock (lowest first)
         low_stock.sort(key=lambda x: x.get('stock', 0))
         out_of_stock.sort(key=lambda x: x.get('name', ''))
         
@@ -1150,17 +1131,14 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # Check if items is a list or string
         items_data = data.get('items', '')
         print(f"📦 Items type: {type(items_data)}")
         print(f"📦 Items: {items_data}")
         
-        # If items is a list, use it directly
         if isinstance(items_data, list):
             items_list = items_data
             print(f"📦 Items is a LIST: {items_list}")
         else:
-            # If it's a string, parse it
             items_str = items_data
             items_list = []
             for item_str in items_str.split(', '):
@@ -1169,7 +1147,6 @@ def api_record_credit_purchase():
                     product_name = match.group(1).strip()
                     quantity = int(match.group(2))
                     
-                    # Find product in database
                     prod_response = requests.get(
                         f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
                         headers=Config.SUPABASE_HEADERS,
@@ -1258,7 +1235,6 @@ def api_record_credit_payment():
         customer_id = data['customer_id']
         amount = float(data['amount'])
         
-        # ✅ FIX: Check if payment exceeds balance
         balance_info = get_customer_balance(customer_id)
         if balance_info:
             current_balance = balance_info.get('current_balance', 0)
@@ -1364,6 +1340,194 @@ def api_update_credit_transaction(transaction_id):
             
     except Exception as e:
         print(f"❌ Error updating transaction: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# SYNC EXISTING CREDIT TRANSACTIONS TO ORDERS
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/sync-to-orders', methods=['POST'])
+@admin_required
+def sync_credit_to_orders():
+    """Sync existing credit transactions to orders table"""
+    try:
+        import json
+        from datetime import datetime
+        import uuid
+        
+        print("🔄 Syncing existing credit transactions to orders...")
+        
+        # Get all credit transactions
+        tx_response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        if tx_response.status_code != 200:
+            return jsonify({
+                'success': False, 
+                'message': f'Failed to fetch credit transactions: {tx_response.status_code}'
+            }), 500
+        
+        credit_transactions = tx_response.json()
+        print(f"📦 Found {len(credit_transactions)} credit transactions")
+        
+        # Filter only purchase transactions
+        purchases = [t for t in credit_transactions if t.get('transaction_type') == 'purchase']
+        print(f"🛒 Found {len(purchases)} purchase transactions")
+        
+        if not purchases:
+            return jsonify({
+                'success': True,
+                'synced': 0,
+                'failed': 0,
+                'skipped': 0,
+                'message': 'No purchase transactions found to sync'
+            })
+        
+        # Get credit customers
+        customer_response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?select=customer_id,full_name,phone",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        customer_map = {}
+        if customer_response.status_code == 200:
+            for c in customer_response.json():
+                customer_map[c['customer_id']] = {
+                    'name': c.get('full_name', 'Credit Customer'),
+                    'phone': c.get('phone', '')
+                }
+        print(f"👤 Found {len(customer_map)} credit customers")
+        
+        synced = 0
+        failed = 0
+        skipped = 0
+        
+        for tx in purchases:
+            transaction_id = tx.get('transaction_id')
+            customer_id = tx.get('customer_id')
+            amount = float(tx.get('amount', 0))
+            
+            # Check if order already exists
+            check_response = requests.get(
+                f"{Config.SUPABASE_URL}/rest/v1/orders?credit_transaction_id=eq.{transaction_id}",
+                headers=Config.SUPABASE_HEADERS,
+                timeout=10
+            )
+            
+            if check_response.status_code == 200 and check_response.json():
+                print(f"⏭️ Order already exists for {transaction_id}")
+                skipped += 1
+                continue
+            
+            customer_info = customer_map.get(customer_id, {
+                'name': 'Credit Customer',
+                'phone': ''
+            })
+            
+            order_id = f"CREDIT-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+            
+            # Parse items
+            items = tx.get('items', [])
+            if isinstance(items, str):
+                try:
+                    items = json.loads(items)
+                except:
+                    items = []
+            
+            # Ensure items have proper structure
+            formatted_items = []
+            if items and isinstance(items, list):
+                for item in items:
+                    if isinstance(item, dict):
+                        formatted_items.append({
+                            'product_id': item.get('product_id', ''),
+                            'name': item.get('name', 'Unknown Product'),
+                            'price': float(item.get('price', 0)),
+                            'quantity': int(item.get('quantity', 1)),
+                            'total': float(item.get('price', 0)) * int(item.get('quantity', 1)),
+                            'cost_price': float(item.get('cost_price', 0))
+                        })
+            else:
+                # If no items, create a generic item
+                formatted_items.append({
+                    'product_id': '',
+                    'name': 'Credit Purchase',
+                    'price': amount,
+                    'quantity': 1,
+                    'total': amount,
+                    'cost_price': amount * 0.65
+                })
+            
+            order_data = {
+                'order_id': order_id,
+                'items': formatted_items,
+                'subtotal': amount,
+                'shipping': 0,
+                'total': amount,
+                'status': 'confirmed',
+                'source': 'credit',
+                'created_at': tx.get('created_at', datetime.utcnow().isoformat()),
+                'customer_name': customer_info.get('name', 'Credit Customer'),
+                'customer_email': f"credit_{customer_id}@example.com",
+                'customer_phone': customer_info.get('phone', ''),
+                'customer_address': 'Credit Purchase',
+                'customer': {
+                    'name': customer_info.get('name', 'Credit Customer'),
+                    'email': f"credit_{customer_id}@example.com",
+                    'phone': customer_info.get('phone', ''),
+                    'address': 'Credit Purchase'
+                },
+                'user_id': tx.get('staff_name', 'System'),
+                'user_name': tx.get('staff_name', 'System'),
+                'user_role': 'admin',
+                'staff_name': tx.get('staff_name', 'System'),
+                'is_credit': True,
+                'credit_customer_id': customer_id,
+                'credit_transaction_id': transaction_id,
+                'payment_method': 'credit'
+            }
+            
+            print(f"📤 Creating order for transaction: {transaction_id}")
+            
+            order_response = requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/orders",
+                headers=Config.SUPABASE_HEADERS,
+                json=order_data,
+                timeout=15
+            )
+            
+            if order_response.status_code in [200, 201]:
+                synced += 1
+                print(f"✅ Created order: {order_id}")
+            else:
+                failed += 1
+                print(f"❌ Failed to create order: {order_response.status_code} - {order_response.text[:100]}")
+        
+        # Clear caches
+        try:
+            import utils.data
+            utils.data.orders_cache = []
+            utils.data.products_cache = []
+        except:
+            pass
+        
+        return jsonify({
+            'success': True,
+            'synced': synced,
+            'failed': failed,
+            'skipped': skipped,
+            'total_purchases': len(purchases),
+            'message': f'✅ Synced {synced} credit orders, {failed} failed, {skipped} already existed'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error syncing credit to orders: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1638,7 +1802,7 @@ def admin_pos():
     )
 
 # ============================================================
-# POS ORDER ROUTE - WITH COST PRICE
+# POS ORDER ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -1696,7 +1860,6 @@ def admin_pos_place_order():
                     products = response.json()
                     if products and len(products) > 0:
                         product = products[0]
-                        # SAVE COST PRICE TO ORDER ITEM
                         item['cost_price'] = product.get('cost_price', 0)
                         
                         current_stock = product.get('stock', 0)
@@ -2062,7 +2225,7 @@ def api_process_return():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 # ============================================================
-# ✅ UPDATED: ANALYTICS API - MERGED WITH CREDIT ORDERS
+# ANALYTICS API
 # ============================================================
 
 @admin_bp.route('/admin/api/analytics')
@@ -2073,283 +2236,57 @@ def admin_api_analytics():
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
     
-    # ✅ Preserve monthly_data and product_sales
     monthly_data = analytics.get('monthly_data', {})
     product_sales = analytics.get('product_sales', {})
     
-    return jsonify(analytics)
-
-# ============================================================
-# ✅ UPDATED: CALCULATE ANALYTICS - INCLUDES CREDIT ORDERS
-# ============================================================
-
-def calculate_analytics_from_orders(orders):
-    """Calculate analytics from orders including credit orders"""
-    
-    # Load ALL orders including credit orders
-    all_orders = load_orders()
-    
-    # Also get credit transactions and add them as virtual orders
+    # ADD CREDIT DATA
     try:
-        credit_response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=10
-        )
+        from utils.credit import get_all_credit_transactions
         
-        if credit_response.status_code == 200:
-            credit_transactions = credit_response.json()
-            credit_orders = []
-            
-            # Get credit customers for names
-            customer_response = requests.get(
-                f"{Config.SUPABASE_URL}/rest/v1/credit_customers?select=customer_id,full_name,phone",
-                headers=Config.SUPABASE_HEADERS,
-                timeout=10
-            )
-            customer_map = {}
-            if customer_response.status_code == 200:
-                for c in customer_response.json():
-                    customer_map[c['customer_id']] = {
-                        'name': c.get('full_name', 'Credit Customer'),
-                        'phone': c.get('phone', '')
-                    }
-            
-            # Convert credit transactions to virtual orders
-            for tx in credit_transactions:
-                if tx.get('transaction_type') == 'purchase':
-                    customer_info = customer_map.get(tx.get('customer_id'), {
-                        'name': 'Credit Customer',
-                        'phone': ''
-                    })
-                    
-                    # Check if order already exists in orders table
-                    existing_order = None
-                    for o in all_orders:
-                        if o.get('credit_transaction_id') == tx.get('transaction_id'):
-                            existing_order = o
-                            break
-                    
-                    if not existing_order:
-                        # Create virtual credit order
-                        credit_order = {
-                            'order_id': tx.get('transaction_id', f"CREDIT-{tx.get('id')}"),
-                            'items': tx.get('items', []),
-                            'subtotal': tx.get('amount', 0),
-                            'shipping': 0,
-                            'total': tx.get('amount', 0),
-                            'status': 'confirmed',
-                            'source': 'credit',
-                            'created_at': tx.get('created_at', datetime.utcnow().isoformat()),
-                            'customer_name': customer_info.get('name', 'Credit Customer'),
-                            'customer_email': f"credit_{tx.get('customer_id')}@example.com",
-                            'customer_phone': customer_info.get('phone', ''),
-                            'customer_address': 'Credit Purchase',
-                            'user_name': tx.get('staff_name', 'System'),
-                            'is_credit': True,
-                            'credit_transaction_id': tx.get('transaction_id'),
-                            'credit_customer_id': tx.get('customer_id'),
-                            'payment_method': 'credit',
-                            'customer': {
-                                'name': customer_info.get('name', 'Credit Customer'),
-                                'email': f"credit_{tx.get('customer_id')}@example.com",
-                                'phone': customer_info.get('phone', ''),
-                                'address': 'Credit Purchase'
-                            }
-                        }
-                        credit_orders.append(credit_order)
-            
-            # Merge credit orders with regular orders
-            all_orders = all_orders + credit_orders
-            print(f"✅ Merged {len(credit_orders)} credit orders into analytics")
-            
-    except Exception as e:
-        print(f"⚠️ Error loading credit transactions for analytics: {e}")
-    
-    if not all_orders:
-        return {
-            'total_revenue': 0,
-            'total_cost': 0,
-            'total_profit': 0,
-            'total_orders': 0,
-            'total_items_sold': 0,
-            'pos_orders_count': 0,
-            'web_orders_count': 0,
-            'credit_orders_count': 0,
-            'product_sales': {},
-            'category_sales': {},
-            'monthly_data': {}
-        }
-
-    products = load_products()
-    product_lookup = {str(p.get('id')): p for p in products if p and p.get('id')}
-
-    total_revenue = 0
-    total_cost = 0
-    total_profit = 0
-    total_items_sold = 0
-    pos_orders_count = 0
-    web_orders_count = 0
-    credit_orders_count = 0
-    product_sales = {}
-    category_sales = {}
-    monthly_data = {}
-
-    # ✅ Filter active orders only
-    ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
-    active_orders = [o for o in all_orders if o.get('status', '') in ACTIVE_STATUSES]
-
-    for order in active_orders:
-        if order.get('source') == 'pos':
-            pos_orders_count += 1
-        elif order.get('source') == 'credit':
-            credit_orders_count += 1
+        credit_transactions = get_all_credit_transactions()
+        
+        credit_sales = 0
+        credit_cost = 0
+        credit_profit = 0
+        
+        for tx in credit_transactions:
+            if tx.get('transaction_type') == 'purchase':
+                amount = float(tx.get('amount', 0))
+                cost = float(tx.get('total_cost', 0))
+                profit = float(tx.get('profit', 0))
+                credit_sales += amount
+                credit_cost += cost
+                credit_profit += profit
+        
+        total_revenue = analytics.get('total_revenue', 0) + credit_sales
+        total_cost = analytics.get('total_cost', 0) + credit_cost
+        total_profit = analytics.get('total_profit', 0) + credit_profit
+        
+        analytics['monthly_data'] = monthly_data
+        analytics['product_sales'] = product_sales
+        analytics['total_revenue'] = total_revenue
+        analytics['total_cost'] = total_cost
+        analytics['total_profit'] = total_profit
+        analytics['credit_sales'] = credit_sales
+        analytics['credit_cost'] = credit_cost
+        analytics['credit_profit'] = credit_profit
+        analytics['cash_sales'] = total_revenue - credit_sales
+        
+        if total_revenue > 0:
+            analytics['credit_percentage'] = round((credit_sales / total_revenue) * 100, 2)
+            analytics['profit_margin'] = round((total_profit / total_revenue) * 100, 2)
         else:
-            web_orders_count += 1
-
-        created_at = order.get('created_at', '')
-        month_key = 'Unknown'
-        if created_at:
-            try:
-                if isinstance(created_at, str):
-                    if 'T' in created_at:
-                        clean = created_at.replace('Z', '').replace('+00:00', '')
-                        if '.' in clean:
-                            dt = datetime.fromisoformat(clean)
-                        else:
-                            dt = datetime.strptime(clean[:10], '%Y-%m-%d')
-                    elif ' ' in created_at:
-                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
-                    else:
-                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
-                elif isinstance(created_at, datetime):
-                    dt = created_at
-                else:
-                    dt = datetime.utcnow()
-                month_key = dt.strftime('%b %Y')
-            except:
-                month_key = 'Unknown'
-
-        if month_key not in monthly_data:
-            monthly_data[month_key] = {
-                'orders': 0,
-                'items': 0,
-                'revenue': 0,
-                'cost': 0,
-                'profit': 0,
-                'margin': 0
-            }
-        monthly_data[month_key]['orders'] += 1
-
-        order_total = 0
-        order_cost = 0
-        order_items = 0
-
-        for item in order.get('items', []):
-            quantity = item.get('quantity', 1)
-            price = float(item.get('price', 0) or 0)
-            total_items_sold += quantity
-            order_items += quantity
-
-            item_total = price * quantity
-            order_total += item_total
-            total_revenue += item_total
-
-            cost_price = 0
-
-            if 'cost_price' in item:
-                try:
-                    cost_price = float(item.get('cost_price', 0) or 0)
-                except (ValueError, TypeError):
-                    cost_price = 0
-
-            if cost_price == 0:
-                product_id = item.get('product_id', '')
-                if product_id:
-                    product = product_lookup.get(product_id, {})
-                    if product:
-                        cost_price = float(product.get('cost_price', 0) or 0)
-
-            if cost_price == 0 and price > 0:
-                cost_price = price * 0.65
-
-            item_cost = cost_price * quantity
-            order_cost += item_cost
-            total_cost += item_cost
-            total_profit += (item_total - item_cost)
-
-            product_id = item.get('product_id', '')
-            category = 'Uncategorized'
-            if product_id:
-                product = product_lookup.get(product_id, {})
-                if product and product.get('category'):
-                    category = product.get('category')
-
-            product_name = item.get('name', 'Unknown Product')
-            if product_name not in product_sales:
-                product_sales[product_name] = {
-                    'quantity': 0,
-                    'revenue': 0,
-                    'cost': 0,
-                    'profit': 0,
-                    'margin': 0
-                }
-            product_sales[product_name]['quantity'] += quantity
-            product_sales[product_name]['revenue'] += item_total
-            product_sales[product_name]['cost'] += item_cost
-            product_sales[product_name]['profit'] += (item_total - item_cost)
-
-            if category not in category_sales:
-                category_sales[category] = {
-                    'quantity': 0,
-                    'revenue': 0,
-                    'cost': 0,
-                    'profit': 0,
-                    'margin': 0
-                }
-            category_sales[category]['quantity'] += quantity
-            category_sales[category]['revenue'] += item_total
-            category_sales[category]['cost'] += item_cost
-            category_sales[category]['profit'] += (item_total - item_cost)
-
-        monthly_data[month_key]['items'] += order_items
-        monthly_data[month_key]['revenue'] += order_total
-        monthly_data[month_key]['cost'] += order_cost
-        monthly_data[month_key]['profit'] += (order_total - order_cost)
-
-    # ✅ Calculate margins
-    for product in product_sales.values():
-        if product['revenue'] > 0:
-            product['margin'] = round((product['profit'] / product['revenue']) * 100, 1)
-
-    for category in category_sales.values():
-        if category['revenue'] > 0:
-            category['margin'] = round((category['profit'] / category['revenue']) * 100, 1)
-
-    for month in monthly_data.values():
-        if month['revenue'] > 0:
-            month['margin'] = round((month['profit'] / month['revenue']) * 100, 1)
-
-    sorted_products = sorted(
-        product_sales.items(),
-        key=lambda x: x[1]['profit'],
-        reverse=True
-    )
-    product_sales = dict(sorted_products)
-
-    return {
-        'total_revenue': total_revenue,
-        'total_cost': total_cost,
-        'total_profit': total_profit,
-        'total_orders': len(active_orders),
-        'total_items_sold': total_items_sold,
-        'pos_orders_count': pos_orders_count,
-        'web_orders_count': web_orders_count,
-        'credit_orders_count': credit_orders_count,
-        'product_sales': product_sales,
-        'category_sales': category_sales,
-        'monthly_data': monthly_data
-    }
+            analytics['credit_percentage'] = 0
+            analytics['profit_margin'] = 0
+        
+        print(f"✅ Merged Analytics: Cash: KSh {analytics['cash_sales']}, Credit: KSh {credit_sales}, Total: KSh {total_revenue}, Margin: {analytics['profit_margin']}%")
+        
+    except Exception as e:
+        print(f"⚠️ Error merging credit data: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return jsonify(analytics)
 
 # ============================================================
 # REVENUE API
@@ -2468,6 +2405,194 @@ def admin_api_revenue():
         print(f'❌ Revenue API error: {exc}')
         traceback.print_exc()
         return jsonify({"error": str(exc)}), 500
+
+# ============================================================
+# CALCULATE ANALYTICS
+# ============================================================
+
+def calculate_analytics_from_orders(orders):
+    if not orders:
+        return {
+            'total_revenue': 0,
+            'total_cost': 0,
+            'total_profit': 0,
+            'total_orders': 0,
+            'total_items_sold': 0,
+            'pos_orders_count': 0,
+            'web_orders_count': 0,
+            'credit_orders_count': 0,
+            'product_sales': {},
+            'category_sales': {},
+            'monthly_data': {}
+        }
+
+    products = load_products()
+    product_lookup = {str(p.get('id')): p for p in products if p and p.get('id')}
+
+    total_revenue = 0
+    total_cost = 0
+    total_profit = 0
+    total_items_sold = 0
+    pos_orders_count = 0
+    web_orders_count = 0
+    credit_orders_count = 0
+    product_sales = {}
+    category_sales = {}
+    monthly_data = {}
+
+    ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+    active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
+
+    for order in active_orders:
+        if order.get('source') == 'pos':
+            pos_orders_count += 1
+        elif order.get('source') == 'credit':
+            credit_orders_count += 1
+        else:
+            web_orders_count += 1
+
+        created_at = order.get('created_at', '')
+        month_key = 'Unknown'
+        if created_at:
+            try:
+                if isinstance(created_at, str):
+                    if 'T' in created_at:
+                        clean = created_at.replace('Z', '').replace('+00:00', '')
+                        if '.' in clean:
+                            dt = datetime.fromisoformat(clean)
+                        else:
+                            dt = datetime.strptime(clean[:10], '%Y-%m-%d')
+                    elif ' ' in created_at:
+                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                    else:
+                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                elif isinstance(created_at, datetime):
+                    dt = created_at
+                else:
+                    dt = datetime.utcnow()
+                month_key = dt.strftime('%b %Y')
+            except:
+                month_key = 'Unknown'
+
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'orders': 0,
+                'items': 0,
+                'revenue': 0,
+                'cost': 0,
+                'profit': 0,
+                'margin': 0
+            }
+        monthly_data[month_key]['orders'] += 1
+
+        order_total = 0
+        order_cost = 0
+        order_items = 0
+
+        for item in order.get('items', []):
+            quantity = item.get('quantity', 1)
+            price = float(item.get('price', 0) or 0)
+            total_items_sold += quantity
+            order_items += quantity
+
+            item_total = price * quantity
+            order_total += item_total
+            total_revenue += item_total
+
+            cost_price = 0
+
+            if 'cost_price' in item:
+                try:
+                    cost_price = float(item.get('cost_price', 0) or 0)
+                except (ValueError, TypeError):
+                    cost_price = 0
+
+            if cost_price == 0:
+                product_id = item.get('product_id', '')
+                if product_id:
+                    product = product_lookup.get(product_id, {})
+                    if product:
+                        cost_price = float(product.get('cost_price', 0) or 0)
+
+            if cost_price == 0 and price > 0:
+                cost_price = price * 0.7
+
+            item_cost = cost_price * quantity
+            order_cost += item_cost
+            total_cost += item_cost
+            total_profit += (item_total - item_cost)
+
+            product_id = item.get('product_id', '')
+            category = 'Uncategorized'
+            if product_id:
+                product = product_lookup.get(product_id, {})
+                if product and product.get('category'):
+                    category = product.get('category')
+
+            product_name = item.get('name', 'Unknown Product')
+            if product_name not in product_sales:
+                product_sales[product_name] = {
+                    'quantity': 0,
+                    'revenue': 0,
+                    'cost': 0,
+                    'profit': 0,
+                    'margin': 0
+                }
+            product_sales[product_name]['quantity'] += quantity
+            product_sales[product_name]['revenue'] += item_total
+            product_sales[product_name]['cost'] += item_cost
+            product_sales[product_name]['profit'] += (item_total - item_cost)
+
+            if category not in category_sales:
+                category_sales[category] = {
+                    'quantity': 0,
+                    'revenue': 0,
+                    'cost': 0,
+                    'profit': 0,
+                    'margin': 0
+                }
+            category_sales[category]['quantity'] += quantity
+            category_sales[category]['revenue'] += item_total
+            category_sales[category]['cost'] += item_cost
+            category_sales[category]['profit'] += (item_total - item_cost)
+
+        monthly_data[month_key]['items'] += order_items
+        monthly_data[month_key]['revenue'] += order_total
+        monthly_data[month_key]['cost'] += order_cost
+        monthly_data[month_key]['profit'] += (order_total - order_cost)
+
+    for product in product_sales.values():
+        if product['revenue'] > 0:
+            product['margin'] = round((product['profit'] / product['revenue']) * 100, 1)
+
+    for category in category_sales.values():
+        if category['revenue'] > 0:
+            category['margin'] = round((category['profit'] / category['revenue']) * 100, 1)
+
+    for month in monthly_data.values():
+        if month['revenue'] > 0:
+            month['margin'] = round((month['profit'] / month['revenue']) * 100, 1)
+
+    sorted_products = sorted(
+        product_sales.items(),
+        key=lambda x: x[1]['profit'],
+        reverse=True
+    )
+    product_sales = dict(sorted_products)
+
+    return {
+        'total_revenue': total_revenue,
+        'total_cost': total_cost,
+        'total_profit': total_profit,
+        'total_orders': len(active_orders),
+        'total_items_sold': total_items_sold,
+        'pos_orders_count': pos_orders_count,
+        'web_orders_count': web_orders_count,
+        'credit_orders_count': credit_orders_count,
+        'product_sales': product_sales,
+        'category_sales': category_sales,
+        'monthly_data': monthly_data
+    }
 
 # ============================================================
 # API ROUTES - LEGACY SUPPORT
@@ -2690,7 +2815,6 @@ def api_sales_stats():
 
         total_products = len(products)
         
-        # Count low stock
         low_stock_count = 0
         out_of_stock_count = 0
         for p in products:
