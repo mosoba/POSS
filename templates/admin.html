@@ -2617,10 +2617,141 @@ function loadAnalyticsData() {
             return response.json();
         })
         .then(function(data) {
-            // ... update all the charts and tables
+            console.log('✅ Analytics data loaded:', data);
+
+            var totalRevenue = data.total_revenue || 0;
+            var totalCost = data.total_cost || 0;
+            var totalProfit = data.total_profit || 0;
+            var creditSales = data.credit_sales || 0;
+            var cashSales = totalRevenue - creditSales;
+
+            // Update main stats cards
+            var el = document.getElementById('totalRevenue');
+            if (el) el.textContent = 'KSh ' + totalRevenue.toLocaleString();
+            
+            el = document.getElementById('totalCost');
+            if (el) el.textContent = 'KSh ' + totalCost.toLocaleString();
+            
+            el = document.getElementById('totalProfit');
+            if (el) el.textContent = 'KSh ' + totalProfit.toLocaleString();
+            
+            el = document.getElementById('totalOrders');
+            if (el) el.textContent = data.total_orders || 0;
+
+            // Sales Breakdown
+            el = document.getElementById('cashSales');
+            if (el) el.textContent = 'KSh ' + cashSales.toLocaleString();
+            
+            el = document.getElementById('creditSales');
+            if (el) el.textContent = 'KSh ' + creditSales.toLocaleString();
+            
+            el = document.getElementById('totalRevenueMerged');
+            if (el) el.textContent = 'KSh ' + totalRevenue.toLocaleString();
+
+            var creditPercentage = totalRevenue > 0 ? ((creditSales / totalRevenue) * 100).toFixed(1) : 0;
+            el = document.getElementById('creditPercentage');
+            if (el) el.textContent = creditPercentage + '%';
+
+            // Profit Overview
+            el = document.getElementById('revRevenue');
+            if (el) el.textContent = 'KSh ' + totalRevenue.toLocaleString();
+            
+            el = document.getElementById('revProfit');
+            if (el) el.textContent = 'KSh ' + totalProfit.toLocaleString();
+
+            var profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
+            el = document.getElementById('profitMarginDisplay');
+            if (el) el.textContent = profitMargin + '%';
+
+            // Monthly Table
+            var monthlyTable = document.getElementById('monthlyTable');
+            if (monthlyTable && data.monthly_data) {
+                var months = Object.keys(data.monthly_data).sort();
+                if (months.length > 0) {
+                    var html = '';
+                    for (var i = 0; i < months.length; i++) {
+                        var month = months[i];
+                        var m = data.monthly_data[month];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold">' + month + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.orders || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (m.items || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (m.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (m.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (m.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (m.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
+                    monthlyTable.innerHTML = html;
+                } else {
+                    monthlyTable.innerHTML = '<tr><td colspan="7" class="text-center py-6 sm:py-8 text-gray-400">No monthly data available</td></tr>';
+                }
+            }
+
+            // Products Table
+            var productTable = document.getElementById('productTable');
+            if (productTable && data.product_sales) {
+                var productNames = Object.keys(data.product_sales);
+                if (productNames.length > 0) {
+                    var html = '';
+                    var count = Math.min(productNames.length, 10);
+                    for (var j = 0; j < count; j++) {
+                        var name = productNames[j];
+                        var p = data.product_sales[name];
+                        html += '<tr>' +
+                            '<td class="text-xs sm:text-sm font-semibold text-[#0f172a]">' + name + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm">' + (p.quantity || 0) + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-green-600">KSh ' + (p.revenue || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm text-gray-500">KSh ' + (p.cost || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-purple-600">KSh ' + (p.profit || 0).toLocaleString() + '</td>' +
+                            '<td class="text-right text-xs sm:text-sm font-semibold text-blue-600">' + (p.margin || 0) + '%</td>' +
+                        '</tr>';
+                    }
+                    productTable.innerHTML = html;
+                } else {
+                    productTable.innerHTML = '<tr><td colspan="6" class="text-center py-6 sm:py-8 text-gray-400">No products sold yet</td></tr>';
+                }
+            }
+
+            // Update charts if they exist
+            if (typeof revenueChart !== 'undefined' && revenueChart && data.monthly_data) {
+                try {
+                    var months = Object.keys(data.monthly_data).sort();
+                    var revenueValues = [];
+                    for (var k = 0; k < months.length; k++) {
+                        revenueValues.push(data.monthly_data[months[k]].revenue || 0);
+                    }
+                    revenueChart.data.labels = months;
+                    revenueChart.data.datasets[0].data = revenueValues;
+                    revenueChart.update();
+                } catch(e) {
+                    console.log('⚠️ Could not update revenue chart:', e);
+                }
+            }
+
+            if (typeof categoryChart !== 'undefined' && categoryChart && data.category_sales) {
+                try {
+                    var categories = Object.keys(data.category_sales);
+                    var values = [];
+                    for (var l = 0; l < categories.length; l++) {
+                        values.push(data.category_sales[categories[l]].revenue || 0);
+                    }
+                    if (categories.length > 0) {
+                        var colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899', '#14b8a6'];
+                        categoryChart.data.labels = categories;
+                        categoryChart.data.datasets[0].data = values;
+                        categoryChart.data.datasets[0].backgroundColor = colors.slice(0, categories.length);
+                        categoryChart.update();
+                    }
+                } catch(e) {
+                    console.log('⚠️ Could not update category chart:', e);
+                }
+            }
+            
+            console.log('✅✅✅ All analytics data loaded successfully!');
         })
         .catch(function(err) {
-            console.error('Error loading analytics:', err);
+            console.error('❌ Error loading analytics:', err);
         });
 }
 // ============================================================
