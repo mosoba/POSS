@@ -1654,150 +1654,141 @@
             </div>
 
             <!-- ===== CART ===== -->
-            <div class="cart-panel">
-                <div class="cart-header">
-                    <h3>🛒 Cart</h3>
-                    <span class="count" id="itemCount">0 items</span>
-                </div>
+            <!-- ===== CART PANEL - ENLARGED ===== -->
+<div class="cart-panel">
+    <div class="cart-header">
+        <h3>🛒 Cart</h3>
+        <span class="count" id="itemCount">0 items</span>
+    </div>
 
-                <div class="customer-select">
-                    <label>👤 Customer</label>
-                    <div class="row">
-                        <select id="posCustomer" onchange="selectCustomer()">
-                            <option value="Walk-in Customer" data-email="walkin@example.com" data-phone="N/A">Walk-in</option>
-                            {% for customer in customers %}
-                            <option value="{{ customer.name }}" data-email="{{ customer.email }}" data-phone="{{ customer.phone }}">{{ customer.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <button class="add-btn" onclick="toggleCustomerModal()">➕</button>
-                    </div>
-                    <input type="hidden" id="posCustomerEmail" value="walkin@example.com" />
-                    <input type="hidden" id="posCustomerPhone" value="N/A" />
-                </div>
+    <div class="customer-select">
+        <label>👤 Customer</label>
+        <div class="row">
+            <select id="posCustomer" onchange="selectCustomer()">
+                <option value="Walk-in Customer" data-email="walkin@example.com" data-phone="N/A">Walk-in</option>
+                {% for customer in customers %}
+                <option value="{{ customer.name }}" data-email="{{ customer.email }}" data-phone="{{ customer.phone }}">{{ customer.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="add-btn" onclick="toggleCustomerModal()">➕</button>
+        </div>
+        <input type="hidden" id="posCustomerEmail" value="walkin@example.com" />
+        <input type="hidden" id="posCustomerPhone" value="N/A" />
+    </div>
 
-                <!-- ===== PAYMENT METHOD ===== -->
-                <div class="payment-method-section">
-                    <label>💳 Payment Method</label>
-                    <div class="payment-btn-group">
-                        <button class="payment-btn active" onclick="setPaymentMethod('cash')" id="payCash">💵 Cash</button>
-                        <button class="payment-btn" onclick="setPaymentMethod('card')" id="payCard">💳 Card</button>
-                        <button class="payment-btn" onclick="setPaymentMethod('mpesa')" id="payMpesa">📱 M-Pesa</button>
-                        <button class="payment-btn" onclick="setPaymentMethod('credit')" id="payCredit">💳 Credit</button>
-                    </div>
-                </div>
-
-                <!-- ===== CREDIT CUSTOMER SECTION ===== -->
-                <div id="creditCustomerSection" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:2px solid #7c3aed;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                        <label style="font-size:0.6rem;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.5px;">👤 Select Credit Customer</label>
-                        <button onclick="openQuickCreditModal()" style="font-size:0.55rem;background:#7c3aed;color:white;border:none;border-radius:9999px;padding:2px 12px;cursor:pointer;">+ New</button>
-                    </div>
-                    <div style="display:flex;gap:6px;">
-                        <select id="creditCustomerSelect" style="flex:1;padding:6px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);" onchange="showCreditCustomerInfo()">
-                            <option value="">-- Select Credit Customer --</option>
-                        </select>
-                    </div>
-                    <div id="creditCustomerInfo" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg-card);border-radius:6px;font-size:0.7rem;border:1px solid var(--border-color);">
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-                            <div>
-                                <span style="color:var(--gray-500);">💰 Balance:</span>
-                                <strong id="creditBalanceDisplay" style="color:#7c3aed;">KSh 0</strong>
-                            </div>
-                            <div>
-                                <span style="color:var(--gray-500);">📊 Limit:</span>
-                                <strong id="creditLimitDisplay">KSh 0</strong>
-                            </div>
-                            <div>
-                                <span style="color:var(--gray-500);">✅ Available:</span>
-                                <strong id="creditAvailableDisplay" style="color:#059669;">KSh 0</strong>
-                            </div>
-                        </div>
-                        <div style="margin-top:4px;font-size:0.6rem;color:var(--gray-400);">
-                            <span id="creditCustomerName"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="cart-items" id="posCartItems">
-                    <div class="cart-empty" id="emptyCartMessage">
-                        <span class="icon">🛍️</span>
-                        <p>No items added</p>
-                    </div>
-                    <div id="posCartItemsList"></div>
-                </div>
-
-                <div class="cart-summary">
-                    <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
-                    <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
-
-                    <!-- ===== TIP SECTION ===== -->
-                    <div class="tip-section">
-                        <div class="tip-btn-group">
-                            <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
-                            <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
-                            <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
-                            <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
-                            <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
-                        </div>
-                        <div class="tip-display">
-                            <span>Tip Added:</span>
-                            <span class="value" id="tipDisplay">KSh 0</span>
-                        </div>
-                    </div>
-
-                                          <!-- ===== CHANGE CALCULATOR ===== -->
-                    <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                            <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
-                                💰 Change Calculator
-                            </label>
-                            <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
-                        </div>
-                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                            <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Amount Paid</label>
-                            <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
-                        </div>
-                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-                            <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 500</button>
-                            <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 1,000</button>
-                            <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 2,000</button>
-                            <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 5,000</button>
-                            <button onclick="window.setQuickAmount(10000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 10,000</button>
-                            <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
-                        </div>
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
-                            <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
-                            <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
-                        </div>
-                    </div>
-
-                    <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
-
-                    <!-- ===== ORDER NOTES ===== -->
-                    <div class="order-notes">
-                        <label>📝 Order Notes</label>
-                        <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
-                    </div>
-
-                    <div class="discount-row">
-                        <span>Discount:</span>
-                        <span class="value" id="discountDisplay">0%</span>
-                        <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
-                    </div>
-                </div>
-
-                <div class="cart-actions">
-                    <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
-                    <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
-                </div>
-
-                <div class="held-orders-panel" id="heldOrdersPanel">
-                    <div class="title">📋 Held Orders</div>
-                    <div id="heldOrdersList"></div>
-                </div>
-            </div>
+    <!-- ===== PAYMENT METHOD ===== -->
+    <div class="payment-method-section">
+        <label>💳 Payment Method</label>
+        <div class="payment-btn-group">
+            <button class="payment-btn active" onclick="setPaymentMethod('cash')" id="payCash">💵 Cash</button>
+            <button class="payment-btn" onclick="setPaymentMethod('card')" id="payCard">💳 Card</button>
+            <button class="payment-btn" onclick="setPaymentMethod('mpesa')" id="payMpesa">📱 M-Pesa</button>
+            <button class="payment-btn" onclick="setPaymentMethod('credit')" id="payCredit">💳 Credit</button>
         </div>
     </div>
+
+    <!-- ===== CREDIT CUSTOMER SECTION ===== -->
+    <div id="creditCustomerSection" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:2px solid #7c3aed;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label style="font-size:0.6rem;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.5px;">👤 Select Credit Customer</label>
+            <button onclick="openQuickCreditModal()" style="font-size:0.55rem;background:#7c3aed;color:white;border:none;border-radius:9999px;padding:2px 12px;cursor:pointer;">+ New</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <select id="creditCustomerSelect" style="flex:1;padding:6px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);" onchange="showCreditCustomerInfo()">
+                <option value="">-- Select Credit Customer --</option>
+            </select>
+        </div>
+        <div id="creditCustomerInfo" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg-card);border-radius:6px;font-size:0.7rem;border:1px solid var(--border-color);">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                <div><span style="color:var(--gray-500);">💰 Balance:</span> <strong id="creditBalanceDisplay" style="color:#7c3aed;">KSh 0</strong></div>
+                <div><span style="color:var(--gray-500);">📊 Limit:</span> <strong id="creditLimitDisplay">KSh 0</strong></div>
+                <div><span style="color:var(--gray-500);">✅ Available:</span> <strong id="creditAvailableDisplay" style="color:#059669;">KSh 0</strong></div>
+            </div>
+            <div style="margin-top:4px;font-size:0.6rem;color:var(--gray-400);"><span id="creditCustomerName"></span></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    CART ITEMS - ENLARGED (shows 5+ items with scroll)
+    ============================================================ -->
+    <div class="cart-items" id="posCartItems" style="min-height: 280px; max-height: 380px; overflow-y: auto; flex: 1;">
+        <div class="cart-empty" id="emptyCartMessage">
+            <span class="icon">🛍️</span>
+            <p>No items added</p>
+        </div>
+        <div id="posCartItemsList"></div>
+    </div>
+
+    <!-- ============================================================
+    CART SUMMARY - FIXED AT BOTTOM
+    ============================================================ -->
+    <div class="cart-summary" style="flex-shrink: 0;">
+        <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
+        <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
+
+        <!-- ===== TIP SECTION ===== -->
+        <div class="tip-section">
+            <div class="tip-btn-group">
+                <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
+                <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
+                <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
+                <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
+                <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
+            </div>
+            <div class="tip-display">
+                <span>Tip Added:</span>
+                <span class="value" id="tipDisplay">KSh 0</span>
+            </div>
+        </div>
+
+        <!-- ===== CHANGE CALCULATOR ===== -->
+        <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">💰 Change</label>
+                <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Paid</label>
+                <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">500</button>
+                <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">1K</button>
+                <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">2K</button>
+                <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">5K</button>
+                <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
+                <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
+                <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
+            </div>
+        </div>
+
+        <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
+
+        <!-- ===== ORDER NOTES ===== -->
+        <div class="order-notes">
+            <label>📝 Order Notes</label>
+            <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
+        </div>
+
+        <div class="discount-row">
+            <span>Discount:</span>
+            <span class="value" id="discountDisplay">0%</span>
+            <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
+        </div>
+    </div>
+
+    <div class="cart-actions">
+        <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
+        <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
+    </div>
+
+    <div class="held-orders-panel" id="heldOrdersPanel">
+        <div class="title">📋 Held Orders</div>
+        <div id="heldOrdersList"></div>
+    </div>
+</div>
 
     <!-- ===== RECEIPT MODAL ===== -->
     <div id="receiptModal" class="modal-overlay hidden">
