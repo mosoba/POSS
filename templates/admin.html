@@ -2609,7 +2609,6 @@ function dismissSyncBar() {
     document.getElementById('syncStatusBar').classList.add('hidden');
 }
 
-// ============================================================
 function loadAnalyticsData() {
     console.log('📊 Loading analytics data...');
 
@@ -2620,7 +2619,7 @@ function loadAnalyticsData() {
         .then(function(data) {
             console.log('✅ Analytics data loaded:', data);
 
-            // ✅ UPDATE TOTALS (POS + Credit merged)
+            // ✅ UPDATE TOTALS
             var totalRevenue = data.total_revenue || 0;
             var totalCost = data.total_cost || 0;
             var totalProfit = data.total_profit || 0;
@@ -2631,15 +2630,15 @@ function loadAnalyticsData() {
             document.getElementById('totalProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
             document.getElementById('totalOrders').textContent = data.total_orders || 0;
 
-            // ✅ UPDATE PROFIT OVERVIEW CARDS
+            // ✅ FIX: UPDATE PROFIT OVERVIEW CARDS
             document.getElementById('revRevenue').textContent = 'KSh ' + totalRevenue.toLocaleString();
             document.getElementById('revProfit').textContent = 'KSh ' + totalProfit.toLocaleString();
 
-            // Calculate and update margin
+            // ✅ FIX: Calculate and update margin
             var margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
             document.getElementById('profitMargin').textContent = margin + '%';
 
-            // ✅ UPDATE CREDIT BREAKDOWN
+            // ✅ FIX: UPDATE CREDIT BREAKDOWN
             var creditSales = data.credit_sales || 0;
             var cashSales = totalRevenue - creditSales;
             var creditPercentage = totalRevenue > 0 ? ((creditSales / totalRevenue) * 100).toFixed(1) : 0;
@@ -2653,6 +2652,12 @@ function loadAnalyticsData() {
             if (creditEl) creditEl.textContent = 'KSh ' + creditSales.toLocaleString();
             if (totalEl) totalEl.textContent = 'KSh ' + totalRevenue.toLocaleString();
             if (percentEl) percentEl.textContent = creditPercentage + '%';
+
+            // ✅ FIX: Also update the Profit Margin in Profit Overview
+            var profitMarginDisplay = document.getElementById('profitMarginDisplay');
+            if (profitMarginDisplay) {
+                profitMarginDisplay.textContent = margin + '%';
+            }
 
             // ✅ MONTHLY PERFORMANCE TABLE
             var monthlyTable = document.getElementById('monthlyTable');
@@ -2741,7 +2746,6 @@ function loadAnalyticsData() {
             console.error('Error loading analytics:', err);
         });
 }
-
 // ============================================================
 // FILTER FUNCTIONS
 // ============================================================
