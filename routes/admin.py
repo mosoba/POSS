@@ -167,6 +167,95 @@ def admin_logout():
     return redirect(url_for('admin.user_login'))
 
 # ============================================================
+# PRODUCTS API - MAIN
+# ============================================================
+
+@admin_bp.route('/admin/api/products', methods=['GET'])
+@admin_required
+def api_products_list():
+    """Get paginated products for AJAX - FIXED"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        search = request.args.get('search', '').strip()
+        filter_low_stock = request.args.get('low_stock', 'false').lower() == 'true'
+        filter_out_of_stock = request.args.get('out_of_stock', 'false').lower() == 'true'
+        
+        print(f"🔍 API Products called: search='{search}', low_stock={filter_low_stock}, out_of_stock={filter_out_of_stock}")
+        
+        all_products = load_products()
+        
+        # Apply filters
+        filtered_products = []
+        search_lower = search.lower() if search else ''
+        
+        for product in all_products:
+            # Get stock safely
+            stock = product.get('stock', 0)
+            if isinstance(stock, str):
+                try:
+                    stock = int(stock)
+                except:
+                    stock = 0
+            if stock is None:
+                stock = 0
+            
+            # Apply stock filters
+            if filter_low_stock and stock >= 10:
+                continue
+            if filter_out_of_stock and stock > 0:
+                continue
+            
+            # Apply search filter
+            if search:
+                name = str(product.get('name', '')).lower()
+                category = str(product.get('category', '')).lower()
+                description = str(product.get('description', '')).lower()
+                barcode = str(product.get('barcode', '')).lower()
+                product_id = str(product.get('id', '')).lower()
+                
+                if not (search_lower in name or 
+                       search_lower in category or 
+                       search_lower in description or 
+                       search_lower in barcode or 
+                       search_lower in product_id):
+                    continue
+            
+            filtered_products.append(product)
+        
+        print(f"📊 Found {len(filtered_products)} products after filtering")
+        
+        # Sort by stock if low stock filter is applied
+        if filter_low_stock or filter_out_of_stock:
+            filtered_products.sort(key=lambda x: x.get('stock', 0))
+        else:
+            filtered_products.sort(key=lambda x: x.get('name', ''))
+        
+        total = len(filtered_products)
+        start = (page - 1) * per_page
+        end = start + per_page
+        products = filtered_products[start:end]
+        
+        return jsonify({
+            'success': True,
+            'products': products,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page if total > 0 else 1,
+            'start': start + 1 if products else 0,
+            'end': min(end, total),
+            'filter_low_stock': filter_low_stock,
+            'filter_out_of_stock': filter_out_of_stock,
+            'search': search
+        })
+    except Exception as e:
+        print(f"❌ Products API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
 # PRODUCT SEARCH API
 # ============================================================
 
@@ -323,6 +412,195 @@ def api_low_stock_products():
         })
     except Exception as e:
         print(f"❌ Low stock API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ORDERS API
+# ============================================================
+
+@admin_bp.route('/admin/api/orders', methods=['GET'])
+@admin_required
+def api_orders_list():
+    """Get paginated orders for AJAX"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Try to get from Supabase
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        
+        all_orders = []
+        if response.status_code == 200:
+            all_orders = response.json()
+            print(f"📋 Found {len(all_orders)} orders from Supabase")
+        else:
+            # Fallback to local cache
+            all_orders = load_orders()
+            all_orders.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            print(f"📋 Found {len(all_orders)} orders from local cache")
+        
+        total = len(all_orders)
+        start = (page - 1) * per_page
+        end = start + per_page
+        orders = all_orders[start:end]
+        
+        return jsonify({
+            'success': True,
+            'orders': orders,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page if total > 0 else 1,
+            'start': start + 1 if orders else 0,
+            'end': min(end, total)
+        })
+    except Exception as e:
+        print(f"❌ Orders API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# ORDER DETAIL API
+# ============================================================
+
+@admin_bp.route('/admin/api/order/<order_id>', methods=['GET'])
+@admin_required
+def api_get_order_details(order_id):
+    """Get single order details for modal"""
+    try:
+        print(f"🔍 Fetching order details for: {order_id}")
+        
+        # Try to get from Supabase directly
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}&select=*",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            orders = response.json()
+            if orders:
+                order = orders[0]
+                print(f"✅ Found order: {order.get('order_id')}")
+                
+                items = order.get('items', [])
+                if isinstance(items, str):
+                    try:
+                        items = json.loads(items)
+                    except:
+                        items = []
+                
+                customer = order.get('customer', {})
+                if isinstance(customer, str):
+                    try:
+                        customer = json.loads(customer)
+                    except:
+                        customer = {}
+                
+                return jsonify({
+                    'success': True,
+                    'order': {
+                        'order_id': order.get('order_id'),
+                        'items': items,
+                        'subtotal': order.get('subtotal', 0),
+                        'shipping': order.get('shipping', 0),
+                        'total': order.get('total', 0),
+                        'status': order.get('status', 'pending'),
+                        'source': order.get('source', 'web'),
+                        'created_at': order.get('created_at', ''),
+                        'customer_name': order.get('customer_name', 'Customer'),
+                        'customer_email': order.get('customer_email', ''),
+                        'customer_phone': order.get('customer_phone', ''),
+                        'customer_address': order.get('customer_address', ''),
+                        'customer': customer
+                    }
+                })
+        
+        # If not found in Supabase, try local cache
+        all_orders = load_orders()
+        for order in all_orders:
+            if str(order.get('order_id')) == str(order_id):
+                items = order.get('items', [])
+                if isinstance(items, str):
+                    try:
+                        items = json.loads(items)
+                    except:
+                        items = []
+                
+                customer = order.get('customer', {})
+                if isinstance(customer, str):
+                    try:
+                        customer = json.loads(customer)
+                    except:
+                        customer = {}
+                
+                return jsonify({
+                    'success': True,
+                    'order': {
+                        'order_id': order.get('order_id'),
+                        'items': items,
+                        'subtotal': order.get('subtotal', 0),
+                        'shipping': order.get('shipping', 0),
+                        'total': order.get('total', 0),
+                        'status': order.get('status', 'pending'),
+                        'source': order.get('source', 'web'),
+                        'created_at': order.get('created_at', ''),
+                        'customer_name': order.get('customer_name', 'Customer'),
+                        'customer_email': order.get('customer_email', ''),
+                        'customer_phone': order.get('customer_phone', ''),
+                        'customer_address': order.get('customer_address', ''),
+                        'customer': customer
+                    }
+                })
+        
+        return jsonify({'success': False, 'error': 'Order not found'}), 404
+    except Exception as e:
+        print(f"❌ Error fetching order: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# PRODUCT DETAIL API
+# ============================================================
+
+@admin_bp.route('/admin/api/product/<product_id>', methods=['GET'])
+@admin_required
+def api_get_product_details(product_id):
+    """Get single product details for editing"""
+    try:
+        print(f"🔍 Fetching product details for: {product_id}")
+        
+        # Try to get from Supabase directly
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}&select=*",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            products = response.json()
+            if products:
+                product = products[0]
+                print(f"✅ Found product: {product.get('name')}")
+                return jsonify({'success': True, 'product': product})
+        
+        # If not found in Supabase, try local cache
+        all_products = load_products()
+        for product in all_products:
+            if str(product.get('id')) == str(product_id):
+                return jsonify({'success': True, 'product': product})
+        
+        return jsonify({'success': False, 'error': 'Product not found'}), 404
+    except Exception as e:
+        print(f"❌ Error fetching product: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1449,190 +1727,69 @@ def sync_credit_to_orders():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# ORDER DETAIL API
+# CUSTOMERS API
 # ============================================================
 
-@admin_bp.route('/admin/api/order/<order_id>', methods=['GET'])
+@admin_bp.route('/admin/api/customers', methods=['GET'])
 @admin_required
-def api_get_order_details(order_id):
-    """Get single order details for modal"""
-    try:
-        print(f"🔍 Fetching order details for: {order_id}")
-        
-        # Try to get from Supabase directly
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}&select=*",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=10
-        )
-        
-        if response.status_code == 200:
-            orders = response.json()
-            if orders:
-                order = orders[0]
-                print(f"✅ Found order: {order.get('order_id')}")
-                
-                items = order.get('items', [])
-                if isinstance(items, str):
-                    try:
-                        items = json.loads(items)
-                    except:
-                        items = []
-                
-                customer = order.get('customer', {})
-                if isinstance(customer, str):
-                    try:
-                        customer = json.loads(customer)
-                    except:
-                        customer = {}
-                
-                return jsonify({
-                    'success': True,
-                    'order': {
-                        'order_id': order.get('order_id'),
-                        'items': items,
-                        'subtotal': order.get('subtotal', 0),
-                        'shipping': order.get('shipping', 0),
-                        'total': order.get('total', 0),
-                        'status': order.get('status', 'pending'),
-                        'source': order.get('source', 'web'),
-                        'created_at': order.get('created_at', ''),
-                        'customer_name': order.get('customer_name', 'Customer'),
-                        'customer_email': order.get('customer_email', ''),
-                        'customer_phone': order.get('customer_phone', ''),
-                        'customer_address': order.get('customer_address', ''),
-                        'customer': customer
-                    }
-                })
-        
-        # If not found in Supabase, try local cache
-        all_orders = load_orders()
-        for order in all_orders:
-            if str(order.get('order_id')) == str(order_id):
-                items = order.get('items', [])
-                if isinstance(items, str):
-                    try:
-                        items = json.loads(items)
-                    except:
-                        items = []
-                
-                customer = order.get('customer', {})
-                if isinstance(customer, str):
-                    try:
-                        customer = json.loads(customer)
-                    except:
-                        customer = {}
-                
-                return jsonify({
-                    'success': True,
-                    'order': {
-                        'order_id': order.get('order_id'),
-                        'items': items,
-                        'subtotal': order.get('subtotal', 0),
-                        'shipping': order.get('shipping', 0),
-                        'total': order.get('total', 0),
-                        'status': order.get('status', 'pending'),
-                        'source': order.get('source', 'web'),
-                        'created_at': order.get('created_at', ''),
-                        'customer_name': order.get('customer_name', 'Customer'),
-                        'customer_email': order.get('customer_email', ''),
-                        'customer_phone': order.get('customer_phone', ''),
-                        'customer_address': order.get('customer_address', ''),
-                        'customer': customer
-                    }
-                })
-        
-        return jsonify({'success': False, 'error': 'Order not found'}), 404
-    except Exception as e:
-        print(f"❌ Error fetching order: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============================================================
-# PRODUCT DETAIL API
-# ============================================================
-
-@admin_bp.route('/admin/api/product/<product_id>', methods=['GET'])
-@admin_required
-def api_get_product_details(product_id):
-    """Get single product details for editing"""
-    try:
-        print(f"🔍 Fetching product details for: {product_id}")
-        
-        # Try to get from Supabase directly
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}&select=*",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=10
-        )
-        
-        if response.status_code == 200:
-            products = response.json()
-            if products:
-                product = products[0]
-                print(f"✅ Found product: {product.get('name')}")
-                return jsonify({'success': True, 'product': product})
-        
-        # If not found in Supabase, try local cache
-        all_products = load_products()
-        for product in all_products:
-            if str(product.get('id')) == str(product_id):
-                return jsonify({'success': True, 'product': product})
-        
-        return jsonify({'success': False, 'error': 'Product not found'}), 404
-    except Exception as e:
-        print(f"❌ Error fetching product: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============================================================
-# ORDERS API WITH PAGINATION
-# ============================================================
-
-@admin_bp.route('/admin/api/orders', methods=['GET'])
-@admin_required
-def api_orders_list():
-    """Get paginated orders for AJAX"""
+def api_customers_paginated():
+    """Get paginated customers for AJAX"""
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         
-        # Try to get from Supabase
-        response = requests.get(
-            f"{Config.SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=10
-        )
+        all_orders = load_orders()
         
-        all_orders = []
-        if response.status_code == 200:
-            all_orders = response.json()
-            print(f"📋 Found {len(all_orders)} orders from Supabase")
-        else:
-            # Fallback to local cache
-            all_orders = load_orders()
-            all_orders.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-            print(f"📋 Found {len(all_orders)} orders from local cache")
+        customer_dict = {}
+        for order in all_orders:
+            if order.get('status') == 'cancelled':
+                continue
+                
+            name = order.get('customer_name')
+            if not name:
+                customer = order.get('customer', {})
+                if isinstance(customer, dict):
+                    name = customer.get('name')
+                elif isinstance(customer, str):
+                    try:
+                        name = json.loads(customer).get('name')
+                    except:
+                        pass
+            
+            if not name or name in ['Walk-in Customer', 'Web Customer', 'Customer', 'Unknown', '']:
+                continue
+            
+            if name not in customer_dict:
+                customer_dict[name] = {
+                    'name': name,
+                    'email': order.get('customer_email', 'N/A'),
+                    'phone': order.get('customer_phone', 'N/A'),
+                    'orders': 0,
+                    'total_spent': 0
+                }
+            customer_dict[name]['orders'] += 1
+            customer_dict[name]['total_spent'] += order.get('total', 0)
         
-        total = len(all_orders)
+        customers = list(customer_dict.values())
+        customers.sort(key=lambda x: x['orders'], reverse=True)
+        
+        total = len(customers)
         start = (page - 1) * per_page
         end = start + per_page
-        orders = all_orders[start:end]
+        paginated = customers[start:end]
         
         return jsonify({
             'success': True,
-            'orders': orders,
+            'customers': paginated,
             'total': total,
             'page': page,
             'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page if total > 0 else 1,
-            'start': start + 1 if orders else 0,
+            'total_pages': (total + per_page - 1) // per_page,
+            'start': start + 1 if paginated else 0,
             'end': min(end, total)
         })
     except Exception as e:
-        print(f"❌ Orders API error: {e}")
+        print(f"❌ Customers API error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
