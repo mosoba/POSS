@@ -562,7 +562,7 @@
                                 <label class="form-label"><i class="fas fa-map-marker-alt"></i> Delivery Address <span class="required">*</span></label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-map-marker-alt input-icon"></i>
-                                    <input type="text" class="form-input" placeholder="123 Main Street" id="address" onchange="calculateShippingFromAddress()" />
+                                    <input type="text" class="form-input" placeholder="123 Main Street" id="address" onchange="geocodeAddress()" />
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
@@ -570,7 +570,7 @@
                                     <label class="form-label"><i class="fas fa-city"></i> City <span class="required">*</span></label>
                                     <div class="input-wrapper">
                                         <i class="fas fa-city input-icon"></i>
-                                        <input type="text" class="form-input" placeholder="Nairobi" id="city" onchange="calculateShippingFromAddress()" />
+                                        <input type="text" class="form-input" placeholder="Nairobi" id="city" onchange="geocodeAddress()" />
                                     </div>
                                 </div>
                                 <div>
@@ -585,7 +585,7 @@
                                 <label class="form-label"><i class="fas fa-globe"></i> Country <span class="required">*</span></label>
                                 <div class="input-wrapper">
                                     <i class="fas fa-globe input-icon"></i>
-                                    <input type="text" class="form-input" placeholder="Kenya" id="country" value="Kenya" />
+                                    <input type="text" class="form-input" placeholder="Kenya" id="country" value="Kenya" onchange="geocodeAddress()" />
                                 </div>
                             </div>
                             
@@ -612,7 +612,7 @@
 
                             <div id="shippingPending" class="shipping-pending">
                                 <i class="fas fa-info-circle"></i>
-                                <span>📍 Please allow location access or enter your city to calculate shipping</span>
+                                <span>📍 Please allow location access or enter your full address to calculate shipping</span>
                             </div>
                             
                             <div>
@@ -863,49 +863,106 @@
         }
 
         // ============================================================
-        // ✅ FIXED: CALCULATE SHIPPING COST - WITH SMALL ORDER PROTECTION
+        // ✅ GEOCODE ADDRESS USING NOMINATIM (FREE, NO API KEY)
+        // ============================================================
+        function geocodeAddress() {
+            const address = document.getElementById('address').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const country = document.getElementById('country').value.trim();
+            
+            if (!address || !city) {
+                document.getElementById('shippingCostContainer').style.display = 'none';
+                document.getElementById('shippingPending').style.display = 'flex';
+                document.getElementById('shippingCostDisplay2').innerHTML = '⏳ Pending';
+                document.getElementById('totalDisplay').textContent = 'KSh ' + subtotal.toLocaleString();
+                shippingCalculated = false;
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('shippingPending').style.display = 'flex';
+            document.getElementById('shippingPending').innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>📍 Geocoding your address...</span>
+            `;
+            
+            const fullAddress = `${address}, ${city}, ${country || 'Kenya'}`;
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullAddress)}&format=json&limit=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        
+                        userLat = lat;
+                        userLng = lon;
+                        
+                        // Calculate distance from store (Nairobi CBD)
+                        const distance = haversineDistance(storeLat, storeLng, lat, lon);
+                        
+                        document.getElementById('shippingPending').style.display = 'none';
+                        document.getElementById('locationMessage').innerHTML = `
+                            <span class="font-medium text-sm text-green-600">
+                                <i class="fas fa-check-circle text-[#10b981]"></i> Location found!
+                            </span>
+                            <p class="text-xs text-gray-500">Distance from store: ${distance.toFixed(1)} km</p>
+                        `;
+                        
+                        updateShippingDisplay(distance);
+                        showToast('📍 Location found!', 'success', `Distance: ${distance.toFixed(1)} km`);
+                    } else {
+                        // Address not found - use fallback
+                        document.getElementById('shippingPending').style.display = 'flex';
+                        document.getElementById('shippingPending').innerHTML = `
+                            <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                            <span>⚠️ Address not found. Please check and try again.</span>
+                        `;
+                        showToast('⚠️ Address not found. Please check your address.', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('Geocoding error:', error);
+                    document.getElementById('shippingPending').style.display = 'flex';
+                    document.getElementById('shippingPending').innerHTML = `
+                        <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                        <span>⚠️ Error geocoding address. Please check your address.</span>
+                    `;
+                    showToast('⚠️ Error finding location. Please check your address.', 'error');
+                });
+        }
+
+        // ============================================================
+        // CALCULATE SHIPPING COST
         // ============================================================
         function calculateShippingCost(distanceKm) {
-            // CONFIGURATION
             const MIN_FEE = 100;
             const FREE_DISTANCE = 5;
             const RATE_PER_KM = 50;
             const MAX_SHIPPING = 5000;
             const FREE_SHIPPING_THRESHOLD = 50000;
-            const VALUE_PERCENTAGE = 0.08; // 8% of order value
+            const VALUE_PERCENTAGE = 0.08;
             
-            // FREE SHIPPING for high-value orders
             if (subtotal >= FREE_SHIPPING_THRESHOLD) {
                 return 0;
             }
             
-            // 1. DISTANCE-BASED FEE
             let distanceFee = 0;
             if (distanceKm > FREE_DISTANCE) {
                 distanceFee = (distanceKm - FREE_DISTANCE) * RATE_PER_KM;
             }
             
-            // 2. VALUE-BASED FEE (8% of order)
             let valueFee = subtotal * VALUE_PERCENTAGE;
-            
-            // 3. Take the LARGER of distance and value fees
             let shipping = Math.max(distanceFee, valueFee);
-            
-            // 4. Apply minimum fee
             shipping = Math.max(shipping, MIN_FEE);
             
-            // 5. ✅ NEW: CAP SHIPPING FOR SMALL ORDERS
-            // For orders under KSh 5,000, shipping cannot exceed 50% of order value
             if (subtotal < 5000) {
                 const maxShippingForSmallOrders = subtotal * 0.5;
-                // But minimum fee still applies (KSh 100)
                 shipping = Math.min(shipping, Math.max(maxShippingForSmallOrders, MIN_FEE));
             }
             
-            // 6. Apply maximum cap
             shipping = Math.min(shipping, MAX_SHIPPING);
-            
-            // 7. ROUND to whole number - NO DECIMALS!
             return Math.round(shipping);
         }
 
@@ -937,7 +994,6 @@
                 costDisplay.textContent = 'KSh ' + shippingCost.toLocaleString();
                 costDisplay2.textContent = 'KSh ' + shippingCost.toLocaleString();
                 
-                // Show percentage for small orders
                 if (subtotal < 5000) {
                     const percentage = Math.round((shippingCost / subtotal) * 100);
                     methodLabel.textContent = `${percentage}% of order value (capped)`;
@@ -964,7 +1020,7 @@
         }
 
         // ============================================================
-        // DETECT LOCATION
+        // DETECT LOCATION (GPS)
         // ============================================================
         function detectLocation() {
             const spinner = document.getElementById('locationSpinner');
@@ -976,7 +1032,7 @@
             retryBtn.style.display = 'none';
             
             if (!navigator.geolocation) {
-                messageEl.innerHTML = '<span class="font-medium text-sm text-amber-600">⚠️ Geolocation not supported</span><p class="text-xs text-gray-500">Please enter your city to calculate shipping</p>';
+                messageEl.innerHTML = '<span class="font-medium text-sm text-amber-600">⚠️ Geolocation not supported</span><p class="text-xs text-gray-500">Please enter your full address</p>';
                 spinner.style.display = 'none';
                 retryBtn.style.display = 'inline-block';
                 return;
@@ -1006,16 +1062,16 @@
                     
                     let errorMsg = 'Unable to detect location. Please enter your address manually.';
                     if (error.code === 1) {
-                        errorMsg = '⚠️ Location access denied. Please enter your city.';
+                        errorMsg = '⚠️ Location access denied. Please enter your address.';
                     } else if (error.code === 2) {
-                        errorMsg = '⚠️ Location unavailable. Please enter your city.';
+                        errorMsg = '⚠️ Location unavailable. Please enter your address.';
                     } else if (error.code === 3) {
-                        errorMsg = '⚠️ Location timeout. Please enter your city.';
+                        errorMsg = '⚠️ Location timeout. Please enter your address.';
                     }
                     
                     messageEl.innerHTML = `
                         <span class="font-medium text-sm text-amber-600">${errorMsg}</span>
-                        <p class="text-xs text-gray-500">Enter your city to calculate shipping</p>
+                        <p class="text-xs text-gray-500">Enter your full address to calculate shipping</p>
                     `;
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
@@ -1023,53 +1079,11 @@
         }
 
         // ============================================================
-        // CALCULATE SHIPPING FROM ADDRESS (Manual)
-        // ============================================================
-        function calculateShippingFromAddress() {
-            const city = document.getElementById('city').value.trim().toLowerCase();
-            
-            if (!city) {
-                document.getElementById('shippingCostContainer').style.display = 'none';
-                document.getElementById('shippingPending').style.display = 'flex';
-                document.getElementById('shippingCostDisplay2').innerHTML = '⏳ Pending';
-                document.getElementById('totalDisplay').textContent = 'KSh ' + subtotal.toLocaleString();
-                shippingCalculated = false;
-                return;
-            }
-            
-            const cityDistances = {
-                'nairobi': 0, 'kiambu': 15, 'thika': 45, 'nakuru': 160,
-                'eldoret': 310, 'kisumu': 350, 'mombasa': 480, 'malindi': 520,
-                'meru': 230, 'nyeri': 150, 'nanyuki': 200, 'naivasha': 90,
-                'machakos': 65, 'kitui': 180, 'garissa': 380, 'kisii': 300,
-                'kakamega': 330, 'bungoma': 350, 'busia': 390, 'kitale': 340,
-                'kapenguria': 370, 'lodwar': 680, 'isiolo': 280, 'marsabit': 550,
-                'wajir': 600, 'mandera': 700
-            };
-            
-            let estimatedDistance = null;
-            for (const [cityName, dist] of Object.entries(cityDistances)) {
-                if (city.includes(cityName) || cityName.includes(city)) {
-                    estimatedDistance = dist;
-                    break;
-                }
-            }
-            
-            if (estimatedDistance !== null) {
-                updateShippingDisplay(estimatedDistance);
-                showToast('📍 Estimated distance: ' + estimatedDistance.toFixed(1) + ' km', 'info');
-            } else {
-                updateShippingDisplay(5);
-                showToast('📍 Using minimum shipping fee for unknown location', 'info');
-            }
-        }
-
-        // ============================================================
         // STEP NAVIGATION
         // ============================================================
         function goToStep(step) {
             if (step === 2 && !shippingCalculated) {
-                showToast('⚠️ Please allow location access or enter your city to calculate shipping', 'warning');
+                showToast('⚠️ Please enter your full address to calculate shipping', 'warning');
                 return;
             }
             
@@ -1124,7 +1138,7 @@
             }
             
             if (!shippingCalculated) {
-                showToast('⚠️ Please allow location access or enter your city to calculate shipping', 'warning');
+                showToast('⚠️ Please enter your full address to calculate shipping', 'warning');
                 goToStep(1);
                 return false;
             }
@@ -1185,7 +1199,7 @@
         }
 
         // ============================================================
-        // PLACE ORDER - ✅ FIXED: No 800 default!
+        // PLACE ORDER
         // ============================================================
         function placeOrder(method) {
             if (orderPlaced) return;
@@ -1222,13 +1236,12 @@
             const trackingNumber = generateTrackingNumber();
             const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
-            // ✅ shippingCost is calculated from distance, NOT hardcoded!
             const orderData = {
                 order_id: orderId,
                 tracking_number: trackingNumber,
                 items: cartItems,
                 subtotal: subtotal,
-                shipping: shippingCost,  // ✅ Calculated value, NOT 800!
+                shipping: shippingCost,
                 shipping_distance: shippingDistance,
                 total: totalAmount,
                 payment_method: method,
@@ -1367,10 +1380,7 @@
             if (e.key === 'Enter' && currentStep === 1) {
                 const active = document.activeElement;
                 if (active && active.tagName === 'INPUT') {
-                    const city = document.getElementById('city').value.trim();
-                    if (city) {
-                        calculateShippingFromAddress();
-                    }
+                    geocodeAddress();
                 }
             }
             if (e.key >= '1' && e.key <= '3' && !e.ctrlKey && !e.metaKey) {
@@ -1399,16 +1409,12 @@
                 freeShippingInfo.innerHTML = `<i class="fas fa-info-circle text-[#0b2b1e]"></i> <span>Add KSh ${remaining.toLocaleString()} more for free shipping</span>`;
             }
             
+            // Try GPS first, then address geocoding
             setTimeout(detectLocation, 1000);
             
-            console.log('✅ ACACIAMART Checkout - FIXED with Small Order Protection');
-            console.log('📍 Store: Nairobi CBD');
-            console.log('💰 Subtotal: KSh ' + subtotal.toLocaleString());
-            console.log('📏 Free shipping over KSh 50,000');
-            console.log('📦 Shipping: KSh 100 min, KSh 50/km after 5km free, max KSh 5,000');
-            console.log('🔒 Small order protection: Orders under KSh 5,000 capped at 50% of order value');
-            console.log('✅ NO 800 default shipping!');
-            console.log('✅ NO decimal shipping!');
+            console.log('✅ ACACIAMART Checkout - GEOCODING Enabled');
+            console.log('📍 Store: Nairobi CBD (Lat: -1.286389, Lng: 36.817223)');
+            console.log('📍 Using OpenStreetMap Nominatim for geocoding');
         });
     </script>
 </body>
