@@ -568,7 +568,7 @@ def api_get_order_details(order_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
-# PRODUCT DETAIL API
+# PRODUCT DETAIL API - GET
 # ============================================================
 
 @admin_bp.route('/admin/api/product/<product_id>', methods=['GET'])
@@ -605,11 +605,14 @@ def api_get_product_details(product_id):
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============================================================
+# PRODUCT DETAIL API - UPDATE (PUT/PATCH) - FIXES THE 405 ERROR
+# ============================================================
 
-        @admin_bp.route('/admin/api/product/<product_id>', methods=['PUT', 'PATCH'])
+@admin_bp.route('/admin/api/product/<product_id>', methods=['PUT', 'PATCH'])
 @admin_required
 def api_update_product(product_id):
-    """Update an existing product"""
+    """Update an existing product - FIXES 405 ERROR"""
     try:
         data = request.get_json()
         if not data:
@@ -651,6 +654,41 @@ def api_update_product(product_id):
         print(f"❌ Error updating product: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================
+# PRODUCT DETAIL API - DELETE
+# ============================================================
+
+@admin_bp.route('/admin/api/product/<product_id>', methods=['DELETE'])
+@admin_required
+def api_delete_product(product_id):
+    """Delete a product"""
+    try:
+        print(f"🗑️ Deleting product: {product_id}")
+        
+        response = requests.delete(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        
+        if response.status_code in [200, 204]:
+            import utils.data
+            utils.data.products_cache = []
+            
+            return jsonify({
+                'success': True,
+                'message': 'Product deleted successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to delete product: {response.status_code}'
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Error deleting product: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================
@@ -1713,7 +1751,7 @@ def sync_credit_to_orders():
                         # ✅ Use REAL product name, NEVER "Credit Purchase"
                         formatted_items.append({
                             'product_id': product_id,
-                            'name': product_name,  # ✅ REAL product name
+                            'name': product_name,
                             'price': float(item.get('price', 0)),
                             'quantity': int(item.get('quantity', 1)),
                             'total': float(item.get('price', 0)) * int(item.get('quantity', 1)),
@@ -1721,7 +1759,6 @@ def sync_credit_to_orders():
                         })
             else:
                 # ✅ FIX: If no items, use customer name instead of generic
-                # Try to parse items from items_json again
                 items_json = tx.get('items_json', [])
                 if isinstance(items_json, str):
                     try:
@@ -2642,6 +2679,7 @@ def admin_api_analytics():
         traceback.print_exc()
     
     return jsonify(analytics)
+
 # ============================================================
 # REVENUE API
 # ============================================================
