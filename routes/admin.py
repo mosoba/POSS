@@ -196,10 +196,8 @@ def api_product_search():
         
         print(f"🔍 Searching products for: '{query}'")
         
-        # Load all products
         all_products = load_products()
         
-        # Clean products
         cleaned_products = []
         for p in all_products:
             clean_p = dict(p)
@@ -223,19 +221,16 @@ def api_product_search():
         
         all_products = cleaned_products
         
-        # Search in multiple fields
         query_lower = query.lower()
         results = []
         
         for product in all_products:
-            # Check all searchable fields
             name_match = query_lower in product.get('name', '').lower()
             category_match = query_lower in product.get('category', '').lower()
             desc_match = query_lower in product.get('description', '').lower()
             barcode_match = query_lower in product.get('barcode', '').lower()
             id_match = query_lower in product.get('id', '').lower()
             
-            # Also check specs if it's a list
             specs = product.get('specs', [])
             if isinstance(specs, list):
                 specs_str = ' '.join(specs).lower()
@@ -244,7 +239,6 @@ def api_product_search():
                 specs_match = query_lower in str(specs).lower()
             
             if name_match or category_match or desc_match or barcode_match or id_match or specs_match:
-                # Add relevance score
                 score = 0
                 if name_match:
                     score += 10
@@ -264,14 +258,11 @@ def api_product_search():
                 product['_score'] = score
                 results.append(product)
         
-        # Sort by relevance score (highest first)
         results.sort(key=lambda x: x.get('_score', 0), reverse=True)
         
-        # Remove temporary score field
         for r in results:
             r.pop('_score', None)
         
-        # Limit results
         results = results[:limit]
         
         print(f"✅ Found {len(results)} products matching '{query}'")
@@ -297,7 +288,7 @@ def api_product_search():
 
 
 # ============================================================
-# ADMIN DASHBOARD
+# ✅ FIXED: ADMIN DASHBOARD - CONSISTENT DATA SOURCE
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -318,6 +309,7 @@ def admin_dashboard():
         all_products = load_products()
         all_orders = load_orders()
         
+        # Clean products
         cleaned_products = []
         for p in all_products:
             clean_p = dict(p)
@@ -368,7 +360,14 @@ def admin_dashboard():
 
         bundles = load_bundles()
         cart = get_cart()
-        analytics = get_sales_analytics()
+
+        # ============================================================
+        # ✅ FIX: FILTER OUT CANCELLED/RETURNED ORDERS
+        # ============================================================
+        ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+        active_orders = [o for o in all_orders if o.get('status', '') in ACTIVE_STATUSES]
+        
+        print(f"📊 Active orders: {len(active_orders)} (filtered from {len(all_orders)} total)")
 
         per_page = 10
 
@@ -380,7 +379,7 @@ def admin_dashboard():
         pos_count = 0
         web_count = 0
 
-        for order in all_orders:
+        for order in all_orders:  # Use all_orders for customer extraction
             name = None
             email = None
             phone = None
@@ -445,8 +444,11 @@ def admin_dashboard():
         customers.sort(key=lambda x: x['orders'], reverse=True)
         total_customers = len(customers)
 
-        total_orders = len([o for o in all_orders if o.get('status') != 'cancelled'])
-        total_revenue = sum(o.get('total', 0) for o in all_orders if o.get('status') != 'cancelled')
+        # ============================================================
+        # ✅ FIX: REVENUE CALCULATIONS USING ACTIVE ORDERS
+        # ============================================================
+        total_orders = len(active_orders)
+        total_revenue = sum(o.get('total', 0) for o in active_orders)
         pending_orders = len([o for o in all_orders if o.get('status') == 'pending'])
         
         low_stock_items = 0
@@ -481,7 +483,8 @@ def admin_dashboard():
         else:
             last_day_last_month = datetime(today.year, today.month, 1).date() - timedelta(days=1)
 
-        for order in all_orders:
+        # ✅ Use active_orders for revenue calculations
+        for order in active_orders:
             total = order.get('total', 0)
             if isinstance(total, str):
                 try:
@@ -489,9 +492,6 @@ def admin_dashboard():
                 except:
                     total = 0
             total = float(total or 0)
-
-            if order.get('status') == 'cancelled':
-                continue
 
             created_at = order.get('created_at', '')
             if not created_at:
@@ -531,6 +531,7 @@ def admin_dashboard():
             if first_day_last_month <= order_date <= last_day_last_month:
                 last_month_revenue += total
 
+        # Growth percentages
         if yesterday_revenue > 0:
             today_growth = round(((today_revenue - yesterday_revenue) / yesterday_revenue) * 100, 1)
         else:
@@ -541,6 +542,24 @@ def admin_dashboard():
         else:
             month_growth = 100.0 if month_revenue > 0 else 0
 
+        # ============================================================
+        # ✅ FIX: ANALYTICS WITH PROPER MARGIN CALCULATION
+        # ============================================================
+        analytics = get_sales_analytics()
+        
+        # Get cost and profit from analytics
+        total_cost = analytics.get('total_cost', 0)
+        total_profit = analytics.get('total_profit', 0)
+        
+        # ✅ Calculate margin correctly
+        if total_revenue > 0:
+            margin = round(((total_revenue - total_cost) / total_revenue) * 100, 2)
+        else:
+            margin = 0
+
+        # ============================================================
+        # ✅ FIX: PAGINATION
+        # ============================================================
         total_customer_pages = (total_customers + per_page - 1) // per_page if total_customers > 0 else 1
         if customers_page < 1:
             customers_page = 1
@@ -575,6 +594,9 @@ def admin_dashboard():
 
         recent_orders = sorted_orders[:3] if sorted_orders else []
 
+        # ============================================================
+        # ✅ FIX: STATS WITH CREDIT DATA
+        # ============================================================
         stats = {
             'total_products': total_products,
             'total_bundles': len(bundles),
@@ -585,8 +607,9 @@ def admin_dashboard():
             'pos_orders': pos_count,
             'web_orders': web_count,
             'total_revenue': total_revenue,
-            'total_cost': analytics.get('total_cost', 0),
-            'total_profit': analytics.get('total_profit', 0),
+            'total_cost': total_cost,
+            'total_profit': total_profit,
+            'margin': margin,  # ✅ FIXED: Now calculates correctly
             'total_items_sold': analytics.get('total_items_sold', 0),
             'total_customers': total_customers,
             'today_revenue': today_revenue,
@@ -600,7 +623,9 @@ def admin_dashboard():
             'db_mode': 'online',
         }
 
-        # FETCH CREDIT DATA
+        # ============================================================
+        # ✅ FIX: FETCH CREDIT DATA AND MERGE
+        # ============================================================
         credit_summary = {
             'total_customers': 0,
             'active_customers': 0,
@@ -612,6 +637,7 @@ def admin_dashboard():
         }
         credit_customers = []
         overdue_count = 0
+        credit_sales = 0
 
         try:
             response = requests.get(
@@ -641,6 +667,9 @@ def admin_dashboard():
                     total_purchases = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'purchase')
                     total_payments = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'payment')
                 
+                # ✅ Calculate credit sales (purchases - payments = outstanding)
+                credit_sales = total_purchases - total_payments
+                
                 overdue_count = sum(1 for c in credit_customers if c.get('current_balance', 0) > c.get('credit_limit', 0))
                 
                 credit_summary = {
@@ -650,7 +679,8 @@ def admin_dashboard():
                     'total_purchases': total_purchases,
                     'total_payments': total_payments,
                     'total_cost': total_cost,
-                    'total_profit': total_profit
+                    'total_profit': total_profit,
+                    'credit_sales': credit_sales  # ✅ Added
                 }
                 print(f"✅ Loaded {total_cust} credit customers with profit: KSh {total_profit}")
             else:
@@ -658,7 +688,13 @@ def admin_dashboard():
         except Exception as e:
             print(f"❌ Error loading credit data: {e}")
 
+        # ✅ Add credit to stats
+        stats['credit_sales'] = credit_sales
+        stats['credit_outstanding'] = credit_summary.get('total_balance', 0)
+
+        # ============================================================
         # FETCH SUPPLIER DATA
+        # ============================================================
         supplier_summary = {
             'total_suppliers': 0,
             'active_suppliers': 0,
@@ -707,6 +743,9 @@ def admin_dashboard():
         except Exception as e:
             print(f"❌ Error loading supplier data: {e}")
 
+        # ============================================================
+        # ✅ RENDER WITH ALL FIXED DATA
+        # ============================================================
         return render_template('admin.html',
             products=paginated_products,
             all_products=all_products,
@@ -759,6 +798,7 @@ def admin_dashboard():
                 'total_revenue': 0,
                 'total_cost': 0,
                 'total_profit': 0,
+                'margin': 0,
                 'total_items_sold': 0,
                 'total_customers': 0,
                 'today_revenue': 0,
@@ -770,6 +810,8 @@ def admin_dashboard():
                 'today_growth_pct': 0,
                 'month_growth_pct': 0,
                 'db_mode': 'offline',
+                'credit_sales': 0,
+                'credit_outstanding': 0
             },
             total_products=0,
             total_product_pages=1,
@@ -783,7 +825,7 @@ def admin_dashboard():
             per_page=10,
             recent_orders=[],
             DB_CONNECTED=False,
-            credit_summary={'total_customers': 0, 'active_customers': 0, 'total_balance': 0, 'total_purchases': 0, 'total_payments': 0},
+            credit_summary={'total_customers': 0, 'active_customers': 0, 'total_balance': 0, 'total_purchases': 0, 'total_payments': 0, 'credit_sales': 0},
             credit_customers=[],
             overdue_count=0,
             supplier_summary={'total_suppliers': 0, 'active_suppliers': 0, 'total_products': 0},
@@ -1019,17 +1061,14 @@ def api_record_credit_purchase():
         print(f"📤 Record credit purchase - customer_id: {data.get('customer_id')}")
         print(f"📤 Total amount: {data.get('total_amount')}")
         
-        # Check if items is a list or string
         items_data = data.get('items', '')
         print(f"📦 Items type: {type(items_data)}")
         print(f"📦 Items: {items_data}")
         
-        # If items is a list, use it directly
         if isinstance(items_data, list):
             items_list = items_data
             print(f"📦 Items is a LIST: {items_list}")
         else:
-            # If it's a string, parse it
             items_str = items_data
             items_list = []
             for item_str in items_str.split(', '):
@@ -1038,7 +1077,6 @@ def api_record_credit_purchase():
                     product_name = match.group(1).strip()
                     quantity = int(match.group(2))
                     
-                    # Find product in database
                     prod_response = requests.get(
                         f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
                         headers=Config.SUPABASE_HEADERS,
@@ -1087,7 +1125,6 @@ def api_record_credit_purchase():
                         timeout=10
                     )
         
-        # Record credit purchase
         result = record_credit_purchase(
             customer_id=data['customer_id'],
             items=items_list,
@@ -1104,6 +1141,7 @@ def api_record_credit_purchase():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @admin_bp.route('/admin/api/credit/payment', methods=['POST'])
 @admin_required
@@ -1174,9 +1212,8 @@ def api_get_credit_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-  
 
- # ============================================================
+# ============================================================
 # UPDATE CREDIT TRANSACTION - FIX COST AND PROFIT
 # ============================================================
 
@@ -1192,7 +1229,6 @@ def api_update_credit_transaction(transaction_id):
         print(f"📤 Updating transaction: {transaction_id}")
         print(f"📤 Data: {data}")
         
-        # Clean the data - only allow specific fields
         clean_data = {}
         allowed_fields = ['total_cost', 'profit', 'profit_margin', 'notes', 'payment_status']
         for field in allowed_fields:
@@ -1202,7 +1238,6 @@ def api_update_credit_transaction(transaction_id):
         if not clean_data:
             return jsonify({'success': False, 'message': 'No valid fields to update'}), 400
         
-        # Update in Supabase
         response = requests.patch(
             f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?transaction_id=eq.{transaction_id}",
             headers=Config.SUPABASE_HEADERS,
@@ -1229,6 +1264,7 @@ def api_update_credit_transaction(transaction_id):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ============================================================
 # PROFITABILITY API - COMBINES ALL PAID SALES
@@ -1577,7 +1613,6 @@ def admin_pos_place_order():
                     products = response.json()
                     if products and len(products) > 0:
                         product = products[0]
-                        # SAVE COST PRICE TO ORDER ITEM
                         item['cost_price'] = product.get('cost_price', 0)
                         
                         current_stock = product.get('stock', 0)
@@ -1954,15 +1989,12 @@ def admin_api_analytics():
     if not session.get('admin_logged_in'):
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # Get regular orders
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
     
-    # ADD CREDIT DATA
     try:
         from utils.credit import get_all_credit_transactions, get_all_credit_customers
         
-        # Get credit transactions
         credit_transactions = get_all_credit_transactions()
         credit_customers = get_all_credit_customers()
         
@@ -1979,12 +2011,10 @@ def admin_api_analytics():
                 credit_cost += cost
                 credit_profit += profit
         
-        # Merge with regular orders
         analytics['total_revenue'] = analytics.get('total_revenue', 0) + credit_sales
         analytics['total_cost'] = analytics.get('total_cost', 0) + credit_cost
         analytics['total_profit'] = analytics.get('total_profit', 0) + credit_profit
         
-        # Add credit breakdown
         analytics['credit_sales'] = credit_sales
         analytics['credit_cost'] = credit_cost
         analytics['credit_profit'] = credit_profit
@@ -2022,6 +2052,10 @@ def admin_api_revenue():
         else:
             last_day_last_month = datetime(today.year, today.month, 1).date() - timedelta(days=1)
 
+        # ✅ FIX: Filter active orders
+        ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+        active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
+
         today_revenue = 0
         today_orders = 0
         yesterday_revenue = 0
@@ -2029,7 +2063,7 @@ def admin_api_revenue():
         month_orders = 0
         last_month_revenue = 0
 
-        for order in orders:
+        for order in active_orders:
             total = order.get('total', 0)
             if isinstance(total, str):
                 try:
@@ -2037,9 +2071,6 @@ def admin_api_revenue():
                 except:
                     total = 0
             total = float(total or 0)
-
-            if order.get('status') == 'cancelled':
-                continue
 
             created_at = order.get('created_at', '')
             if not created_at:
@@ -2089,13 +2120,13 @@ def admin_api_revenue():
         else:
             month_growth = 100.0 if month_revenue > 0 else 0
 
-        total_revenue = sum(order.get('total', 0) for order in orders if order.get('status') != 'cancelled')
+        total_revenue = sum(order.get('total', 0) for order in active_orders)
 
         return jsonify({
             "total_revenue": total_revenue,
             "total_cost": 0,
             "total_profit": 0,
-            "total_orders": len(orders),
+            "total_orders": len(active_orders),
             "total_items_sold": 0,
             "today_revenue": today_revenue,
             "today_orders": today_orders,
@@ -2145,10 +2176,11 @@ def calculate_analytics_from_orders(orders):
     category_sales = {}
     monthly_data = {}
 
-    for order in orders:
-        if order.get('status') == 'cancelled':
-            continue
+    # ✅ FIX: Filter active orders
+    ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+    active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
 
+    for order in active_orders:
         if order.get('source') == 'pos':
             pos_orders_count += 1
         else:
@@ -2287,7 +2319,7 @@ def calculate_analytics_from_orders(orders):
         'total_revenue': total_revenue,
         'total_cost': total_cost,
         'total_profit': total_profit,
-        'total_orders': len(orders),
+        'total_orders': len(active_orders),
         'total_items_sold': total_items_sold,
         'pos_orders_count': pos_orders_count,
         'web_orders_count': web_orders_count,
@@ -2494,7 +2526,6 @@ def api_update_product(product_id):
         if not data:
             return jsonify({'success': False, 'message': 'No data provided'}), 400
         
-        # Ensure barcode is included
         if 'barcode' not in data:
             data['barcode'] = ''
         
@@ -2739,7 +2770,11 @@ def api_sales_stats():
         today_return_amount = 0
         all_customers = set()
 
-        for order in orders:
+        # ✅ FIX: Filter active orders
+        ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+        active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
+
+        for order in active_orders:
             created_at = order.get('created_at', '')
             if not created_at:
                 continue
@@ -2843,7 +2878,6 @@ def admin_products():
         if not product_id:
             return jsonify({'success': False, 'message': 'Product ID is required'}), 400
 
-        # Save directly to Supabase
         response = requests.post(
             f"{Config.SUPABASE_URL}/rest/v1/products",
             headers=Config.SUPABASE_HEADERS,
@@ -3020,10 +3054,8 @@ def api_sync_credit_offline():
         
         print("🔄 Syncing offline credit orders...")
         
-        # 1. Sync credit orders
         order_result = sync_credit_orders_offline()
         
-        # 2. Sync offline payments
         json_data = load_json_data()
         payment_queue = json_data.get('credit_payment_queue', [])
         
@@ -3051,7 +3083,6 @@ def api_sync_credit_offline():
                     failed_payments += 1
                     print(f"❌ Error syncing payment: {e}")
             
-            # Update queue - remove synced payments
             json_data['credit_payment_queue'] = [p for p in payment_queue if p.get('payment_id') not in synced_payments]
             save_json_data(json_data)
         
