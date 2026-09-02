@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
+        /* ===== ALL STYLES SAME AS BEFORE ===== */
         * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f0f4f8; color: #0b1a2f; min-height: 100vh; }
 
@@ -588,7 +589,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Shipping Cost Display - Only shows after location detected -->
+                            <!-- Shipping Cost Display -->
                             <div id="shippingCostContainer" style="display:none;">
                                 <div class="bg-[#f0fdf4] border border-[#d1fae5] rounded-xl p-4">
                                     <div class="flex items-center justify-between">
@@ -600,7 +601,7 @@
                                         </div>
                                         <div class="text-right">
                                             <p class="text-lg font-bold text-[#0b2b1e]" id="shippingCostDisplay">KSh 0</p>
-                                            <p class="text-xs text-gray-400" id="shippingMethodLabel">Based on distance</p>
+                                            <p class="text-xs text-gray-400" id="shippingMethodLabel">Based on distance & value</p>
                                         </div>
                                     </div>
                                     <div class="mt-2 text-xs text-gray-500 border-t border-[#d1fae5] pt-2">
@@ -609,13 +610,11 @@
                                 </div>
                             </div>
 
-                            <!-- Pending Shipping Message -->
                             <div id="shippingPending" class="shipping-pending">
                                 <i class="fas fa-info-circle"></i>
                                 <span>📍 Please allow location access or enter your city to calculate shipping</span>
                             </div>
                             
-                            <!-- Delivery Notes -->
                             <div>
                                 <label class="form-label"><i class="fas fa-pen"></i> Delivery Instructions (Optional)</label>
                                 <div class="input-wrapper">
@@ -731,7 +730,7 @@
                                     </div>
                                     <div class="mt-3 text-xs text-gray-400 flex justify-between flex-wrap gap-1">
                                         <span id="estimatedDelivery">🚚 Estimated delivery: 1-3 business days</span>
-                                        <span id="shippingMethodDisplay">📦 Distance-based shipping</span>
+                                        <span id="shippingMethodDisplay">📦 Distance & value based shipping</span>
                                     </div>
                                 </div>
                                 
@@ -799,13 +798,11 @@
                         </div>
                     </div>
 
-                    <!-- Free Shipping Info -->
                     <div class="mt-2 text-xs text-gray-400 flex items-center gap-1" id="freeShippingInfo">
                         <i class="fas fa-info-circle text-[#0b2b1e]"></i>
                         <span>Free shipping on orders over KSh 50,000</span>
                     </div>
 
-                    <!-- Store Location -->
                     <div class="mt-3 p-3 bg-[#f8fafc] rounded-lg border border-gray-100 text-xs">
                         <p class="font-semibold text-[#0b1a2f] flex items-center gap-1">
                             <i class="fas fa-store text-[#0b2b1e]"></i> Our Store Location
@@ -866,34 +863,50 @@
         }
 
         // ============================================================
-        // CALCULATE SHIPPING COST - DISTANCE ONLY
+        // ✅ FIXED: CALCULATE SHIPPING COST - WITH SMALL ORDER PROTECTION
         // ============================================================
         function calculateShippingCost(distanceKm) {
-            // MINIMUM FEE: KSh 100
-            // FREE DISTANCE: 5km
-            // RATE: KSh 50 per km after free distance
-            // MAXIMUM: KSh 5,000
-            // FREE SHIPPING: Orders over KSh 50,000
-            
+            // CONFIGURATION
             const MIN_FEE = 100;
             const FREE_DISTANCE = 5;
             const RATE_PER_KM = 50;
             const MAX_SHIPPING = 5000;
             const FREE_SHIPPING_THRESHOLD = 50000;
+            const VALUE_PERCENTAGE = 0.08; // 8% of order value
             
             // FREE SHIPPING for high-value orders
             if (subtotal >= FREE_SHIPPING_THRESHOLD) {
                 return 0;
             }
             
-            if (distanceKm <= FREE_DISTANCE) {
-                return MIN_FEE;
+            // 1. DISTANCE-BASED FEE
+            let distanceFee = 0;
+            if (distanceKm > FREE_DISTANCE) {
+                distanceFee = (distanceKm - FREE_DISTANCE) * RATE_PER_KM;
             }
             
-            const extraDistance = distanceKm - FREE_DISTANCE;
-            const cost = MIN_FEE + (extraDistance * RATE_PER_KM);
+            // 2. VALUE-BASED FEE (8% of order)
+            let valueFee = subtotal * VALUE_PERCENTAGE;
             
-            return Math.min(cost, MAX_SHIPPING);
+            // 3. Take the LARGER of distance and value fees
+            let shipping = Math.max(distanceFee, valueFee);
+            
+            // 4. Apply minimum fee
+            shipping = Math.max(shipping, MIN_FEE);
+            
+            // 5. ✅ NEW: CAP SHIPPING FOR SMALL ORDERS
+            // For orders under KSh 5,000, shipping cannot exceed 50% of order value
+            if (subtotal < 5000) {
+                const maxShippingForSmallOrders = subtotal * 0.5;
+                // But minimum fee still applies (KSh 100)
+                shipping = Math.min(shipping, Math.max(maxShippingForSmallOrders, MIN_FEE));
+            }
+            
+            // 6. Apply maximum cap
+            shipping = Math.min(shipping, MAX_SHIPPING);
+            
+            // 7. ROUND to whole number - NO DECIMALS!
+            return Math.round(shipping);
         }
 
         // ============================================================
@@ -904,7 +917,6 @@
             shippingCost = calculateShippingCost(distance);
             shippingCalculated = true;
             
-            // Show shipping container
             document.getElementById('shippingCostContainer').style.display = 'block';
             document.getElementById('shippingPending').style.display = 'none';
             
@@ -924,7 +936,12 @@
             } else {
                 costDisplay.textContent = 'KSh ' + shippingCost.toLocaleString();
                 costDisplay2.textContent = 'KSh ' + shippingCost.toLocaleString();
-                if (shippingCost === 100) {
+                
+                // Show percentage for small orders
+                if (subtotal < 5000) {
+                    const percentage = Math.round((shippingCost / subtotal) * 100);
+                    methodLabel.textContent = `${percentage}% of order value (capped)`;
+                } else if (shippingCost === 100) {
                     methodLabel.textContent = 'Minimum fee (within 5km)';
                 } else if (shippingCost >= 5000) {
                     methodLabel.textContent = 'Maximum fee (long distance)';
@@ -935,9 +952,8 @@
             
             totalDisplay.textContent = 'KSh ' + totalAmount.toLocaleString();
             if (orderTotal) orderTotal.textContent = 'KSh ' + totalAmount.toLocaleString();
-            distanceInfo.textContent = `Distance: ${distance.toFixed(1)} km from our store`;
+            distanceInfo.textContent = `Distance: ${distance.toFixed(1)} km from our store | Order: KSh ${subtotal.toLocaleString()}`;
             
-            // Update free shipping info
             const freeShippingInfo = document.getElementById('freeShippingInfo');
             if (subtotal >= 50000) {
                 freeShippingInfo.innerHTML = '<i class="fas fa-gift text-[#0b2b1e]"></i> <span class="text-[#0b2b1e] font-semibold">🎉 FREE SHIPPING applied!</span>';
@@ -1013,7 +1029,6 @@
             const city = document.getElementById('city').value.trim().toLowerCase();
             
             if (!city) {
-                // If city is empty, show pending
                 document.getElementById('shippingCostContainer').style.display = 'none';
                 document.getElementById('shippingPending').style.display = 'flex';
                 document.getElementById('shippingCostDisplay2').innerHTML = '⏳ Pending';
@@ -1022,7 +1037,6 @@
                 return;
             }
             
-            // Pre-defined distances for major Kenyan cities
             const cityDistances = {
                 'nairobi': 0, 'kiambu': 15, 'thika': 45, 'nakuru': 160,
                 'eldoret': 310, 'kisumu': 350, 'mombasa': 480, 'malindi': 520,
@@ -1045,7 +1059,6 @@
                 updateShippingDisplay(estimatedDistance);
                 showToast('📍 Estimated distance: ' + estimatedDistance.toFixed(1) + ' km', 'info');
             } else {
-                // Unknown city - use minimum fee (within 5km)
                 updateShippingDisplay(5);
                 showToast('📍 Using minimum shipping fee for unknown location', 'info');
             }
@@ -1055,7 +1068,6 @@
         // STEP NAVIGATION
         // ============================================================
         function goToStep(step) {
-            // Check if shipping is calculated before going to payment
             if (step === 2 && !shippingCalculated) {
                 showToast('⚠️ Please allow location access or enter your city to calculate shipping', 'warning');
                 return;
@@ -1173,7 +1185,7 @@
         }
 
         // ============================================================
-        // PLACE ORDER
+        // PLACE ORDER - ✅ FIXED: No 800 default!
         // ============================================================
         function placeOrder(method) {
             if (orderPlaced) return;
@@ -1210,12 +1222,13 @@
             const trackingNumber = generateTrackingNumber();
             const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
+            // ✅ shippingCost is calculated from distance, NOT hardcoded!
             const orderData = {
                 order_id: orderId,
                 tracking_number: trackingNumber,
                 items: cartItems,
                 subtotal: subtotal,
-                shipping: shippingCost,
+                shipping: shippingCost,  // ✅ Calculated value, NOT 800!
                 shipping_distance: shippingDistance,
                 total: totalAmount,
                 payment_method: method,
@@ -1375,11 +1388,9 @@
             const firstInput = document.querySelector('#step1 input');
             if (firstInput) setTimeout(() => firstInput.focus(), 300);
             
-            // Update subtotal in summary
             document.getElementById('summarySubtotal').textContent = 'KSh ' + subtotal.toLocaleString();
             document.getElementById('totalDisplay').textContent = 'KSh ' + subtotal.toLocaleString();
             
-            // Check free shipping threshold
             const freeShippingInfo = document.getElementById('freeShippingInfo');
             if (subtotal >= 50000) {
                 freeShippingInfo.innerHTML = '<i class="fas fa-gift text-[#0b2b1e]"></i> <span class="text-[#0b2b1e] font-semibold">🎉 FREE SHIPPING eligible!</span>';
@@ -1388,14 +1399,16 @@
                 freeShippingInfo.innerHTML = `<i class="fas fa-info-circle text-[#0b2b1e]"></i> <span>Add KSh ${remaining.toLocaleString()} more for free shipping</span>`;
             }
             
-            // Auto-detect location after 1 second
             setTimeout(detectLocation, 1000);
             
-            console.log('✅ ACACIAMART Checkout - Refined Shipping Logic');
+            console.log('✅ ACACIAMART Checkout - FIXED with Small Order Protection');
             console.log('📍 Store: Nairobi CBD');
             console.log('💰 Subtotal: KSh ' + subtotal.toLocaleString());
             console.log('📏 Free shipping over KSh 50,000');
             console.log('📦 Shipping: KSh 100 min, KSh 50/km after 5km free, max KSh 5,000');
+            console.log('🔒 Small order protection: Orders under KSh 5,000 capped at 50% of order value');
+            console.log('✅ NO 800 default shipping!');
+            console.log('✅ NO decimal shipping!');
         });
     </script>
 </body>
