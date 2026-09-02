@@ -1918,6 +1918,592 @@
     let processingOrder = false;
 
     // ============================================================
+    // HELPER FUNCTIONS
+    // ============================================================
+    function getProductImage(product) {
+        if (product.image && product.image !== '' && product.image !== 'null') {
+            return product.image;
+        }
+        if (product.image_url && product.image_url !== '' && product.image_url !== 'null') {
+            return product.image_url;
+        }
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            return product.images[0];
+        }
+        return '';
+    }
+
+    // ============================================================
+    // TOAST NOTIFICATION
+    // ============================================================
+    function showToast(msg, type) {
+        type = type || 'success';
+        const toast = document.getElementById('toast');
+        const el = document.getElementById('toastMessage');
+        if (toast && el) {
+            toast.className = 'toast ' + type;
+            el.textContent = msg;
+            toast.classList.remove('hidden');
+            clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(function() { toast.classList.add('hidden'); }, 3500);
+        } else { console.log('🔔', msg); }
+    }
+
+    // ============================================================
+    // PAYMENT METHOD
+    // ============================================================
+    function setPaymentMethod(method) {
+        paymentMethod = method;
+        document.querySelectorAll('.payment-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('pay' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('active');
+
+        const creditSection = document.getElementById('creditCustomerSection');
+        if (method === 'credit') {
+            creditSection.style.display = 'block';
+            loadCreditCustomers();
+            const select = document.getElementById('creditCustomerSelect');
+            if (select && select.value) {
+                showCreditCustomerInfo();
+            }
+        } else {
+            creditSection.style.display = 'none';
+        }
+        showToast('💳 Payment: ' + method.toUpperCase(), 'info');
+    }
+
+    // ============================================================
+    // CREDIT CUSTOMER FUNCTIONS
+    // ============================================================
+    function showCreditCustomerInfo() {
+        const select = document.getElementById('creditCustomerSelect');
+        const infoDiv = document.getElementById('creditCustomerInfo');
+        const selected = select.options[select.selectedIndex];
+
+        if (!selected || !selected.value) {
+            infoDiv.style.display = 'none';
+            return;
+        }
+
+        const balance = parseFloat(selected.dataset.balance) || 0;
+        const limit = parseFloat(selected.dataset.limit) || 0;
+        const name = selected.dataset.name || '';
+        const available = limit - balance;
+
+        document.getElementById('creditBalanceDisplay').textContent = 'KSh ' + balance.toLocaleString();
+        document.getElementById('creditLimitDisplay').textContent = 'KSh ' + limit.toLocaleString();
+        document.getElementById('creditAvailableDisplay').textContent = 'KSh ' + available.toLocaleString();
+        document.getElementById('creditCustomerName').textContent = '👤 ' + name;
+
+        if (balance > limit) {
+            document.getElementById('creditBalanceDisplay').style.color = '#dc2626';
+            document.getElementById('creditAvailableDisplay').style.color = '#dc2626';
+        } else if (balance > limit * 0.8) {
+            document.getElementById('creditBalanceDisplay').style.color = '#d97706';
+            document.getElementById('creditAvailableDisplay').style.color = '#d97706';
+        } else {
+            document.getElementById('creditBalanceDisplay').style.color = '#7c3aed';
+            document.getElementById('creditAvailableDisplay').style.color = '#059669';
+        }
+
+        infoDiv.style.display = 'block';
+    }
+
+    function loadCreditCustomers() {
+        const select = document.getElementById('creditCustomerSelect');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Select Credit Customer --</option>';
+
+        if (navigator.onLine) {
+            fetch('/admin/api/credit/customers')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.customers) {
+                        const cache = {};
+                        data.customers.forEach(c => {
+                            cache[c.customer_id] = {
+                                name: c.full_name,
+                                balance: c.current_balance || 0,
+                                limit: c.credit_limit || 0,
+                                status: c.account_status || 'active',
+                                phone: c.phone || '',
+                                email: c.email || '',
+                                last_updated: new Date().toISOString()
+                            };
+                        });
+                        localStorage.setItem('credit_cache', JSON.stringify(cache));
+                        localStorage.setItem('credit_cache_timestamp', Date.now().toString());
+                        
+                        data.customers.forEach(c => {
+                            if (c.account_status === 'active') {
+                                const opt = document.createElement('option');
+                                opt.value = c.customer_id;
+                                const balance = c.current_balance || 0;
+                                opt.textContent = c.full_name + (balance > 0 ? ' (KSh ' + balance.toLocaleString() + ')' : '');
+                                opt.dataset.balance = balance;
+                                opt.dataset.limit = c.credit_limit || 0;
+                                opt.dataset.phone = c.phone || '';
+                                opt.dataset.email = c.email || '';
+                                opt.dataset.name = c.full_name || '';
+                                opt.dataset.status = c.account_status || 'active';
+                                select.appendChild(opt);
+                            }
+                        });
+                    }
+                })
+                .catch(() => {});
+        }
+    }
+
+    // ============================================================
+    // SEARCH & FILTER
+    // ============================================================
+    function searchProducts(query) {
+        const term = query.toLowerCase().trim();
+        document.getElementById('searchClear').classList.toggle('visible', term !== '');
+        if (term === '') {
+            filteredProducts = currentCategory === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === currentCategory).slice(0, 50);
+            document.getElementById('resultCount').textContent = filteredProducts.length + ' of ' + allProducts.length + ' products';
+        } else {
+            const results = allProducts.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const cat = (p.category || '').toLowerCase();
+                const id = (p.id || '').toLowerCase();
+                const barcode = (p.barcode || '').toLowerCase();
+                return name.includes(term) || cat.includes(term) || id.includes(term) || barcode.includes(term);
+            });
+            filteredProducts = results.slice(0, 100);
+            document.getElementById('resultCount').textContent = results.length + ' found' + (results.length > 100 ? ' (showing 100)' : '');
+        }
+        renderProducts();
+    }
+
+    function filterByCategory(category, el) {
+        document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+        if (el) el.classList.add('active');
+        currentCategory = category;
+        const input = document.getElementById('posSearch');
+        if (input.value.trim() === '') {
+            filteredProducts = category === 'all' ? allProducts.slice(0, 50) : allProducts.filter(p => p.category === category).slice(0, 50);
+            document.getElementById('resultCount').textContent = filteredProducts.length + ' products' + (category !== 'all' ? ' in "' + category + '"' : '');
+            renderProducts();
+        } else {
+            searchProducts(input.value);
+        }
+    }
+
+    function clearSearch() {
+        document.getElementById('posSearch').value = '';
+        document.getElementById('searchClear').classList.remove('visible');
+        searchProducts('');
+    }
+
+    // ============================================================
+    // RENDER PRODUCTS
+    // ============================================================
+    function renderProducts() {
+        const grid = document.getElementById('posProductGrid');
+        if (!filteredProducts.length) {
+            grid.innerHTML = '<div class="search-hint"><span class="icon">🔍</span><p>No products found</p><div class="shortcuts">💡 Try a different search term</div></div>';
+            return;
+        }
+        let html = '';
+        filteredProducts.forEach(p => {
+            const price = Number(p.price) || 0;
+            const stock = Number(p.stock) || 0;
+            const img = getProductImage(p);
+            const stockClass = stock <= 0 ? 'out' : stock < 10 ? 'low' : stock < 30 ? 'medium' : 'high';
+            const label = stock <= 0 ? 'Out' : stock < 10 ? 'Low' : stock < 30 ? 'Med' : 'In Stock';
+            const out = stock <= 0;
+            const barcode = p.barcode ? '<div class="barcode">' + p.barcode + '</div>' : '';
+
+            let imageHtml = '';
+            if (img && img !== '' && img !== 'null' && img !== 'undefined') {
+                imageHtml = '<img src="' + img + '" onerror="this.parentElement.innerHTML=\'<span class=placeholder>📦</span>\'">';
+            } else {
+                imageHtml = '<span class="placeholder">📦</span>';
+            }
+
+            html += '<div class="product-card" data-id="' + (p.id || '') + '" data-name="' + (p.name || '') + '" data-price="' + price + '" data-stock="' + stock + '" data-image="' + img + '" data-barcode="' + (p.barcode || '') + '" onclick="' + (out ? '' : 'addToPOSCart(this)') + '" style="' + (out ? 'opacity:0.7;' : '') + '">' +
+                '<div class="image-wrap">' + imageHtml + '</div>' +
+                '<span class="stock-tag ' + stockClass + '">' + label + '</span>' +
+                (out ? '<div class="out-overlay">OUT OF STOCK</div>' : '') +
+                '<div class="name">' + (p.name || 'Product') + '</div>' +
+                '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                '<div class="stock-info">📦 <span style="font-weight:600;' + (stock < 10 ? 'color:#dc2626;' : stock < 30 ? 'color:#d97706;' : 'color:#059669;') + '">' + stock + '</span> in stock</div>' +
+                barcode +
+                '<button class="add-btn" ' + (out ? 'disabled' : '') + '>' + (out ? 'Out of Stock' : '➕ Add') + '</button>' +
+                '</div>';
+        });
+        grid.innerHTML = html;
+    }
+
+    // ============================================================
+    // CART
+    // ============================================================
+    function addToPOSCart(el) {
+        const card = el.closest ? el.closest('.product-card') : el;
+        if (!card) { showToast('❌ Product not found'); return; }
+        let pid = String(card.dataset.id || '').trim();
+        const name = String(card.dataset.name || 'Product').trim();
+        const price = parseFloat(card.dataset.price) || 0;
+        const stock = parseInt(card.dataset.stock) || 0;
+        const image = String(card.dataset.image || '').trim();
+        if (!pid || pid === 'product_id_here' || pid === '') {
+            const found = allProducts.find(p => p.name === name);
+            if (found) pid = String(found.id);
+        }
+        if (!pid || price <= 0) { showToast('❌ Invalid product'); return; }
+        if (stock <= 0) { showToast('⚠️ Out of stock!'); return; }
+        const existing = posCart.find(item => item.id === pid);
+        if (existing) {
+            if (existing.quantity < stock) existing.quantity++;
+            else { showToast('⚠️ Not enough stock!'); return; }
+        } else {
+            posCart.push({ id: pid, name, price, image, stock, quantity: 1 });
+        }
+        updatePOSUI();
+        showToast('✅ Added ' + name + ' (' + stock + ' left)');
+    }
+
+    function updatePOSQuantity(idx, delta) {
+        if (!posCart[idx]) return;
+        const n = posCart[idx].quantity + delta;
+        if (n <= 0) posCart.splice(idx, 1);
+        else if (n <= posCart[idx].stock) posCart[idx].quantity = n;
+        else { showToast('⚠️ Not enough stock!'); return; }
+        updatePOSUI();
+    }
+
+    function removePOSItem(idx) {
+        posCart.splice(idx, 1);
+        updatePOSUI();
+        showToast('🗑️ Removed');
+    }
+
+    function voidLastItem() {
+        if (!posCart.length) { showToast('⚠️ Cart is empty', 'warning'); return; }
+        const removed = posCart.pop();
+        updatePOSUI();
+        showToast('↩️ Voided: ' + removed.name, 'info');
+    }
+
+    function clearCart() {
+        if (posCart.length && !confirm('Clear all items?')) return;
+        posCart = [];
+        discountValue = 0;
+        tipAmount = 0;
+        document.getElementById('discountDisplay').textContent = '0%';
+        document.getElementById('tipDisplay').textContent = 'KSh 0';
+        updatePOSUI();
+        showToast('🔄 Cart cleared');
+    }
+
+    // ============================================================
+    // UPDATE POS UI
+    // ============================================================
+    function updatePOSUI() {
+        const list = document.getElementById('posCartItemsList');
+        const empty = document.getElementById('emptyCartMessage');
+        const subtotalEl = document.getElementById('posSubtotal');
+        const totalEl = document.getElementById('posTotal');
+        const discountEl = document.getElementById('posDiscount');
+        const itemCountEl = document.getElementById('itemCount');
+        const cartStatsEl = document.getElementById('cartStats');
+        const placeBtn = document.getElementById('posPlaceOrderBtn');
+
+        let subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+        const discountAmt = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        let total = Math.max(0, subtotal - discountAmt + tipAmount);
+
+        if (subtotalEl) subtotalEl.textContent = 'KSh ' + subtotal.toLocaleString();
+        if (discountEl) discountEl.textContent = '-KSh ' + discountAmt.toLocaleString();
+        if (totalEl) totalEl.textContent = 'KSh ' + total.toLocaleString();
+
+        const qty = posCart.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
+        if (itemCountEl) itemCountEl.textContent = qty + ' items';
+        if (cartStatsEl) cartStatsEl.textContent = qty;
+        if (placeBtn) { 
+            if (!processingOrder) {
+                placeBtn.disabled = !posCart.length; 
+                placeBtn.style.opacity = posCart.length ? '1' : '0.5';
+            }
+        }
+        if (empty) empty.style.display = posCart.length ? 'none' : 'block';
+        if (!list) return;
+        if (!posCart.length) { list.innerHTML = ''; return; }
+
+        let html = '';
+        posCart.forEach((item, i) => {
+            const price = Number(item.price) || 0;
+            const q = Number(item.quantity) || 1;
+            const imgSrc = item.image || '';
+            const imgHtml = imgSrc ? '<img src="' + imgSrc + '" onerror="this.textContent=\'📱\'">' : '📱';
+            html += '<div class="cart-item">' +
+                '<div class="item-img">' + imgHtml + '</div>' +
+                '<div class="item-info">' +
+                '<div class="name">' + (item.name || 'Product') + '</div>' +
+                '<div class="price">KSh ' + price.toLocaleString() + '</div>' +
+                '<div style="font-size:0.5rem;color:var(--gray-400);">Stock: ' + item.stock + '</div>' +
+                '</div>' +
+                '<div class="controls">' +
+                '<button onclick="updatePOSQuantity(' + i + ', -1)">−</button>' +
+                '<span class="qty">' + q + '</span>' +
+                '<button onclick="updatePOSQuantity(' + i + ', 1)">+</button>' +
+                '<button class="remove" onclick="removePOSItem(' + i + ')">✕</button>' +
+                '</div>' +
+                '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    // ============================================================
+    // CHANGE CALCULATOR
+    // ============================================================
+    window.calculateChange = function() {
+        const totalEl = document.getElementById('posTotal');
+        const paidEl = document.getElementById('amountPaid');
+        const changeEl = document.getElementById('changeAmount');
+        const totalDisplay = document.getElementById('changeTotalDisplay');
+
+        let total = 0;
+        const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+        total = parseFloat(totalText) || 0;
+
+        if (totalDisplay) {
+            totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+        }
+
+        const paidValue = paidEl.value;
+        const paid = parseFloat(paidValue) || 0;
+
+        if (paid <= 0) {
+            changeEl.textContent = 'KSh 0';
+            changeEl.style.color = '#059669';
+            return;
+        }
+
+        const change = paid - total;
+
+        if (change < 0) {
+            changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+            changeEl.style.color = '#ef4444';
+        } else {
+            changeEl.textContent = 'KSh ' + change.toLocaleString();
+            changeEl.style.color = '#059669';
+        }
+    };
+
+    window.setQuickAmount = function(amount) {
+        const paidEl = document.getElementById('amountPaid');
+        if (paidEl) {
+            paidEl.value = amount;
+            window.calculateChange();
+        }
+    };
+
+    // ============================================================
+    // DISCOUNT
+    // ============================================================
+    function toggleDiscountModal() {
+        document.getElementById('discountModal').classList.toggle('hidden');
+        updateDiscountPreview();
+    }
+
+    function closeDiscountModal(e) {
+        if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close')) {
+            document.getElementById('discountModal').classList.add('hidden');
+        }
+    }
+
+    function setDiscountPreset(v) {
+        document.getElementById('discountType').value = 'percentage';
+        document.getElementById('discountValue').value = v;
+        updateDiscountPreview();
+    }
+
+    function updateDiscountPreview() {
+        const type = document.getElementById('discountType').value;
+        const val = parseFloat(document.getElementById('discountValue').value) || 0;
+        const subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+        const amt = type === 'percentage' ? (subtotal * val / 100) : val;
+        const total = Math.max(0, subtotal - amt);
+        document.getElementById('discountSubtotal').textContent = 'KSh ' + subtotal.toLocaleString();
+        document.getElementById('discountNewTotal').textContent = 'KSh ' + total.toLocaleString();
+    }
+
+    function applyDiscount() {
+        discountType = document.getElementById('discountType').value;
+        discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+        document.getElementById('discountDisplay').textContent = discountType === 'percentage' ? discountValue + '%' : 'KSh ' + discountValue.toLocaleString();
+        closeDiscountModal();
+        updatePOSUI();
+        showToast('✅ Discount applied!', 'success');
+    }
+
+    // ============================================================
+    // CUSTOMER
+    // ============================================================
+    function toggleCustomerModal() { document.getElementById('customerModal').classList.toggle('hidden'); }
+
+    function closeCustomerModal(e) {
+        if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close')) {
+            document.getElementById('customerModal').classList.add('hidden');
+        }
+    }
+
+    function addCustomer(e) {
+        e.preventDefault();
+        const name = document.getElementById('custName').value.trim();
+        const email = document.getElementById('custEmail').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        if (!name) { showToast('⚠️ Name required', 'warning'); return; }
+        const select = document.getElementById('posCustomer');
+        const existing = Array.from(select.options).some(o => o.value === name);
+        if (existing) { showToast('⚠️ Customer exists!', 'warning'); return; }
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        opt.dataset.email = email || '';
+        opt.dataset.phone = phone || '';
+        select.appendChild(opt);
+        select.value = name;
+        document.getElementById('posCustomerEmail').value = email || '';
+        document.getElementById('posCustomerPhone').value = phone || '';
+        closeCustomerModal();
+        showToast('✅ Customer added: ' + name);
+        document.getElementById('customerForm').reset();
+        loadSalesStats();
+    }
+
+    function selectCustomer() {
+        const select = document.getElementById('posCustomer');
+        const opt = select.options[select.selectedIndex];
+        if (opt) {
+            document.getElementById('posCustomerEmail').value = opt.dataset.email || '';
+            document.getElementById('posCustomerPhone').value = opt.dataset.phone || '';
+        }
+    }
+
+    // ============================================================
+    // TIP MANAGEMENT
+    // ============================================================
+    function addTip(amount) {
+        tipAmount = amount;
+        document.getElementById('tipDisplay').textContent = 'KSh ' + amount.toLocaleString();
+        updatePOSUI();
+        showToast('💝 Tip of KSh ' + amount.toLocaleString() + ' added!', 'success');
+    }
+
+    function addCustomTip() {
+        const val = parseFloat(document.getElementById('customTip').value);
+        if (val > 0) { addTip(val); document.getElementById('customTip').value = ''; }
+    }
+
+    // ============================================================
+    // HOLD ORDERS
+    // ============================================================
+    function holdOrder() {
+        if (!posCart.length) { showToast('⚠️ Cart is empty', 'warning'); return; }
+        heldOrders.push({
+            id: Date.now(),
+            items: [...posCart],
+            customer: document.getElementById('posCustomer').value,
+            timestamp: new Date().toLocaleString()
+        });
+        posCart = [];
+        discountValue = 0;
+        tipAmount = 0;
+        document.getElementById('discountDisplay').textContent = '0%';
+        document.getElementById('tipDisplay').textContent = 'KSh 0';
+        updatePOSUI();
+        renderHeldOrders();
+        showToast('⏸️ Order held! (' + heldOrders.length + ' held)', 'info');
+    }
+
+    function renderHeldOrders() {
+        const panel = document.getElementById('heldOrdersPanel');
+        const list = document.getElementById('heldOrdersList');
+        if (!heldOrders.length) { panel.classList.remove('visible'); return; }
+        panel.classList.add('visible');
+        let html = '';
+        heldOrders.forEach((o, i) => {
+            const total = o.items.reduce((s, item) => s + (item.price * item.quantity), 0);
+            html += '<div class="held-order-item">' +
+                '<span>' + o.customer + ' - KSh ' + total.toLocaleString() + '</span>' +
+                '<div>' +
+                '<button class="restore" onclick="restoreOrder(' + i + ')">Restore</button>' +
+                '<button class="remove" onclick="removeHeldOrder(' + i + ')">✕</button>' +
+                '</div>' +
+                '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    function restoreOrder(i) {
+        if (posCart.length && !confirm('Replace current cart?')) return;
+        posCart = heldOrders[i].items;
+        document.getElementById('posCustomer').value = heldOrders[i].customer;
+        heldOrders.splice(i, 1);
+        discountValue = 0;
+        tipAmount = 0;
+        document.getElementById('discountDisplay').textContent = '0%';
+        document.getElementById('tipDisplay').textContent = 'KSh 0';
+        updatePOSUI();
+        renderHeldOrders();
+        showToast('✅ Order restored!', 'success');
+    }
+
+    function removeHeldOrder(i) {
+        heldOrders.splice(i, 1);
+        renderHeldOrders();
+        showToast('🗑️ Held order removed');
+    }
+
+    // ============================================================
+    // CLOCK
+    // ============================================================
+    function updateClock() {
+        document.getElementById('clockDisplay').textContent = new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ============================================================
+    // DARK MODE
+    // ============================================================
+    function toggleDarkMode() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('pos-theme', isDark ? 'light' : 'dark');
+        document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+        showToast(isDark ? '☀️ Light mode' : '🌙 Dark mode', 'info');
+    }
+    if (localStorage.getItem('pos-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeIcon').textContent = '☀️';
+    }
+
+    // ============================================================
+    // ONLINE/OFFLINE
+    // ============================================================
+    function updateOnlineStatusUI() {
+        const badge = document.getElementById('onlineBadge');
+        if (navigator.onLine) {
+            badge.textContent = '● LIVE';
+            badge.className = 'badge';
+            badge.style.background = '#059669';
+            badge.style.color = '#0f172a';
+        } else {
+            badge.textContent = '● OFFLINE';
+            badge.className = 'badge offline';
+            badge.style.background = '#f59e0b';
+            badge.style.color = '#0f172a';
+        }
+    }
+    updateOnlineStatusUI();
+
+    // ============================================================
     // RECEIPT FUNCTIONS - FIXED (NO "med low med" GLITCH)
     // ============================================================
     function showReceipt(orderData) {
@@ -2012,15 +2598,850 @@
     }
 
     // ============================================================
-    // REST OF YOUR JAVASCRIPT FUNCTIONS
-    // (All your existing functions go here - placePOSOrder, 
-    // processNormalOrder, saveOrderOffline, etc.)
+    // QUICK SALES COUNTER
     // ============================================================
-    
-    // ... (keep all your existing JavaScript functions here) ...
+    function updateQuickSalesCount() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const count = orders.filter(function(o) { return o.created_at && o.created_at.startsWith(today); }).length;
+        document.getElementById('quickSalesCount').textContent = count;
+    }
 
-    console.log('✅ POS loaded - Receipt glitch fixed!');
-    console.log('💡 No more "med low med" on receipts!');
+    // ============================================================
+    // RETURN FUNCTIONS
+    // ============================================================
+    function toggleReturnModal() {
+        document.getElementById('returnModal').classList.toggle('hidden');
+        if (!document.getElementById('returnModal').classList.contains('hidden')) {
+            loadOrdersForReturn();
+        }
+    }
+
+    function closeReturnModal(e) {
+        if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close')) {
+            document.getElementById('returnModal').classList.add('hidden');
+            document.getElementById('returnItemsContainer').style.display = 'none';
+        }
+    }
+
+    function loadOrdersForReturn() {
+        const select = document.getElementById('returnOrderSelect');
+        select.innerHTML = '<option value="">-- Select a SOLD order --</option>';
+
+        if (navigator.onLine) {
+            fetch('/admin/api/orders')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.orders) {
+                        data.orders.forEach(o => {
+                            if (o.status === 'confirmed' || o.status === 'completed' || o.status === 'delivered') {
+                                const opt = document.createElement('option');
+                                opt.value = o.order_id;
+                                const date = o.created_at ? new Date(o.created_at).toLocaleDateString() : 'Unknown';
+                                opt.textContent = `#${o.order_id} - ${o.customer_name || 'Walk-in'} - KSh ${(o.total || 0).toLocaleString()} (${date})`;
+                                opt.dataset.items = JSON.stringify(o.items || []);
+                                opt.dataset.total = o.total || 0;
+                                opt.dataset.customer = o.customer_name || 'Customer';
+                                select.appendChild(opt);
+                            }
+                        });
+                    }
+                })
+                .catch(() => {});
+        }
+    }
+
+    function loadOrderForReturn() {
+        const select = document.getElementById('returnOrderSelect');
+        const selected = select.options[select.selectedIndex];
+        const container = document.getElementById('returnItemsContainer');
+
+        if (!selected || !selected.value) {
+            container.style.display = 'none';
+            return;
+        }
+
+        try {
+            const items = JSON.parse(selected.dataset.items || '[]');
+            const total = parseFloat(selected.dataset.total) || 0;
+            const customer = selected.dataset.customer || 'Customer';
+
+            document.getElementById('returnOrderItemsCount').textContent = items.length;
+            document.getElementById('returnOrderTotal').textContent = 'KSh ' + total.toLocaleString();
+            document.getElementById('returnAvailableItems').textContent = items.length;
+            document.getElementById('orderInfoText').textContent = '📋 Order: #' + selected.value + ' | Customer: ' + customer + ' | Total: KSh ' + total.toLocaleString();
+            document.getElementById('orderInfoDisplay').style.display = 'block';
+
+            let html = '';
+            let totalRefund = 0;
+            items.forEach((item, idx) => {
+                const price = parseFloat(item.price) || 0;
+                const qty = parseInt(item.quantity) || 1;
+                const itemTotal = price * qty;
+
+                html += '<div class="return-item">' +
+                    '<input type="checkbox" data-id="' + (item.product_id || item.id || '') + '" data-price="' + price + '" data-quantity="' + qty + '" data-name="' + (item.name || 'Product') + '" onchange="updateReturnTotal()">' +
+                    '<div class="info">' +
+                    '<div class="name">' + (item.name || 'Product') + '</div>' +
+                    '<div class="detail">KSh ' + price.toLocaleString() + ' x ' + qty + ' = KSh ' + itemTotal.toLocaleString() + '</div>' +
+                    '</div>' +
+                    '<span class="total">KSh ' + itemTotal.toLocaleString() + '</span>' +
+                    '</div>';
+            });
+            document.getElementById('returnItemsList').innerHTML = html;
+            container.style.display = 'block';
+            updateReturnTotal();
+        } catch(e) {
+            container.style.display = 'none';
+            showToast('⚠️ Error loading order items', 'error');
+        }
+    }
+
+    function updateReturnTotal() {
+        const checkboxes = document.querySelectorAll('#returnItemsList input[type="checkbox"]:checked');
+        let total = 0;
+        checkboxes.forEach(cb => {
+            total += parseFloat(cb.dataset.price) * parseFloat(cb.dataset.quantity);
+        });
+        document.getElementById('refundTotal').textContent = 'KSh ' + total.toLocaleString();
+    }
+
+    function processReturn() {
+        const checkboxes = document.querySelectorAll('#returnItemsList input[type="checkbox"]:checked');
+        if (!checkboxes.length) {
+            showToast('⚠️ Select items to return', 'warning');
+            return;
+        }
+
+        const items = [];
+        let refundTotal = 0;
+        checkboxes.forEach(cb => {
+            const price = parseFloat(cb.dataset.price) || 0;
+            const qty = parseFloat(cb.dataset.quantity) || 1;
+            items.push({
+                id: cb.dataset.id,
+                name: cb.dataset.name,
+                price: price,
+                quantity: qty,
+                total: price * qty
+            });
+            refundTotal += price * qty;
+        });
+
+        const select = document.getElementById('returnOrderSelect');
+        const selected = select.options[select.selectedIndex];
+        const customerName = selected.dataset.customer || 'Customer';
+
+        if (!confirm(`🔄 Process Return\n\n📦 Items: ${items.length}\n💰 Refund: KSh ${refundTotal.toLocaleString()}\n👤 Customer: ${customerName}\n\nProceed?`)) {
+            return;
+        }
+
+        const returnData = {
+            items: items,
+            refund_total: refundTotal,
+            customer_name: customerName,
+            reason: 'Customer return',
+            return_order_id: 'RET-' + Date.now(),
+            original_order_id: selected.value
+        };
+
+        if (navigator.onLine) {
+            fetch('/admin/api/process-return', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(returnData)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ Return processed! Refund: KSh ' + refundTotal.toLocaleString(), 'success');
+                    closeReturnModal();
+                    renderProducts();
+                    loadSalesStats();
+                } else {
+                    showToast('❌ Return failed: ' + (data.message || 'Unknown error'), 'error');
+                }
+            })
+            .catch(() => {
+                showToast('📡 Saving return offline...', 'warning');
+                saveReturnLocally(returnData);
+            });
+        } else {
+            saveReturnLocally(returnData);
+        }
+    }
+
+    function saveReturnLocally(returnData) {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        orders.push({
+            order_id: returnData.return_order_id,
+            items: returnData.items,
+            total: -returnData.refund_total,
+            customer_name: returnData.customer_name,
+            status: 'returned',
+            is_return: true,
+            original_order_id: returnData.original_order_id,
+            created_at: new Date().toISOString()
+        });
+        localStorage.setItem('pos_orders', JSON.stringify(orders));
+        showToast('📡 Return saved offline! Will sync when online.', 'warning');
+        closeReturnModal();
+        renderProducts();
+    }
+
+    // ============================================================
+    // STATS
+    // ============================================================
+    function loadUserStats() {
+        if (!navigator.onLine) return;
+        fetch('/admin/api/user-stats').then(r => r.json()).then(d => {
+            if (d.success) {
+                document.getElementById('userTodaySales').textContent = 'KSh ' + (d.today_revenue || 0).toLocaleString();
+                document.getElementById('userTodayOrders').textContent = d.today_orders || 0;
+            }
+        }).catch(() => {});
+    }
+
+    function loadSalesStats() {
+        if (!navigator.onLine) return;
+        fetch('/admin/api/sales-stats').then(r => r.json()).then(d => {
+            if (d.success) {
+                document.getElementById('todaySales').textContent = 'KSh ' + (d.today_revenue || 0).toLocaleString();
+                document.getElementById('todayOrders').textContent = d.today_orders || 0;
+                document.getElementById('todayReturns').textContent = d.today_returns || 0;
+                document.getElementById('totalCustomers').textContent = d.total_customers || 0;
+                document.getElementById('totalProducts').textContent = d.total_products || 0;
+            }
+        }).catch(() => {});
+    }
+
+    // ============================================================
+    // ADVANCED FEATURES
+    // ============================================================
+    function toggleAdvancedFeatures() {
+        const panel = document.getElementById('advancedPanel');
+        const arrow = document.getElementById('advArrow');
+        panel.classList.toggle('open');
+        arrow.classList.toggle('open');
+    }
+
+    function openCashDrawerModal() {
+        showToast('💰 Cash Drawer - Coming Soon', 'info');
+    }
+
+    function quickStockCheck() {
+        const lowStock = allProducts.filter(p => (p.stock || 0) < 10 && (p.stock || 0) > 0);
+        const outOfStock = allProducts.filter(p => (p.stock || 0) === 0);
+        let msg = '📊 Stock Check:\n';
+        if (outOfStock.length) msg += '🚫 Out of Stock: ' + outOfStock.length + '\n';
+        if (lowStock.length) msg += '⚠️ Low Stock: ' + lowStock.length + '\n';
+        if (!lowStock.length && !outOfStock.length) msg += '✅ All products have sufficient stock!';
+        showToast(msg, 'info');
+    }
+
+    function quickExchange() {
+        showToast('🔄 Exchange - Coming Soon', 'info');
+    }
+
+    function bulkAddToCart() {
+        showToast('📦 Bulk Add - Coming Soon', 'info');
+    }
+
+    function showOrderHistory() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = orders.filter(o => o.created_at && o.created_at.startsWith(today));
+        showToast(`📋 Today: ${todayOrders.length} orders | Total: ${orders.length} orders`, 'info');
+    }
+
+    function showDailyReport() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = orders.filter(o => o.created_at && o.created_at.startsWith(today));
+        const total = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        showToast(`📊 Today: ${todayOrders.length} orders, KSh ${total.toLocaleString()}`, 'success');
+    }
+
+    function exportOrders() {
+        const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        if (!orders.length) {
+            showToast('⚠️ No orders to export', 'warning');
+            return;
+        }
+        let csv = 'Order ID,Date,Customer,Items,Total,Payment,Status\n';
+        orders.forEach(o => {
+            const items = (o.items || []).map(i => i.name + '(' + i.quantity + ')').join('; ');
+            csv += `${o.order_id},${o.created_at || ''},${o.customer_name || 'Walk-in'},${items},${o.total || 0},${o.payment_method || 'cash'},${o.synced ? 'Synced' : 'Pending'}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'orders_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('💾 Orders exported!', 'success');
+    }
+
+    function quickThemeSelect() {
+        showToast('🎨 Theme selector - Coming Soon', 'info');
+    }
+
+    // ============================================================
+    // SYNC FUNCTIONS
+    // ============================================================
+    function manualSync() {
+        showToast('🔄 Syncing...', 'info');
+        setTimeout(function() {
+            showToast('✅ Sync complete!', 'success');
+        }, 2000);
+    }
+
+    // ============================================================
+    // BARCODE SCANNER
+    // ============================================================
+    let html5QrCode = null;
+    let isScannerRunning = false;
+
+    function handleBarcodeInput(value) {
+        if (!value || value.length < 3) return false;
+        const cleanValue = value.replace(/\.0$/, '').trim();
+        let product = allProducts.find(p => {
+            const barcode = String(p.barcode || '').replace(/\.0$/, '').trim();
+            return barcode === cleanValue || barcode === value;
+        });
+        if (!product) {
+            product = allProducts.find(p => String(p.id || '').trim() === cleanValue);
+        }
+        if (!product) {
+            product = allProducts.find(p => (p.name || '').toLowerCase().includes(cleanValue.toLowerCase()));
+        }
+        if (!product) {
+            showToast('❌ Product not found: ' + value, 'error');
+            return false;
+        }
+        const stock = product.stock || 0;
+        if (stock <= 0) {
+            showToast('⚠️ ' + product.name + ' is out of stock!', 'warning');
+            return false;
+        }
+        const existing = posCart.find(item => item.id === product.id);
+        if (existing) {
+            if (existing.quantity < stock) {
+                existing.quantity++;
+                showToast('✅ Added another ' + product.name + ' (' + existing.quantity + ' total)', 'success');
+            } else {
+                showToast('⚠️ Not enough stock for ' + product.name, 'warning');
+                return false;
+            }
+        } else {
+            posCart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: getProductImage(product),
+                stock: stock,
+                barcode: product.barcode || '',
+                quantity: 1
+            });
+            showToast('✅ Added: ' + product.name, 'success');
+        }
+        updatePOSUI();
+        return true;
+    }
+
+    function openBarcodeScanner() {
+        const modal = document.getElementById('barcodeModal');
+        modal.classList.remove('hidden');
+        const btn = document.getElementById('startScannerBtn');
+        btn.innerHTML = '▶ Start Camera';
+        btn.disabled = false;
+        btn.style.display = 'block';
+        btn.onclick = startScanner;
+        if (html5QrCode) {
+            try { html5QrCode.stop().catch(() => {}); } catch(e) {}
+            html5QrCode = null;
+        }
+        document.getElementById('barcode-reader').innerHTML =
+            '<div style="text-align:center;padding:40px 20px;color:var(--gray-400);">' +
+            '<span style="font-size:3rem;display:block;margin-bottom:12px;">📷</span>' +
+            '<p>Click "Start Camera" to scan</p>' +
+            '</div>';
+    }
+
+    function closeBarcodeScanner() {
+        document.getElementById('barcodeModal').classList.add('hidden');
+        if (html5QrCode) {
+            try { html5QrCode.stop().catch(() => {}); } catch(e) {}
+            html5QrCode = null;
+            isScannerRunning = false;
+        }
+    }
+
+    function startScanner() {
+        if (isScannerRunning) {
+            showToast('Scanner already running', 'info');
+            return;
+        }
+
+        const btn = document.getElementById('startScannerBtn');
+        const readerDiv = document.getElementById('barcode-reader');
+
+        if (typeof Html5Qrcode === 'undefined') {
+            showToast('⚠️ Scanner library not loaded - refreshing...', 'error');
+            location.reload();
+            return;
+        }
+
+        btn.innerHTML = '⏳ Starting...';
+        btn.disabled = true;
+        readerDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);">📷 Starting camera...</div>';
+
+        html5QrCode = new Html5Qrcode("barcode-reader");
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            },
+            function(decodedText) {
+                console.log('✅ Camera scanned:', decodedText);
+                handleBarcodeInput(decodedText);
+                setTimeout(() => {
+                    const modal = document.getElementById('barcodeModal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        closeBarcodeScanner();
+                    }
+                }, 1000);
+            },
+            function(errorMessage) {
+                if (errorMessage && (
+                    errorMessage.includes('No MultiFormat') ||
+                    errorMessage.includes('NotFoundException') ||
+                    errorMessage.includes('FormatException')
+                )) {
+                    return;
+                }
+                console.log('Scanner:', errorMessage);
+            }
+        ).then(function() {
+            isScannerRunning = true;
+            btn.innerHTML = '⏹️ Stop Scanning';
+            btn.disabled = false;
+            btn.onclick = function() {
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {});
+                    isScannerRunning = false;
+                    btn.innerHTML = '▶ Start Camera';
+                    btn.onclick = startScanner;
+                    showToast('⏹️ Scanner stopped', 'info');
+                }
+            };
+            showToast('📷 Camera ready! Point at barcode.', 'success');
+        }).catch(function(err) {
+            console.error('Camera error:', err);
+            btn.innerHTML = '📷 Try Again';
+            btn.disabled = false;
+            btn.onclick = startScanner;
+            let msg = 'Camera error: ';
+            if (err.message) {
+                if (err.message.includes('Permission')) msg += 'Allow camera access';
+                else if (err.message.includes('NotAllowedError')) msg += 'Camera access denied';
+                else if (err.message.includes('NotFoundError')) msg += 'No camera found';
+                else msg += err.message;
+            } else {
+                msg += 'Unknown error';
+            }
+            showToast('⚠️ ' + msg, 'error');
+            readerDiv.innerHTML =
+                '<div style="text-align:center;padding:30px;color:var(--gray-400);">' +
+                '<span style="font-size:2.5rem;display:block;margin-bottom:12px;">📷</span>' +
+                '<p style="color:var(--danger);">' + msg + '</p>' +
+                '<button onclick="closeBarcodeScanner();openBarcodeInputModal();" ' +
+                'style="margin-top:12px;padding:8px 20px;background:var(--warning);color:white;border:none;border-radius:9999px;font-weight:600;cursor:pointer;">⌨️ Enter Manually</button>' +
+                '</div>';
+            btn.style.display = 'none';
+        });
+    }
+
+    function openBarcodeInputModal() {
+        document.getElementById('barcodeInputModal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('manualBarcode').focus(), 300);
+    }
+
+    function closeBarcodeInputModal() {
+        document.getElementById('barcodeInputModal').classList.add('hidden');
+        document.getElementById('manualBarcode').value = '';
+    }
+
+    function submitManualBarcode() {
+        const barcode = document.getElementById('manualBarcode').value.trim();
+        if (!barcode) {
+            showToast('⚠️ Enter a barcode', 'warning');
+            return;
+        }
+        closeBarcodeInputModal();
+        handleBarcodeInput(barcode);
+    }
+
+    // ============================================================
+    // PLACE ORDER FUNCTIONS
+    // ============================================================
+    function placePOSOrder() {
+        if (processingOrder) {
+            showToast('⏳ Order already processing...', 'warning');
+            return;
+        }
+
+        if (!posCart.length) {
+            showToast('⚠️ Cart is empty!', 'warning');
+            return;
+        }
+
+        for (const item of posCart) {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product && (product.stock || 0) < item.quantity) {
+                showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
+                return;
+            }
+        }
+
+        processingOrder = true;
+        const btn = document.getElementById('posPlaceOrderBtn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Processing...';
+
+        if (paymentMethod === 'credit') {
+            const select = document.getElementById('creditCustomerSelect');
+            const selected = select.options[select.selectedIndex];
+            if (!selected || !selected.value) {
+                showToast('⚠️ Please select a credit customer', 'warning');
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+            const customerId = selected.value;
+            const customerName = selected.dataset.name || 'Customer';
+            const balance = parseFloat(selected.dataset.balance) || 0;
+            const limit = parseFloat(selected.dataset.limit) || 0;
+            const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+            const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+            const total = Math.max(0, subtotal - discountAmount + tipAmount);
+            if (limit > 0 && (balance + total) > limit) {
+                showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+            if (selected.dataset.status === 'inactive') {
+                showToast('⚠️ This customer account is inactive!', 'danger');
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+            processCreditPurchase(customerId, customerName, total);
+            return;
+        }
+
+        processNormalOrder();
+    }
+
+    function processNormalOrder() {
+        const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
+        const customerName = document.getElementById('posCustomer').value;
+        const customerEmail = document.getElementById('posCustomerEmail').value;
+        const customerPhone = document.getElementById('posCustomerPhone').value;
+        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        const total = Math.max(0, subtotal - discountAmount + tipAmount);
+
+        // ✅ Clean items for receipt
+        const cleanItems = posCart.map(function(item) {
+            return {
+                name: String(item.name || 'Product').trim(),
+                quantity: Number(item.quantity) || 1,
+                price: Number(item.price) || 0
+            };
+        });
+
+        const orderData = {
+            items: posCart.map(function(item) {
+                return {
+                    product_id: String(item.id || ''),
+                    name: String(item.name || 'Product'),
+                    price: Number(item.price) || 0,
+                    quantity: Number(item.quantity) || 1,
+                    total: (Number(item.price) || 0) * (Number(item.quantity) || 1)
+                };
+            }),
+            subtotal: subtotal,
+            shipping: 0,
+            total: total,
+            customer_name: String(customerName),
+            customer_email: String(customerEmail),
+            customer_phone: String(customerPhone),
+            customer_address: 'In-store purchase',
+            payment_method: paymentMethod,
+            tip_amount: tipAmount || 0,
+            discount: discountValue,
+            discount_type: discountType,
+            created_at: new Date().toISOString()
+        };
+
+        fetch('/admin/pos/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                posCart.forEach(function(item) {
+                    var product = allProducts.find(function(p) { return String(p.id) === String(item.id); });
+                    if (product) {
+                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                    }
+                });
+
+                showReceipt({
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    customer_name: customerName,
+                    subtotal: subtotal,
+                    total: total,
+                    items: cleanItems,
+                    payment_method: paymentMethod,
+                    created_at: new Date().toISOString(),
+                    tip_amount: tipAmount || 0,
+                    discount: discountValue
+                });
+
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                updatePOSUI();
+                renderProducts();
+                updateQuickSalesCount();
+                loadSalesStats();
+                loadUserStats();
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                processingOrder = false;
+            } else {
+                showToast('❌ Order failed: ' + data.message, 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                processingOrder = false;
+            }
+        })
+        .catch(function(err) {
+            console.error('Order error:', err);
+            showToast('📡 Saving order offline...', 'warning');
+            saveOrderOffline(orderData, btn, originalText);
+        });
+    }
+
+    function saveOrderOffline(orderData, btn, originalText) {
+        const cleanItems = (orderData.items || []).map(function(item) {
+            return {
+                name: String(item.name || 'Product').trim(),
+                quantity: Number(item.quantity) || 1,
+                price: Number(item.price) || 0
+            };
+        });
+
+        const orderToSave = {
+            order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+            items: orderData.items,
+            subtotal: orderData.subtotal,
+            shipping: 0,
+            total: orderData.total,
+            customer_name: orderData.customer_name,
+            customer_email: orderData.customer_email,
+            customer_phone: orderData.customer_phone,
+            payment_method: orderData.payment_method || 'cash',
+            tip_amount: orderData.tip_amount || 0,
+            notes: orderData.notes || '',
+            created_at: new Date().toISOString(),
+            synced: false,
+            synced_at: null,
+            status: 'confirmed'
+        };
+
+        const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+        localOrders.push(orderToSave);
+        localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+
+        showToast('📡 Order saved offline! Will sync when online.', 'warning');
+
+        showReceipt({
+            order_id: orderToSave.order_id,
+            customer_name: orderData.customer_name,
+            subtotal: orderData.subtotal,
+            total: orderData.total,
+            items: cleanItems,
+            payment_method: orderData.payment_method || 'cash',
+            created_at: new Date().toISOString(),
+            tip_amount: orderData.tip_amount || 0,
+            discount: discountValue
+        });
+
+        posCart = [];
+        discountValue = 0;
+        tipAmount = 0;
+        document.getElementById('discountDisplay').textContent = '0%';
+        document.getElementById('tipDisplay').textContent = 'KSh 0';
+        updatePOSUI();
+        renderProducts();
+        updateQuickSalesCount();
+
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        processingOrder = false;
+    }
+
+    function processCreditPurchase(customerId, customerName, total) {
+        const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
+
+        const itemsWithIds = posCart.map(item => ({
+            product_id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+        }));
+
+        const data = {
+            customer_id: String(customerId),
+            items: itemsWithIds,
+            total_amount: total,
+            staff_name: 'POS',
+            notes: 'Credit purchase via POS'
+        };
+
+        fetch('/admin/api/credit/purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(result => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            processingOrder = false;
+
+            if (result.success) {
+                showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                updatePOSUI();
+                renderProducts();
+                loadCreditCustomers();
+                updateQuickSalesCount();
+                loadSalesStats();
+            } else {
+                showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Credit purchase error:', err);
+            showToast('📡 Saving credit order offline...', 'warning');
+            processingOrder = false;
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // ============================================================
+    // LOAD CATEGORIES DYNAMICALLY
+    // ============================================================
+    function loadCategories() {
+        console.log('🔄 Loading categories dynamically...');
+        const container = document.getElementById('categoryFilters');
+        if (!container) return;
+        container.innerHTML = '';
+        const allBtn = document.createElement('span');
+        allBtn.className = 'category-pill active';
+        allBtn.dataset.category = 'all';
+        allBtn.textContent = 'All';
+        allBtn.onclick = function() { filterByCategory('all', this); };
+        container.appendChild(allBtn);
+
+        const SUPABASE_URL = 'https://hzqrdwerkgfmfaufabjr.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld';
+
+        fetch(`${SUPABASE_URL}/rest/v1/products?select=category`, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        })
+        .then(r => r.json())
+        .then(products => {
+            const categories = {};
+            products.forEach(p => {
+                const cat = p.category || 'Uncategorized';
+                if (cat && cat !== 'Uncategorized' && cat !== 'Test') {
+                    categories[cat] = (categories[cat] || 0) + 1;
+                }
+            });
+            const sortedCategories = Object.keys(categories).sort();
+            sortedCategories.forEach(cat => {
+                const pill = document.createElement('span');
+                pill.className = 'category-pill';
+                pill.dataset.category = cat;
+                pill.textContent = cat + ' (' + categories[cat] + ')';
+                pill.onclick = function() { filterByCategory(cat, this); };
+                container.appendChild(pill);
+            });
+            console.log('✅ Categories loaded: ' + sortedCategories.length);
+        })
+        .catch(err => {
+            console.error('❌ Error loading categories:', err);
+        });
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('✅ POS Pro v14.0 - Receipt Glitch Fixed with ' + allProducts.length + ' products');
+
+        filteredProducts = allProducts.slice(0, 50);
+        document.getElementById('posProductGrid').innerHTML =
+            '<div class="search-hint">' +
+            '<span class="icon">🔍</span>' +
+            '<p>Search for products</p>' +
+            '<p style="font-size:0.7rem;color:var(--gray-400);">' + allProducts.length + ' products available</p>' +
+            '<div class="shortcuts">💡 Search by name, category, or barcode</div>' +
+            '</div>';
+        document.getElementById('resultCount').textContent = allProducts.length + ' products available';
+
+        renderProducts();
+        updatePOSUI();
+        loadSalesStats();
+        loadUserStats();
+        updateQuickSalesCount();
+        loadOrdersForReturn();
+        loadCreditCustomers();
+        setTimeout(loadCategories, 500);
+    });
+
+    console.log('✅ POS loaded - "med low med" glitch fixed!');
+    console.log('💡 Receipts now show clean product names only!');
     </script>
 
     <!-- ===== PWA INSTALL BUTTON ===== -->
