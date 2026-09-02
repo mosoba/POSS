@@ -2018,21 +2018,6 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.customers) {
-                        const cache = {};
-                        data.customers.forEach(c => {
-                            cache[c.customer_id] = {
-                                name: c.full_name,
-                                balance: c.current_balance || 0,
-                                limit: c.credit_limit || 0,
-                                status: c.account_status || 'active',
-                                phone: c.phone || '',
-                                email: c.email || '',
-                                last_updated: new Date().toISOString()
-                            };
-                        });
-                        localStorage.setItem('credit_cache', JSON.stringify(cache));
-                        localStorage.setItem('credit_cache_timestamp', Date.now().toString());
-                        
                         data.customers.forEach(c => {
                             if (c.account_status === 'active') {
                                 const opt = document.createElement('option');
