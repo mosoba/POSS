@@ -605,6 +605,54 @@ def api_get_product_details(product_id):
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
+        @admin_bp.route('/admin/api/product/<product_id>', methods=['PUT', 'PATCH'])
+@admin_required
+def api_update_product(product_id):
+    """Update an existing product"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        print(f"📦 Updating product: {product_id}")
+        print(f"📦 Data: {data}")
+        
+        # Clean data - remove None values
+        clean_data = {k: v for k, v in data.items() if v is not None}
+        
+        # Update in Supabase
+        response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json=clean_data,
+            timeout=10
+        )
+        
+        if response.status_code in [200, 204]:
+            # Clear cache
+            import utils.data
+            utils.data.products_cache = []
+            
+            return jsonify({
+                'success': True,
+                'message': 'Product updated successfully',
+                'product': data
+            })
+        else:
+            print(f"❌ Failed to update product: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'message': f'Failed to update product: {response.status_code}',
+                'error': response.text
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Error updating product: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============================================================
 # ADMIN DASHBOARD
 # ============================================================
