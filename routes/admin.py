@@ -1630,37 +1630,78 @@ def sync_credit_to_orders():
             
             order_id = f"CREDIT-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
             
-            # Parse items
-            items = tx.get('items', [])
+            # ✅ FIX: Parse items from items_json
+            items = tx.get('items_json', [])
             if isinstance(items, str):
                 try:
                     items = json.loads(items)
                 except:
                     items = []
             
-            # Ensure items have proper structure
+            # ✅ FIX: Always use real product names from the transaction
             formatted_items = []
             if items and isinstance(items, list):
                 for item in items:
                     if isinstance(item, dict):
+                        product_name = item.get('name', 'Unknown Product')
+                        product_id = item.get('product_id', '')
+                        
+                        # Fetch latest cost price if available
+                        cost_price = float(item.get('cost_price', 0))
+                        if cost_price == 0 and product_id:
+                            try:
+                                prod_resp = requests.get(
+                                    f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}&select=cost_price",
+                                    headers=Config.SUPABASE_HEADERS,
+                                    timeout=5
+                                )
+                                if prod_resp.status_code == 200:
+                                    products = prod_resp.json()
+                                    if products:
+                                        cost_price = float(products[0].get('cost_price', 0))
+                            except:
+                                pass
+                        
+                        # ✅ Use REAL product name, NEVER "Credit Purchase"
                         formatted_items.append({
-                            'product_id': item.get('product_id', ''),
-                            'name': item.get('name', 'Unknown Product'),
+                            'product_id': product_id,
+                            'name': product_name,  # ✅ REAL product name
                             'price': float(item.get('price', 0)),
                             'quantity': int(item.get('quantity', 1)),
                             'total': float(item.get('price', 0)) * int(item.get('quantity', 1)),
-                            'cost_price': float(item.get('cost_price', 0))
+                            'cost_price': cost_price
                         })
             else:
-                # If no items, create a generic item
-                formatted_items.append({
-                    'product_id': '',
-                    'name': 'Credit Purchase',
-                    'price': amount,
-                    'quantity': 1,
-                    'total': amount,
-                    'cost_price': amount * 0.65
-                })
+                # ✅ FIX: If no items, use customer name instead of generic
+                # Try to parse items from items_json again
+                items_json = tx.get('items_json', [])
+                if isinstance(items_json, str):
+                    try:
+                        items_json = json.loads(items_json)
+                    except:
+                        items_json = []
+                
+                if items_json and len(items_json) > 0:
+                    for item in items_json:
+                        if isinstance(item, dict):
+                            formatted_items.append({
+                                'product_id': item.get('product_id', ''),
+                                'name': item.get('name', f'Credit - {customer_info.get("name", "Customer")}'),
+                                'price': float(item.get('price', 0)),
+                                'quantity': int(item.get('quantity', 1)),
+                                'total': float(item.get('price', 0)) * int(item.get('quantity', 1)),
+                                'cost_price': float(item.get('cost_price', 0))
+                            })
+                else:
+                    # ✅ Last resort: Use customer name
+                    formatted_items.append({
+                        'product_id': '',
+                        'name': f'Credit Purchase - {customer_info.get("name", "Customer")}',
+                        'price': amount,
+                        'quantity': 1,
+                        'total': amount,
+                        'cost_price': amount * 0.65
+                    })
             
             order_data = {
                 'order_id': order_id,
@@ -1687,7 +1728,7 @@ def sync_credit_to_orders():
                 'staff_name': tx.get('staff_name', 'System')
             }
             
-            print(f"📤 Creating order for transaction: {transaction_id}")
+            print(f"📤 Creating order for transaction: {transaction_id} with items: {[i['name'] for i in formatted_items]}")
             
             order_response = requests.post(
                 f"{Config.SUPABASE_URL}/rest/v1/orders",
