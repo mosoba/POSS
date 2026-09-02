@@ -39,8 +39,8 @@ CATEGORY_ICONS = {
     'Headphones': 'fa-headphones',
     'Fashion': 'fa-tshirt',
     'Clothing': 'fa-tshirt',
-    'Men\'s Fashion': 'fa-user-tie',
-    'Women\'s Fashion': 'fa-female',
+    "Men's Fashion": 'fa-user-tie',
+    "Women's Fashion": 'fa-female',
     'Shoes': 'fa-shoe-prints',
     'Accessories': 'fa-plug',
     'Bags': 'fa-bag-shopping',
@@ -311,16 +311,9 @@ def cart_page():
                     total_items += quantity
                     break
 
-        # ✅ FIX: Shipping calculated at checkout, not here
-        # Show "Calculated at Checkout" instead of hardcoded 800
-        shipping = None  # Will be calculated at checkout
-        total = subtotal  # Total without shipping (will be updated at checkout)
-        
         return render_template('cart.html', 
             cart_items=cart_items, 
             subtotal=subtotal, 
-            shipping=shipping, 
-            total=total, 
             total_items=total_items
         )
     except Exception as exc:
@@ -407,10 +400,6 @@ def update_cart_item(item_id, action):
                         subtotal += bundle.get('price', 0) * qty
                         break
 
-        # ✅ FIX: Shipping calculated at checkout, not here
-        shipping = None
-        total = subtotal
-
         item_price = 0
         for product in products:
             if str(product.get('id')) == str(item_id):
@@ -426,8 +415,6 @@ def update_cart_item(item_id, action):
             'success': True,
             'quantity': cart.get(item_id, 0),
             'subtotal': subtotal,
-            'shipping': shipping,
-            'total': total,
             'total_items': sum(cart.values()),
             'item_total': item_price * cart.get(item_id, 0),
         })
@@ -505,7 +492,6 @@ def checkout_page():
                     total_items += quantity
                     break
 
-        # ✅ FIX: Pass subtotal to frontend, shipping calculated by JS
         return render_template('checkout.html', 
             cart_items=cart_items, 
             subtotal=subtotal, 
@@ -518,7 +504,7 @@ def checkout_page():
 
 
 # ============================================================
-# ✅ FIXED: PLACE ORDER - RECEIVES SHIPPING FROM FRONTEND
+# ✅ COMPLETELY FIXED: PLACE ORDER - RECEIVES SHIPPING FROM FRONTEND
 # ============================================================
 @shop_bp.route('/place-order', methods=['POST'])
 def place_order():
@@ -542,12 +528,12 @@ def place_order():
         customer_phone = data.get('customer_phone') or data.get('phone') or 'N/A'
         customer_address = data.get('customer_address') or data.get('address') or 'Online Order'
 
-        # ✅ FIX: Get shipping from frontend (calculated by geolocation)
+        # ✅ Get shipping from frontend (calculated by geolocation)
         shipping = data.get('shipping', 0)
-        
-        # Get subtotal from frontend or calculate from cart
+        shipping_distance = data.get('shipping_distance', 0)
+        total = data.get('total', 0)
         subtotal = data.get('subtotal', 0)
-        
+
         # If subtotal not sent, calculate from cart
         if subtotal == 0:
             products = load_products()
@@ -564,15 +550,16 @@ def place_order():
                             subtotal += bundle.get('price', 0) * quantity
                             break
 
-        # ✅ FIX: Use shipping from frontend, NOT hardcoded 800!
-        total = subtotal + shipping
+        # Calculate total if not provided
+        if total == 0:
+            total = subtotal + shipping
 
         print(f"👤 Customer: {customer_name}")
         print(f"📧 Email: {customer_email}")
         print(f"📱 Phone: {customer_phone}")
         print(f"📍 Address: {customer_address}")
         print(f"📦 Subtotal: {subtotal}")
-        print(f"🚚 Shipping: {shipping}")  # ✅ Now shows calculated value, not 800!
+        print(f"🚚 Shipping: {shipping}")
         print(f"💰 Total: {total}")
         print("=" * 60)
 
@@ -590,15 +577,17 @@ def place_order():
                 if str(product.get('id')) == str(item_id):
                     current_stock = product.get('stock', 0)
                     if current_stock < quantity:
-                        return jsonify({'success': False, 'message': f'Not enough stock for {product.get("name")}. Available: {current_stock}'}), 400
+                        return jsonify({
+                            'success': False, 
+                            'message': f'Not enough stock for {product.get("name")}. Available: {current_stock}'
+                        }), 400
                     item_total = product.get('price', 0) * quantity
-                    subtotal += item_total
                     order_items.append({
-                        'product_id': item_id,
-                        'name': product.get('name'),
-                        'price': product.get('price', 0),
-                        'quantity': quantity,
-                        'total': item_total,
+                        'product_id': str(item_id),
+                        'name': product.get('name', 'Product'),
+                        'price': float(product.get('price', 0)),
+                        'quantity': int(quantity),
+                        'total': float(item_total),
                         'type': 'product',
                     })
                     item_found = True
@@ -610,13 +599,12 @@ def place_order():
                 for bundle in bundles:
                     if str(bundle.get('id')) == str(item_id):
                         item_total = bundle.get('price', 0) * quantity
-                        subtotal += item_total
                         order_items.append({
-                            'product_id': item_id,
-                            'name': bundle.get('name'),
-                            'price': bundle.get('price', 0),
-                            'quantity': quantity,
-                            'total': item_total,
+                            'product_id': str(item_id),
+                            'name': bundle.get('name', 'Bundle'),
+                            'price': float(bundle.get('price', 0)),
+                            'quantity': int(quantity),
+                            'total': float(item_total),
                             'type': 'bundle',
                         })
                         break
@@ -624,64 +612,97 @@ def place_order():
         if not order_items:
             return jsonify({'success': False, 'message': 'No valid items in cart'}), 400
 
+        # Generate order ID if not provided
         order_id = data.get('order_id') or f'ELEC-{datetime.utcnow().strftime("%Y%m%d%H%M%S")}'
 
+        # ============================================================
+        # ✅ PROPER SUPABASE FORMAT - ALL FIELDS CLEAN
+        # ============================================================
         order_data = {
-            'order_id': order_id,
+            'order_id': str(order_id),
             'items': order_items,
-            'subtotal': subtotal,
-            'shipping': shipping,  # ✅ Now uses calculated shipping!
-            'total': total,
-            'status': data.get('status', 'pending'),
-            'source': data.get('source', 'web'),
+            'subtotal': float(subtotal),
+            'shipping': float(shipping),
+            'total': float(total),
+            'status': str(data.get('status', 'pending')),
+            'source': str(data.get('source', 'web')),
             'created_at': datetime.utcnow().isoformat(),
-            'customer_name': customer_name,
-            'customer_email': customer_email,
-            'customer_phone': customer_phone,
-            'customer_address': customer_address,
+            'customer_name': str(customer_name),
+            'customer_email': str(customer_email),
+            'customer_phone': str(customer_phone),
+            'customer_address': str(customer_address),
             'customer': {
-                'name': customer_name,
-                'email': customer_email,
-                'phone': customer_phone,
-                'address': customer_address,
+                'name': str(customer_name),
+                'email': str(customer_email),
+                'phone': str(customer_phone),
+                'address': str(customer_address),
             },
-            'location': data.get('location', {}),
-            'shipping_distance': data.get('shipping_distance', 0),
-            'estimated_delivery': data.get('estimated_delivery', ''),
-            'delivery_notes': data.get('delivery_notes', ''),
+            'shipping_distance': float(shipping_distance) if shipping_distance else 0,
+            'estimated_delivery': str(data.get('estimated_delivery', '')),
+            'delivery_notes': str(data.get('delivery_notes', '')),
         }
 
+        # Add location data if present
+        if data.get('location'):
+            order_data['location'] = data.get('location')
+
         print(f"🔥 SAVING ORDER: {order_id}")
-        print(f"📦 Order data: {json.dumps(order_data, indent=2)}")
+        print(f"📦 Order data: {json.dumps(order_data, indent=2, default=str)}")
 
-        # ===== SAVE TO SUPABASE =====
-        response = requests.post(
-            f"{Config.SUPABASE_URL}/rest/v1/orders",
-            headers=Config.SUPABASE_HEADERS,
-            json=order_data,
-            timeout=10,
-        )
+        # ============================================================
+        # ✅ SAVE TO SUPABASE
+        # ============================================================
+        try:
+            # Try inserting directly with proper headers
+            response = requests.post(
+                f"{Config.SUPABASE_URL}/rest/v1/orders",
+                headers={
+                    **Config.SUPABASE_HEADERS,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                json=order_data,
+                timeout=15,
+            )
 
-        if response.status_code in [200, 201]:
-            print(f"✅ Order saved: {order_id}")
-            session['cart'] = {}
-            session.modified = True
+            print(f"📥 Supabase response status: {response.status_code}")
+            print(f"📥 Supabase response body: {response.text[:500]}")  # Truncate for readability
 
-            import utils.data
-            utils.data.orders_cache = []
+            if response.status_code in [200, 201, 204]:
+                print(f"✅ Order saved: {order_id}")
+                session['cart'] = {}
+                session.modified = True
 
-            return jsonify({
-                'success': True,
-                'order_id': order_id,
-                'total': total,
-                'message': 'Order placed successfully!',
-                'customer_name': customer_name,
-            })
-        else:
-            print(f"❌ Supabase error: {response.status_code} - {response.text}")
+                # Clear cache
+                import utils.data
+                utils.data.orders_cache = []
+
+                return jsonify({
+                    'success': True,
+                    'order_id': order_id,
+                    'total': total,
+                    'message': 'Order placed successfully!',
+                    'customer_name': customer_name,
+                })
+            else:
+                print(f"❌ Supabase error: {response.status_code}")
+                print(f"❌ Response: {response.text}")
+                return jsonify({
+                    'success': False,
+                    'message': f'Database error: {response.status_code} - {response.text[:200]}'
+                }), 500
+
+        except requests.exceptions.Timeout:
+            print("❌ Request timeout")
             return jsonify({
                 'success': False,
-                'message': f'Database error: {response.status_code}'
+                'message': 'Request timeout. Please try again.'
+            }), 500
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Request error: {e}")
+            return jsonify({
+                'success': False,
+                'message': f'Network error: {str(e)}'
             }), 500
 
     except Exception as exc:
