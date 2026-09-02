@@ -113,37 +113,26 @@ def clean_products(products):
         if not p:
             continue
         clean = dict(p)
-        # Fix stock
         if clean.get('stock') is None:
             clean['stock'] = 0
-        # Fix price
         if clean.get('price') is None:
             clean['price'] = 0
-        # Fix name
         if clean.get('name') is None:
             clean['name'] = 'Unnamed Product'
-        # Fix category
         if clean.get('category') is None:
             clean['category'] = 'Uncategorized'
-        # Fix image
         if clean.get('image') is None:
             clean['image'] = ''
-        # Fix description
         if clean.get('description') is None:
             clean['description'] = ''
-        # Fix badge
         if clean.get('badge') is None:
             clean['badge'] = ''
-        # Fix cost_price
         if clean.get('cost_price') is None:
             clean['cost_price'] = 0
-        # Fix rating
         if clean.get('rating') is None:
             clean['rating'] = 4.0
-        # Fix reviews
         if clean.get('reviews') is None:
             clean['reviews'] = 0
-        # Fix barcode
         if clean.get('barcode') is None:
             clean['barcode'] = ''
         cleaned.append(clean)
@@ -168,7 +157,6 @@ def build_categories(products_list):
             }
         categories[cat]['count'] += 1
     
-    # Sort categories alphabetically (case insensitive)
     sorted_categories = dict(sorted(categories.items(), key=lambda x: x[0].lower()))
     return sorted_categories
 
@@ -176,12 +164,7 @@ def build_categories(products_list):
 @shop_bp.route('/')
 def index():
     products_list = load_products()
-    
-    # ============================================================
-    # FIX: Clean products to remove None values
-    # ============================================================
     products_list = clean_products(products_list)
-    
     bundles_list = load_bundles()
 
     products_dict = {}
@@ -198,12 +181,8 @@ def index():
     new_arrivals = [p for p in products_list if p.get('badge') == 'New']
     trending = [p for p in products_list if p.get('badge') == 'Trending']
 
-    # ============================================================
-    # BUILD CATEGORIES WITH ALL PRODUCTS
-    # ============================================================
     categories = build_categories(products_list)
 
-    # Add 'All' category at the beginning
     all_categories = {
         'All': {
             'name': 'All',
@@ -229,10 +208,6 @@ def index():
 @shop_bp.route('/category/<category_name>')
 def category_page(category_name):
     products = load_products()
-    
-    # ============================================================
-    # FIX: Clean products to remove None values
-    # ============================================================
     products = clean_products(products)
     
     products_dict = {}
@@ -240,7 +215,6 @@ def category_page(category_name):
         if product and 'id' in product and product.get('category') == category_name:
             products_dict[str(product['id'])] = product
     
-    # Build categories for sidebar
     categories = build_categories(products)
     all_categories = {
         'All': {
@@ -263,10 +237,6 @@ def category_page(category_name):
 @shop_bp.route('/product/<product_id>')
 def product_detail(product_id):
     products = load_products()
-    
-    # ============================================================
-    # FIX: Clean products to remove None values
-    # ============================================================
     products = clean_products(products)
     
     product = None
@@ -288,6 +258,9 @@ def product_detail(product_id):
     return render_template('product.html', product=product, related=related_dict)
 
 
+# ============================================================
+# ✅ FIXED: CART PAGE - NO HARDCODED 800
+# ============================================================
 @shop_bp.route('/cart')
 def cart_page():
     try:
@@ -296,12 +269,7 @@ def cart_page():
         subtotal = 0
         total_items = 0
         products = load_products()
-        
-        # ============================================================
-        # FIX: Clean products to remove None values
-        # ============================================================
         products = clean_products(products)
-        
         bundles = load_bundles()
 
         for item_id, quantity in cart.items():
@@ -343,9 +311,18 @@ def cart_page():
                     total_items += quantity
                     break
 
-        shipping = 0 if subtotal >= 50000 else 800
-        total = subtotal + shipping
-        return render_template('cart.html', cart_items=cart_items, subtotal=subtotal, shipping=shipping, total=total, total_items=total_items)
+        # ✅ FIX: Shipping calculated at checkout, not here
+        # Show "Calculated at Checkout" instead of hardcoded 800
+        shipping = None  # Will be calculated at checkout
+        total = subtotal  # Total without shipping (will be updated at checkout)
+        
+        return render_template('cart.html', 
+            cart_items=cart_items, 
+            subtotal=subtotal, 
+            shipping=shipping, 
+            total=total, 
+            total_items=total_items
+        )
     except Exception as exc:
         print(f'Cart error: {exc}')
         flash('Error loading cart', 'danger')
@@ -357,12 +334,7 @@ def add_to_cart(item_id):
     try:
         cart = get_cart()
         products = load_products()
-        
-        # ============================================================
-        # FIX: Clean products to remove None values
-        # ============================================================
         products = clean_products(products)
-        
         bundles = load_bundles()
 
         product = next((p for p in products if str(p.get('id')) == str(item_id)), None)
@@ -386,15 +358,14 @@ def add_to_cart(item_id):
         return jsonify({'success': False, 'message': f'Error: {str(exc)}'}), 500
 
 
+# ============================================================
+# ✅ FIXED: UPDATE CART - NO HARDCODED 800
+# ============================================================
 @shop_bp.route('/update-cart/<item_id>/<action>', methods=['POST'])
 def update_cart_item(item_id, action):
     try:
         cart = get_cart()
         products = load_products()
-        
-        # ============================================================
-        # FIX: Clean products to remove None values
-        # ============================================================
         products = clean_products(products)
 
         if action == 'increase':
@@ -436,8 +407,9 @@ def update_cart_item(item_id, action):
                         subtotal += bundle.get('price', 0) * qty
                         break
 
-        shipping = 0 if subtotal >= 50000 else 800
-        total = subtotal + shipping
+        # ✅ FIX: Shipping calculated at checkout, not here
+        shipping = None
+        total = subtotal
 
         item_price = 0
         for product in products:
@@ -478,6 +450,9 @@ def remove_from_cart(item_id):
         return jsonify({'success': False, 'message': str(exc)}), 500
 
 
+# ============================================================
+# ✅ FIXED: CHECKOUT PAGE - PASSES SUBTOTAL TO FRONTEND
+# ============================================================
 @shop_bp.route('/checkout')
 def checkout_page():
     try:
@@ -490,12 +465,7 @@ def checkout_page():
         subtotal = 0
         total_items = 0
         products = load_products()
-        
-        # ============================================================
-        # FIX: Clean products to remove None values
-        # ============================================================
         products = clean_products(products)
-        
         bundles = load_bundles()
 
         for item_id, quantity in cart.items():
@@ -512,6 +482,8 @@ def checkout_page():
                     'type': 'product',
                     'quantity': quantity,
                     'item_total': item_total,
+                    'description': product.get('description', ''),
+                    'specs': product.get('specs', []),
                 })
                 subtotal += item_total
                 total_items += quantity
@@ -533,9 +505,12 @@ def checkout_page():
                     total_items += quantity
                     break
 
-        shipping = 0 if subtotal >= 50000 else 800
-        total = subtotal + shipping
-        return render_template('checkout.html', cart_items=cart_items, subtotal=subtotal, shipping=shipping, total=total, total_items=total_items)
+        # ✅ FIX: Pass subtotal to frontend, shipping calculated by JS
+        return render_template('checkout.html', 
+            cart_items=cart_items, 
+            subtotal=subtotal, 
+            total_items=total_items
+        )
     except Exception as exc:
         print(f'Checkout error: {exc}')
         flash('Error loading checkout', 'danger')
@@ -543,7 +518,7 @@ def checkout_page():
 
 
 # ============================================================
-# FIXED: /place-order ENDPOINT - SAVES CUSTOMER DATA
+# ✅ FIXED: PLACE ORDER - RECEIVES SHIPPING FROM FRONTEND
 # ============================================================
 @shop_bp.route('/place-order', methods=['POST'])
 def place_order():
@@ -552,15 +527,9 @@ def place_order():
         if not cart:
             return jsonify({'success': False, 'message': 'Cart is empty'}), 400
 
-        # ===== GET DATA FROM REQUEST =====
         data = request.get_json()
         if not data:
-            data = {
-                'customer_name': request.form.get('customer_name', ''),
-                'customer_email': request.form.get('customer_email', ''),
-                'customer_phone': request.form.get('customer_phone', ''),
-                'customer_address': request.form.get('customer_address', ''),
-            }
+            return jsonify({'success': False, 'message': 'No data received'}), 400
 
         print("=" * 60)
         print("📦 PLACE ORDER REQUEST")
@@ -568,44 +537,48 @@ def place_order():
         print("=" * 60)
 
         # ===== GET CUSTOMER DATA =====
-        customer_name = data.get('customer_name', '')
-        if not customer_name:
-            customer_name = data.get('name', '')
-        if not customer_name:
-            customer_name = 'Web Customer'
+        customer_name = data.get('customer_name') or data.get('name') or 'Web Customer'
+        customer_email = data.get('customer_email') or data.get('email') or 'web@example.com'
+        customer_phone = data.get('customer_phone') or data.get('phone') or 'N/A'
+        customer_address = data.get('customer_address') or data.get('address') or 'Online Order'
 
-        customer_email = data.get('customer_email', '')
-        if not customer_email:
-            customer_email = data.get('email', '')
-        if not customer_email:
-            customer_email = 'web@example.com'
+        # ✅ FIX: Get shipping from frontend (calculated by geolocation)
+        shipping = data.get('shipping', 0)
+        
+        # Get subtotal from frontend or calculate from cart
+        subtotal = data.get('subtotal', 0)
+        
+        # If subtotal not sent, calculate from cart
+        if subtotal == 0:
+            products = load_products()
+            products = clean_products(products)
+            bundles = load_bundles()
+            for item_id, quantity in cart.items():
+                for product in products:
+                    if str(product.get('id')) == str(item_id):
+                        subtotal += product.get('price', 0) * quantity
+                        break
+                else:
+                    for bundle in bundles:
+                        if str(bundle.get('id')) == str(item_id):
+                            subtotal += bundle.get('price', 0) * quantity
+                            break
 
-        customer_phone = data.get('customer_phone', '')
-        if not customer_phone:
-            customer_phone = data.get('phone', '')
-        if not customer_phone:
-            customer_phone = 'N/A'
-
-        customer_address = data.get('customer_address', '')
-        if not customer_address:
-            customer_address = data.get('address', '')
-        if not customer_address:
-            customer_address = 'Online Order'
+        # ✅ FIX: Use shipping from frontend, NOT hardcoded 800!
+        total = subtotal + shipping
 
         print(f"👤 Customer: {customer_name}")
         print(f"📧 Email: {customer_email}")
         print(f"📱 Phone: {customer_phone}")
+        print(f"📍 Address: {customer_address}")
+        print(f"📦 Subtotal: {subtotal}")
+        print(f"🚚 Shipping: {shipping}")  # ✅ Now shows calculated value, not 800!
+        print(f"💰 Total: {total}")
         print("=" * 60)
 
         # ===== BUILD ORDER ITEMS =====
-        subtotal = 0
         products = load_products()
-        
-        # ============================================================
-        # FIX: Clean products to remove None values
-        # ============================================================
         products = clean_products(products)
-        
         bundles = load_bundles()
         order_items = []
 
@@ -651,40 +624,37 @@ def place_order():
         if not order_items:
             return jsonify({'success': False, 'message': 'No valid items in cart'}), 400
 
-        shipping = 0 if subtotal >= 50000 else 800
-        total = subtotal + shipping
-        order_id = f'ELEC-{datetime.utcnow().strftime("%Y%m%d%H%M%S")}'
+        order_id = data.get('order_id') or f'ELEC-{datetime.utcnow().strftime("%Y%m%d%H%M%S")}'
 
-        # ============================================================
-        # CRITICAL FIX: Build order data with customer fields
-        # ============================================================
         order_data = {
             'order_id': order_id,
             'items': order_items,
             'subtotal': subtotal,
-            'shipping': shipping,
+            'shipping': shipping,  # ✅ Now uses calculated shipping!
             'total': total,
-            'status': 'pending',
-            'source': 'web',
+            'status': data.get('status', 'pending'),
+            'source': data.get('source', 'web'),
             'created_at': datetime.utcnow().isoformat(),
-            # ===== CUSTOMER DATA AS DIRECT FIELDS =====
             'customer_name': customer_name,
             'customer_email': customer_email,
             'customer_phone': customer_phone,
             'customer_address': customer_address,
-            # ===== CUSTOMER DATA AS JSON (backup) =====
             'customer': {
                 'name': customer_name,
                 'email': customer_email,
                 'phone': customer_phone,
                 'address': customer_address,
-            }
+            },
+            'location': data.get('location', {}),
+            'shipping_distance': data.get('shipping_distance', 0),
+            'estimated_delivery': data.get('estimated_delivery', ''),
+            'delivery_notes': data.get('delivery_notes', ''),
         }
 
-        print(f"🔥 SAVING WEB ORDER: {customer_name}")
+        print(f"🔥 SAVING ORDER: {order_id}")
         print(f"📦 Order data: {json.dumps(order_data, indent=2)}")
 
-        # ===== SAVE DIRECTLY TO SUPABASE =====
+        # ===== SAVE TO SUPABASE =====
         response = requests.post(
             f"{Config.SUPABASE_URL}/rest/v1/orders",
             headers=Config.SUPABASE_HEADERS,
@@ -693,11 +663,10 @@ def place_order():
         )
 
         if response.status_code in [200, 201]:
-            print(f"✅ Web order saved: {order_id}")
+            print(f"✅ Order saved: {order_id}")
             session['cart'] = {}
             session.modified = True
 
-            # Clear cache
             import utils.data
             utils.data.orders_cache = []
 
@@ -734,11 +703,10 @@ def clear_cart():
 
 
 # ============================================================
-# CATEGORY API - FOR DYNAMIC CATEGORY FILTERING
+# CATEGORY API
 # ============================================================
 @shop_bp.route('/api/categories')
 def api_categories():
-    """API endpoint to get all categories with counts"""
     products = load_products()
     products = clean_products(products)
     categories = build_categories(products)
