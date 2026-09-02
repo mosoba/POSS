@@ -1719,77 +1719,75 @@
         <div id="posCartItemsList"></div>
     </div>
 
-    <!-- ============================================================
-    CART SUMMARY - FIXED AT BOTTOM
-    ============================================================ -->
-    <div class="cart-summary" style="flex-shrink: 0;">
-        <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
-        <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
+   <!-- ============================================================
+CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
+============================================================ -->
+<div class="cart-summary" style="flex-shrink: 0;">
+    <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
+    <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
 
-        <!-- ===== TIP SECTION ===== -->
-        <div class="tip-section">
-            <div class="tip-btn-group">
-                <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
-                <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
-                <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
-                <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
-                <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
-            </div>
-            <div class="tip-display">
-                <span>Tip Added:</span>
-                <span class="value" id="tipDisplay">KSh 0</span>
-            </div>
+    <!-- ===== TIP SECTION ===== -->
+    <div class="tip-section">
+        <div class="tip-btn-group">
+            <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
+            <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
+            <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
+            <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
+            <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
         </div>
-
-        <!-- ===== CHANGE CALCULATOR ===== -->
-        <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">💰 Change</label>
-                <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
-            </div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Paid</label>
-                <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
-            </div>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-                <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">500</button>
-                <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">1K</button>
-                <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">2K</button>
-                <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">5K</button>
-                <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
-                <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
-                <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
-            </div>
-        </div>
-
-        <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
-
-        <!-- ===== ORDER NOTES ===== -->
-        <div class="order-notes">
-            <label>📝 Order Notes</label>
-            <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
-        </div>
-
-        <div class="discount-row">
-            <span>Discount:</span>
-            <span class="value" id="discountDisplay">0%</span>
-            <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
+        <div class="tip-display">
+            <span>Tip Added:</span>
+            <span class="value" id="tipDisplay">KSh 0</span>
         </div>
     </div>
 
-    <div class="cart-actions">
-        <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
-        <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
+    <!-- ===== CHANGE CALCULATOR ===== -->
+    <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">💰 Change</label>
+            <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Paid</label>
+            <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+            <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">500</button>
+            <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">1K</button>
+            <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">2K</button>
+            <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">5K</button>
+            <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
+            <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
+            <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
+        </div>
     </div>
 
-    <div class="held-orders-panel" id="heldOrdersPanel">
-        <div class="title">📋 Held Orders</div>
-        <div id="heldOrdersList"></div>
+    <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
+
+    <!-- ===== ORDER NOTES - REMOVED ===== -->
+    <!-- <div class="order-notes">
+        <label>📝 Order Notes</label>
+        <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
+    </div> -->
+
+    <div class="discount-row">
+        <span>Discount:</span>
+        <span class="value" id="discountDisplay">0%</span>
+        <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
     </div>
 </div>
 
+<div class="cart-actions">
+    <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
+    <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
+</div>
+
+<div class="held-orders-panel" id="heldOrdersPanel">
+    <div class="title">📋 Held Orders</div>
+    <div id="heldOrdersList"></div>
+</div>
     <!-- ===== RECEIPT MODAL ===== -->
     <div id="receiptModal" class="modal-overlay hidden">
         <div class="modal" style="max-width:400px;">
