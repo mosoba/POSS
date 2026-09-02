@@ -835,6 +835,9 @@
     </div>
 
     <script>
+        console.log('🚀 ACACIAMART Checkout Loaded');
+        console.log('📍 Store: Nairobi CBD (Lat: -1.286389, Lng: 36.817223)');
+
         let currentStep = 1;
         let orderPlaced = false;
         let shippingCost = 0;
@@ -863,14 +866,17 @@
         }
 
         // ============================================================
-        // ✅ GEOCODE ADDRESS USING NOMINATIM (FREE, NO API KEY)
+        // ✅ GEOCODE ADDRESS USING NOMINATIM
         // ============================================================
         function geocodeAddress() {
+            console.log('📍 Geocoding address...');
+            
             const address = document.getElementById('address').value.trim();
             const city = document.getElementById('city').value.trim();
             const country = document.getElementById('country').value.trim();
             
             if (!address || !city) {
+                console.log('⚠️ Address or city missing');
                 document.getElementById('shippingCostContainer').style.display = 'none';
                 document.getElementById('shippingPending').style.display = 'flex';
                 document.getElementById('shippingCostDisplay2').innerHTML = '⏳ Pending';
@@ -879,7 +885,6 @@
                 return;
             }
             
-            // Show loading state
             document.getElementById('shippingPending').style.display = 'flex';
             document.getElementById('shippingPending').innerHTML = `
                 <i class="fas fa-spinner fa-spin"></i>
@@ -889,9 +894,13 @@
             const fullAddress = `${address}, ${city}, ${country || 'Kenya'}`;
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullAddress)}&format=json&limit=1`;
             
+            console.log('📍 Geocoding URL:', url);
+            
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
+                    console.log('📍 Geocoding response:', data);
+                    
                     if (data && data.length > 0) {
                         const lat = parseFloat(data[0].lat);
                         const lon = parseFloat(data[0].lon);
@@ -899,8 +908,9 @@
                         userLat = lat;
                         userLng = lon;
                         
-                        // Calculate distance from store (Nairobi CBD)
                         const distance = haversineDistance(storeLat, storeLng, lat, lon);
+                        
+                        console.log(`📍 Location found: (${lat}, ${lon}) Distance: ${distance.toFixed(1)} km`);
                         
                         document.getElementById('shippingPending').style.display = 'none';
                         document.getElementById('locationMessage').innerHTML = `
@@ -913,7 +923,7 @@
                         updateShippingDisplay(distance);
                         showToast('📍 Location found!', 'success', `Distance: ${distance.toFixed(1)} km`);
                     } else {
-                        // Address not found - use fallback
+                        console.log('⚠️ Address not found');
                         document.getElementById('shippingPending').style.display = 'flex';
                         document.getElementById('shippingPending').innerHTML = `
                             <i class="fas fa-exclamation-triangle text-amber-500"></i>
@@ -923,7 +933,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Geocoding error:', error);
+                    console.error('❌ Geocoding error:', error);
                     document.getElementById('shippingPending').style.display = 'flex';
                     document.getElementById('shippingPending').innerHTML = `
                         <i class="fas fa-exclamation-triangle text-amber-500"></i>
@@ -937,6 +947,8 @@
         // CALCULATE SHIPPING COST
         // ============================================================
         function calculateShippingCost(distanceKm) {
+            console.log('📦 Calculating shipping for distance:', distanceKm, 'km');
+            
             const MIN_FEE = 100;
             const FREE_DISTANCE = 5;
             const RATE_PER_KM = 50;
@@ -945,6 +957,7 @@
             const VALUE_PERCENTAGE = 0.08;
             
             if (subtotal >= FREE_SHIPPING_THRESHOLD) {
+                console.log('🎉 FREE SHIPPING (order over KSh 50,000)');
                 return 0;
             }
             
@@ -963,13 +976,19 @@
             }
             
             shipping = Math.min(shipping, MAX_SHIPPING);
-            return Math.round(shipping);
+            const result = Math.round(shipping);
+            
+            console.log(`📦 Shipping calculation: Distance fee: ${distanceFee}, Value fee: ${valueFee}, Final: ${result}`);
+            
+            return result;
         }
 
         // ============================================================
         // UPDATE SHIPPING DISPLAY
         // ============================================================
         function updateShippingDisplay(distance) {
+            console.log('📦 Updating shipping display for distance:', distance);
+            
             shippingDistance = distance;
             shippingCost = calculateShippingCost(distance);
             shippingCalculated = true;
@@ -1017,12 +1036,16 @@
                 const remaining = 50000 - subtotal;
                 freeShippingInfo.innerHTML = `<i class="fas fa-info-circle text-[#0b2b1e]"></i> <span>Add KSh ${remaining.toLocaleString()} more for free shipping</span>`;
             }
+            
+            console.log(`📦 Shipping updated: KSh ${shippingCost}, Total: KSh ${totalAmount}`);
         }
 
         // ============================================================
         // DETECT LOCATION (GPS)
         // ============================================================
         function detectLocation() {
+            console.log('📍 Detecting location via GPS...');
+            
             const spinner = document.getElementById('locationSpinner');
             const messageEl = document.getElementById('locationMessage');
             const retryBtn = document.getElementById('locationRetryBtn');
@@ -1032,6 +1055,7 @@
             retryBtn.style.display = 'none';
             
             if (!navigator.geolocation) {
+                console.log('⚠️ Geolocation not supported');
                 messageEl.innerHTML = '<span class="font-medium text-sm text-amber-600">⚠️ Geolocation not supported</span><p class="text-xs text-gray-500">Please enter your full address</p>';
                 spinner.style.display = 'none';
                 retryBtn.style.display = 'inline-block';
@@ -1045,6 +1069,8 @@
                     
                     const distance = haversineDistance(storeLat, storeLng, userLat, userLng);
                     
+                    console.log(`📍 GPS location found: (${userLat}, ${userLng}) Distance: ${distance.toFixed(1)} km`);
+                    
                     spinner.style.display = 'none';
                     messageEl.innerHTML = `
                         <span class="font-medium text-sm text-green-600">
@@ -1057,6 +1083,7 @@
                     showToast('📍 Location detected!', 'success', `Distance: ${distance.toFixed(1)} km`);
                 },
                 (error) => {
+                    console.log('⚠️ GPS error:', error.message);
                     spinner.style.display = 'none';
                     retryBtn.style.display = 'inline-block';
                     
@@ -1082,7 +1109,10 @@
         // STEP NAVIGATION
         // ============================================================
         function goToStep(step) {
+            console.log(`🔄 Going to step ${step}`);
+            
             if (step === 2 && !shippingCalculated) {
+                console.log('⚠️ Shipping not calculated yet');
                 showToast('⚠️ Please enter your full address to calculate shipping', 'warning');
                 return;
             }
@@ -1124,8 +1154,12 @@
         }
 
         function validateCustomerData() {
+            console.log('🔍 Validating customer data...');
+            
             const data = getCustomerData();
+            
             if (!data.first_name || !data.last_name || !data.email || !data.phone || !data.address || !data.city) {
+                console.log('⚠️ Missing required fields');
                 showToast('⚠️ Please fill in all required fields', 'warning');
                 goToStep(1);
                 document.querySelectorAll('.form-input').forEach(el => {
@@ -1138,11 +1172,13 @@
             }
             
             if (!shippingCalculated) {
+                console.log('⚠️ Shipping not calculated');
                 showToast('⚠️ Please enter your full address to calculate shipping', 'warning');
                 goToStep(1);
                 return false;
             }
             
+            console.log('✅ Customer data validated');
             return true;
         }
 
@@ -1199,11 +1235,21 @@
         }
 
         // ============================================================
-        // PLACE ORDER
+        // ✅ PLACE ORDER - FIXED with error handling
         // ============================================================
         function placeOrder(method) {
-            if (orderPlaced) return;
-            if (!validateCustomerData()) return;
+            console.log('🛒 Place order called with method:', method);
+            console.log('🛒 orderPlaced:', orderPlaced);
+            
+            if (orderPlaced) {
+                console.log('⚠️ Order already placed');
+                return;
+            }
+            
+            if (!validateCustomerData()) {
+                console.log('⚠️ Validation failed');
+                return;
+            }
 
             const btns = document.querySelectorAll('#step2 .btn-primary, .payment-option button');
             btns.forEach(btn => {
@@ -1212,6 +1258,8 @@
             });
 
             const data = getCustomerData();
+            console.log('📦 Order data:', data);
+            
             const customerName = data.first_name + ' ' + data.last_name;
             const fullAddress = data.address + ', ' + data.city + ', ' + data.country;
 
@@ -1271,13 +1319,20 @@
                 }
             };
 
+            console.log('📤 Sending order to server:', orderData);
+
             fetch('/place-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('📥 Server response status:', response.status);
+                return response.json();
+            })
             .then(result => {
+                console.log('📥 Server response data:', result);
+                
                 if (result.success) {
                     orderPlaced = true;
                     
@@ -1299,6 +1354,7 @@
                     setTimeout(updateShippingStatus, 2000);
                     
                 } else {
+                    console.log('❌ Order failed:', result.message);
                     showToast('❌ ' + (result.message || 'Failed to place order'), 'error');
                     btns.forEach(btn => {
                         btn.disabled = false;
@@ -1309,7 +1365,7 @@
                 }
             })
             .catch(error => {
-                console.error('Order error:', error);
+                console.error('❌ Order error:', error);
                 showToast('❌ Something went wrong. Please try again.', 'error');
                 btns.forEach(btn => {
                     btn.disabled = false;
@@ -1346,6 +1402,8 @@
         // TOAST
         // ============================================================
         function showToast(message, type = 'success', subMessage = '') {
+            console.log('🔔 Toast:', message, type, subMessage);
+            
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toastMessage');
             const subEl = document.getElementById('toastSubMessage');
@@ -1383,18 +1441,14 @@
                     geocodeAddress();
                 }
             }
-            if (e.key >= '1' && e.key <= '3' && !e.ctrlKey && !e.metaKey) {
-                const step = parseInt(e.key);
-                if (step <= currentStep + 1) {
-                    goToStep(step);
-                }
-            }
         });
 
         // ============================================================
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ DOM loaded, initializing...');
+            
             const firstInput = document.querySelector('#step1 input');
             if (firstInput) setTimeout(() => firstInput.focus(), 300);
             
@@ -1409,12 +1463,10 @@
                 freeShippingInfo.innerHTML = `<i class="fas fa-info-circle text-[#0b2b1e]"></i> <span>Add KSh ${remaining.toLocaleString()} more for free shipping</span>`;
             }
             
-            // Try GPS first, then address geocoding
             setTimeout(detectLocation, 1000);
             
-            console.log('✅ ACACIAMART Checkout - GEOCODING Enabled');
-            console.log('📍 Store: Nairobi CBD (Lat: -1.286389, Lng: 36.817223)');
-            console.log('📍 Using OpenStreetMap Nominatim for geocoding');
+            console.log('✅ ACACIAMART Checkout initialized');
+            console.log('📦 Subtotal: KSh ' + subtotal.toLocaleString());
         });
     </script>
 </body>
