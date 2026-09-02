@@ -2956,65 +2956,84 @@
     // ============================================================
     // PLACE ORDER - HANDLES CREDIT PURCHASES
     // ============================================================
-    function placePOSOrder() {
-        if (!posCart.length) {
-            showToast('⚠️ Cart is empty!', 'warning');
-            return;
-        }
+    // ============================================================
+// REPLACE YOUR ENTIRE placePOSOrder FUNCTION WITH THIS
+// ============================================================
 
-        for (const item of posCart) {
-            const product = allProducts.find(p => String(p.id) === String(item.id));
-            if (product && (product.stock || 0) < item.quantity) {
-                showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
-                return;
-            }
-        }
+function placePOSOrder() {
+    // ✅ SINGLE FIX: Prevent double submission
+    if (this._processing) return;
+    this._processing = true;
 
-        if (paymentMethod === 'credit') {
-            const select = document.getElementById('creditCustomerSelect');
-            const selected = select.options[select.selectedIndex];
-
-            if (!selected || !selected.value) {
-                showToast('⚠️ Please select a credit customer', 'warning');
-                return;
-            }
-
-            const customerId = selected.value;
-            const customerName = selected.dataset.name || 'Customer';
-            const balance = parseFloat(selected.dataset.balance) || 0;
-            const limit = parseFloat(selected.dataset.limit) || 0;
-
-            const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-            const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-            const total = Math.max(0, subtotal - discountAmount + tipAmount);
-
-            if (limit > 0 && (balance + total) > limit) {
-                showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
-                return;
-            }
-
-            if (selected.dataset.status === 'inactive') {
-                showToast('⚠️ This customer account is inactive!', 'danger');
-                return;
-            }
-
-            if (!confirm(`💳 CREDIT PURCHASE\n\n` +
-                `👤 Customer: ${customerName}\n` +
-                `💰 Total: KSh ${total.toLocaleString()}\n` +
-                `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
-                `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
-                `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
-                `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
-                `Proceed?`)) {
-                return;
-            }
-
-            processCreditPurchase(customerId, customerName, total);
-            return;
-        }
-
-        processNormalOrder();
+    if (!posCart.length) {
+        showToast('⚠️ Cart is empty!', 'warning');
+        this._processing = false;
+        return;
     }
+
+    // Check stock
+    for (const item of posCart) {
+        const product = allProducts.find(p => String(p.id) === String(item.id));
+        if (product && (product.stock || 0) < item.quantity) {
+            showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
+            this._processing = false;
+            return;
+        }
+    }
+
+    // CREDIT PAYMENT
+    if (paymentMethod === 'credit') {
+        const select = document.getElementById('creditCustomerSelect');
+        const selected = select.options[select.selectedIndex];
+
+        if (!selected || !selected.value) {
+            showToast('⚠️ Please select a credit customer', 'warning');
+            this._processing = false;
+            return;
+        }
+
+        const customerId = selected.value;
+        const customerName = selected.dataset.name || 'Customer';
+        const balance = parseFloat(selected.dataset.balance) || 0;
+        const limit = parseFloat(selected.dataset.limit) || 0;
+
+        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        const total = Math.max(0, subtotal - discountAmount + tipAmount);
+
+        if (limit > 0 && (balance + total) > limit) {
+            showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
+            this._processing = false;
+            return;
+        }
+
+        if (selected.dataset.status === 'inactive') {
+            showToast('⚠️ This customer account is inactive!', 'danger');
+            this._processing = false;
+            return;
+        }
+
+        if (!confirm(`💳 CREDIT PURCHASE\n\n` +
+            `👤 Customer: ${customerName}\n` +
+            `💰 Total: KSh ${total.toLocaleString()}\n` +
+            `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
+            `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
+            `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
+            `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
+            `Proceed?`)) {
+            this._processing = false;
+            return;
+        }
+
+        processCreditPurchase(customerId, customerName, total);
+        this._processing = false;
+        return;
+    }
+
+    // NORMAL ORDER
+    processNormalOrder();
+    this._processing = false;
+}
 
     // ============================================================
     // PROCESS CREDIT PURCHASE
