@@ -196,59 +196,41 @@ def api_product_search():
         
         print(f"🔍 Searching products for: '{query}'")
         
-        # Load all products
         all_products = load_products()
-        
-        # Clean products
-        cleaned_products = []
-        for p in all_products:
-            clean_p = dict(p)
-            if clean_p.get('stock') is None:
-                clean_p['stock'] = 0
-            if clean_p.get('price') is None:
-                clean_p['price'] = 0
-            if clean_p.get('name') is None:
-                clean_p['name'] = 'Unnamed Product'
-            if clean_p.get('category') is None:
-                clean_p['category'] = 'Uncategorized'
-            if clean_p.get('image') is None:
-                clean_p['image'] = ''
-            if clean_p.get('description') is None:
-                clean_p['description'] = ''
-            if clean_p.get('cost_price') is None:
-                clean_p['cost_price'] = 0
-            if clean_p.get('badge') is None:
-                clean_p['badge'] = ''
-            cleaned_products.append(clean_p)
-        
-        all_products = cleaned_products
-        
-        # Search in multiple fields
         query_lower = query.lower()
         results = []
         
         for product in all_products:
-            # Check all searchable fields
-            name_match = query_lower in product.get('name', '').lower()
-            category_match = query_lower in product.get('category', '').lower()
-            desc_match = query_lower in product.get('description', '').lower()
-            barcode_match = query_lower in product.get('barcode', '').lower()
-            id_match = query_lower in product.get('id', '').lower()
+            # Safe string conversion for all fields
+            name = str(product.get('name', '')).lower()
+            category = str(product.get('category', '')).lower()
+            description = str(product.get('description', '')).lower()
+            barcode = str(product.get('barcode', '')).lower()
+            product_id = str(product.get('id', '')).lower()
             
-            # Also check specs if it's a list
-            specs = product.get('specs', [])
-            if isinstance(specs, list):
-                specs_str = ' '.join(specs).lower()
-                specs_match = query_lower in specs_str
-            else:
-                specs_match = query_lower in str(specs).lower()
+            # ✅ FIX: Handle specs safely
+            specs = product.get('specs')
+            specs_match = False
+            if specs is not None:
+                if isinstance(specs, list):
+                    specs_str = ' '.join([str(s).lower() for s in specs if s is not None])
+                    specs_match = query_lower in specs_str
+                else:
+                    specs_match = query_lower in str(specs).lower()
+            
+            # Check all fields
+            name_match = query_lower in name
+            category_match = query_lower in category
+            desc_match = query_lower in description
+            barcode_match = query_lower in barcode
+            id_match = query_lower in product_id
             
             if name_match or category_match or desc_match or barcode_match or id_match or specs_match:
                 # Add relevance score
                 score = 0
                 if name_match:
                     score += 10
-                    if query_lower == product.get('name', '').lower():
+                    if query_lower == name:
                         score += 5
                 if category_match:
                     score += 5
@@ -264,14 +246,13 @@ def api_product_search():
                 product['_score'] = score
                 results.append(product)
         
-        # Sort by relevance score (highest first)
+        # Sort by relevance
         results.sort(key=lambda x: x.get('_score', 0), reverse=True)
         
-        # Remove temporary score field
+        # Remove temporary score
         for r in results:
             r.pop('_score', None)
         
-        # Limit results
         results = results[:limit]
         
         print(f"✅ Found {len(results)} products matching '{query}'")
@@ -293,6 +274,84 @@ def api_product_search():
             'error': str(e),
             'products': [],
             'total': 0
+        }), 500
+
+
+
+        @admin_bp.route('/admin/api/products/low-stock', methods=['GET'])
+@admin_required
+def api_low_stock_products():
+    """Get all products with low stock (stock < 10)"""
+    try:
+        all_products = load_products()
+        
+        # Filter products with stock < 10
+        low_stock_products = []
+        for p in all_products:
+            stock = p.get('stock', 0)
+            if stock is None:
+                stock = 0
+            if stock < 10:
+                # Clean the product
+                clean_p = dict(p)
+                if clean_p.get('name') is None:
+                    clean_p['name'] = 'Unnamed Product'
+                if clean_p.get('category') is None:
+                    clean_p['category'] = 'Uncategorized'
+                if clean_p.get('price') is None:
+                    clean_p['price'] = 0
+                if clean_p.get('cost_price') is None:
+                    clean_p['cost_price'] = 0
+                if clean_p.get('stock') is None:
+                    clean_p['stock'] = 0
+                low_stock_products.append(clean_p)
+        
+        # Sort by stock (lowest first)
+        low_stock_products.sort(key=lambda x: x.get('stock', 0))
+        
+        print(f"📊 Found {len(low_stock_products)} low stock products")
+        
+        return jsonify({
+            'success': True,
+            'products': low_stock_products,
+            'total': len(low_stock_products)
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting low stock products: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'products': [],
+            'total': 0
+        }), 500
+
+
+
+        @admin_bp.route('/admin/api/products/low-stock/count', methods=['GET'])
+@admin_required
+def api_low_stock_count():
+    """Get count of low stock products"""
+    try:
+        all_products = load_products()
+        count = 0
+        for p in all_products:
+            stock = p.get('stock', 0)
+            if stock is None:
+                stock = 0
+            if stock < 10:
+                count += 1
+        
+        return jsonify({
+            'success': True,
+            'count': count
+        })
+        
+    except Exception as e:
+        print(f"❌ Error getting low stock count: {e}")
+        return jsonify({
+            'success': False,
+            'count': 0
         }), 500
 
 
