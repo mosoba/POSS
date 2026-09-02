@@ -1654,140 +1654,151 @@
             </div>
 
             <!-- ===== CART ===== -->
-            <!-- ===== CART PANEL - ENLARGED ===== -->
-<div class="cart-panel">
-    <div class="cart-header">
-        <h3>🛒 Cart</h3>
-        <span class="count" id="itemCount">0 items</span>
-    </div>
+            <div class="cart-panel">
+                <div class="cart-header">
+                    <h3>🛒 Cart</h3>
+                    <span class="count" id="itemCount">0 items</span>
+                </div>
 
-    <div class="customer-select">
-        <label>👤 Customer</label>
-        <div class="row">
-            <select id="posCustomer" onchange="selectCustomer()">
-                <option value="Walk-in Customer" data-email="walkin@example.com" data-phone="N/A">Walk-in</option>
-                {% for customer in customers %}
-                <option value="{{ customer.name }}" data-email="{{ customer.email }}" data-phone="{{ customer.phone }}">{{ customer.name }}</option>
-                {% endfor %}
-            </select>
-            <button class="add-btn" onclick="toggleCustomerModal()">➕</button>
-        </div>
-        <input type="hidden" id="posCustomerEmail" value="walkin@example.com" />
-        <input type="hidden" id="posCustomerPhone" value="N/A" />
-    </div>
+                <div class="customer-select">
+                    <label>👤 Customer</label>
+                    <div class="row">
+                        <select id="posCustomer" onchange="selectCustomer()">
+                            <option value="Walk-in Customer" data-email="walkin@example.com" data-phone="N/A">Walk-in</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.name }}" data-email="{{ customer.email }}" data-phone="{{ customer.phone }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="add-btn" onclick="toggleCustomerModal()">➕</button>
+                    </div>
+                    <input type="hidden" id="posCustomerEmail" value="walkin@example.com" />
+                    <input type="hidden" id="posCustomerPhone" value="N/A" />
+                </div>
 
-    <!-- ===== PAYMENT METHOD ===== -->
-    <div class="payment-method-section">
-        <label>💳 Payment Method</label>
-        <div class="payment-btn-group">
-            <button class="payment-btn active" onclick="setPaymentMethod('cash')" id="payCash">💵 Cash</button>
-            <button class="payment-btn" onclick="setPaymentMethod('card')" id="payCard">💳 Card</button>
-            <button class="payment-btn" onclick="setPaymentMethod('mpesa')" id="payMpesa">📱 M-Pesa</button>
-            <button class="payment-btn" onclick="setPaymentMethod('credit')" id="payCredit">💳 Credit</button>
-        </div>
-    </div>
+                <!-- ===== PAYMENT METHOD ===== -->
+                <div class="payment-method-section">
+                    <label>💳 Payment Method</label>
+                    <div class="payment-btn-group">
+                        <button class="payment-btn active" onclick="setPaymentMethod('cash')" id="payCash">💵 Cash</button>
+                        <button class="payment-btn" onclick="setPaymentMethod('card')" id="payCard">💳 Card</button>
+                        <button class="payment-btn" onclick="setPaymentMethod('mpesa')" id="payMpesa">📱 M-Pesa</button>
+                        <button class="payment-btn" onclick="setPaymentMethod('credit')" id="payCredit">💳 Credit</button>
+                    </div>
+                </div>
 
-    <!-- ===== CREDIT CUSTOMER SECTION ===== -->
-    <div id="creditCustomerSection" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:2px solid #7c3aed;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <label style="font-size:0.6rem;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.5px;">👤 Select Credit Customer</label>
-            <button onclick="openQuickCreditModal()" style="font-size:0.55rem;background:#7c3aed;color:white;border:none;border-radius:9999px;padding:2px 12px;cursor:pointer;">+ New</button>
-        </div>
-        <div style="display:flex;gap:6px;">
-            <select id="creditCustomerSelect" style="flex:1;padding:6px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);" onchange="showCreditCustomerInfo()">
-                <option value="">-- Select Credit Customer --</option>
-            </select>
-        </div>
-        <div id="creditCustomerInfo" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg-card);border-radius:6px;font-size:0.7rem;border:1px solid var(--border-color);">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-                <div><span style="color:var(--gray-500);">💰 Balance:</span> <strong id="creditBalanceDisplay" style="color:#7c3aed;">KSh 0</strong></div>
-                <div><span style="color:var(--gray-500);">📊 Limit:</span> <strong id="creditLimitDisplay">KSh 0</strong></div>
-                <div><span style="color:var(--gray-500);">✅ Available:</span> <strong id="creditAvailableDisplay" style="color:#059669;">KSh 0</strong></div>
+                <!-- ===== CREDIT CUSTOMER SECTION ===== -->
+                <div id="creditCustomerSection" style="display:none;margin-top:8px;padding:10px;border-radius:8px;border:2px solid #7c3aed;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label style="font-size:0.6rem;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.5px;">👤 Select Credit Customer</label>
+                        <button onclick="openQuickCreditModal()" style="font-size:0.55rem;background:#7c3aed;color:white;border:none;border-radius:9999px;padding:2px 12px;cursor:pointer;">+ New</button>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <select id="creditCustomerSelect" style="flex:1;padding:6px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);" onchange="showCreditCustomerInfo()">
+                            <option value="">-- Select Credit Customer --</option>
+                        </select>
+                    </div>
+                    <div id="creditCustomerInfo" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg-card);border-radius:6px;font-size:0.7rem;border:1px solid var(--border-color);">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            <div>
+                                <span style="color:var(--gray-500);">💰 Balance:</span>
+                                <strong id="creditBalanceDisplay" style="color:#7c3aed;">KSh 0</strong>
+                            </div>
+                            <div>
+                                <span style="color:var(--gray-500);">📊 Limit:</span>
+                                <strong id="creditLimitDisplay">KSh 0</strong>
+                            </div>
+                            <div>
+                                <span style="color:var(--gray-500);">✅ Available:</span>
+                                <strong id="creditAvailableDisplay" style="color:#059669;">KSh 0</strong>
+                            </div>
+                        </div>
+                        <div style="margin-top:4px;font-size:0.6rem;color:var(--gray-400);">
+                            <span id="creditCustomerName"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-items" id="posCartItems">
+                    <div class="cart-empty" id="emptyCartMessage">
+                        <span class="icon">🛍️</span>
+                        <p>No items added</p>
+                    </div>
+                    <div id="posCartItemsList"></div>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
+                    <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
+
+                    <!-- ===== TIP SECTION ===== -->
+                    <div class="tip-section">
+                        <div class="tip-btn-group">
+                            <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
+                            <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
+                            <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
+                            <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
+                            <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
+                        </div>
+                        <div class="tip-display">
+                            <span>Tip Added:</span>
+                            <span class="value" id="tipDisplay">KSh 0</span>
+                        </div>
+                    </div>
+
+                                          <!-- ===== CHANGE CALCULATOR ===== -->
+                    <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
+                                💰 Change Calculator
+                            </label>
+                            <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Amount Paid</label>
+                            <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
+                        </div>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                            <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 500</button>
+                            <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 1,000</button>
+                            <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 2,000</button>
+                            <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 5,000</button>
+                            <button onclick="window.setQuickAmount(10000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">KSh 10,000</button>
+                            <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
+                            <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
+                            <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
+                        </div>
+                    </div>
+
+                    <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
+
+                    <!-- ===== ORDER NOTES ===== -->
+                    <div class="order-notes">
+                        <label>📝 Order Notes</label>
+                        <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
+                    </div>
+
+                    <div class="discount-row">
+                        <span>Discount:</span>
+                        <span class="value" id="discountDisplay">0%</span>
+                        <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
+                    </div>
+                </div>
+
+                <div class="cart-actions">
+                    <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
+                    <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
+                </div>
+
+                <div class="held-orders-panel" id="heldOrdersPanel">
+                    <div class="title">📋 Held Orders</div>
+                    <div id="heldOrdersList"></div>
+                </div>
             </div>
-            <div style="margin-top:4px;font-size:0.6rem;color:var(--gray-400);"><span id="creditCustomerName"></span></div>
         </div>
     </div>
 
-    <!-- ============================================================
-    CART ITEMS - ENLARGED (shows 5+ items with scroll)
-    ============================================================ -->
-    <div class="cart-items" id="posCartItems" style="min-height: 280px; max-height: 380px; overflow-y: auto; flex: 1;">
-        <div class="cart-empty" id="emptyCartMessage">
-            <span class="icon">🛍️</span>
-            <p>No items added</p>
-        </div>
-        <div id="posCartItemsList"></div>
-    </div>
-
-   <!-- ============================================================
-CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
-============================================================ -->
-<div class="cart-summary" style="flex-shrink: 0;">
-    <div class="row"><span>Subtotal</span><span id="posSubtotal">KSh 0</span></div>
-    <div class="row" id="discountRow"><span>Discount</span><span style="color:var(--danger);" id="posDiscount">-KSh 0</span></div>
-
-    <!-- ===== TIP SECTION ===== -->
-    <div class="tip-section">
-        <div class="tip-btn-group">
-            <span style="font-size:0.6rem;color:var(--gray-500);">💝 Tip:</span>
-            <button class="tip-btn" onclick="addTip(50)">KSh 50</button>
-            <button class="tip-btn" onclick="addTip(100)">KSh 100</button>
-            <button class="tip-btn" onclick="addTip(200)">KSh 200</button>
-            <input type="number" class="tip-btn custom" id="customTip" placeholder="Custom" min="0" onchange="addCustomTip()">
-        </div>
-        <div class="tip-display">
-            <span>Tip Added:</span>
-            <span class="value" id="tipDisplay">KSh 0</span>
-        </div>
-    </div>
-
-    <!-- ===== CHANGE CALCULATOR ===== -->
-    <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">💰 Change</label>
-            <span style="font-size:0.55rem;color:var(--gray-400);">Total: <strong id="changeTotalDisplay" style="color:var(--primary);">KSh 0</strong></span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <label style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:60px;">Paid</label>
-            <input type="number" id="amountPaid" placeholder="0" min="0" step="1" oninput="window.calculateChange()" style="flex:1;padding:8px 12px;border:2px solid var(--border-color);border-radius:8px;font-size:0.9rem;background:var(--bg-input);outline:none;color:var(--text-primary);min-width:100px;">
-        </div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-            <button onclick="window.setQuickAmount(500)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">500</button>
-            <button onclick="window.setQuickAmount(1000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">1K</button>
-            <button onclick="window.setQuickAmount(2000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">2K</button>
-            <button onclick="window.setQuickAmount(5000)" style="padding:4px 12px;border:1px solid var(--border-color);border-radius:9999px;font-size:0.6rem;background:var(--bg-input);cursor:pointer;transition:all 0.25s;color:var(--text-secondary);font-weight:600;">5K</button>
-            <button onclick="document.getElementById('amountPaid').value = ''; window.calculateChange();" style="padding:4px 12px;border:1px solid var(--danger);border-radius:9999px;font-size:0.6rem;background:transparent;cursor:pointer;transition:all 0.25s;color:var(--danger);font-weight:600;">Clear</button>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--primary-bg);border-radius:8px;border:2px solid var(--primary);margin-top:8px;">
-            <span style="font-size:0.7rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;">Change Due</span>
-            <span style="font-size:1.2rem;font-weight:700;color:var(--primary);" id="changeAmount">KSh 0</span>
-        </div>
-    </div>
-
-    <div class="row total"><span>Total</span><span class="amount" id="posTotal">KSh 0</span></div>
-
-    <!-- ===== ORDER NOTES - REMOVED ===== -->
-    <!-- <div class="order-notes">
-        <label>📝 Order Notes</label>
-        <textarea id="orderNotes" placeholder="Special instructions..."></textarea>
-    </div> -->
-
-    <div class="discount-row">
-        <span>Discount:</span>
-        <span class="value" id="discountDisplay">0%</span>
-        <button class="change-btn" onclick="toggleDiscountModal()">Change</button>
-    </div>
-</div>
-
-<div class="cart-actions">
-    <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
-    <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
-</div>
-
-<div class="held-orders-panel" id="heldOrdersPanel">
-    <div class="title">📋 Held Orders</div>
-    <div id="heldOrdersList"></div>
-</div>
     <!-- ===== RECEIPT MODAL ===== -->
     <div id="receiptModal" class="modal-overlay hidden">
         <div class="modal" style="max-width:400px;">
@@ -1939,7 +1950,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT - COMPLETE WORKING VERSION
+    JAVASCRIPT
     ============================================================ -->
    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
@@ -1961,11 +1972,6 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     let selectedReturnOrder = null;
     let allOrders = [];
     let creditCustomers = [];
-
-    // ============================================================
-    // GLOBAL PROCESSING FLAG - PREVENTS DOUBLE ORDERS
-    // ============================================================
-    let processingOrder = false;
 
     // ============================================================
     // HELPER FUNCTIONS
@@ -2276,9 +2282,10 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     }
 
     // ============================================================
-    // SYNC & OFFLINE CREDIT
+    // SYNC & OFFLINE CREDIT - COMPLETE FIX
     // ============================================================
 
+    // 1. GET UNSYNCED ORDERS (FIXED - Checks localStorage FIRST)
     async function getUnsyncedOrders() {
         try {
             const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
@@ -2290,7 +2297,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         } catch(e) {
             console.log('⚠️ Error reading localStorage:', e);
         }
-        
+
         try {
             const db = await openDB();
             if (!db.objectStoreNames.contains('orders')) return [];
@@ -2301,16 +2308,17 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 req.onsuccess = () => resolve(req.result.filter(o => o.synced !== true));
                 req.onerror = () => resolve([]);
             });
-        } catch { 
-            return []; 
+        } catch {
+            return [];
         }
     }
 
+    // 2. UPDATE UNSYNCED COUNT (FIXED - Checks localStorage)
     async function updateUnsyncedCount(count) {
         const el = document.getElementById('syncStatus');
         const cEl = document.getElementById('unsyncedCount');
         if (!el || !cEl) return;
-        
+
         if (count !== undefined) {
             if (count > 0) {
                 el.style.display = 'inline-flex';
@@ -2324,14 +2332,14 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
             }
             return;
         }
-        
+
         try {
             const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
             const pending = orders.filter(o => o.synced === false);
             const pendingCount = pending.length;
-            
+
             console.log('📊 updateUnsyncedCount - Found:', pendingCount, 'pending orders');
-            
+
             if (pendingCount > 0) {
                 el.style.display = 'inline-flex';
                 cEl.textContent = pendingCount;
@@ -2348,16 +2356,17 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         }
     }
 
+    // 3. CACHE CREDIT BALANCES FOR OFFLINE USE
     async function cacheCreditBalances() {
         if (!navigator.onLine) {
             console.log('📡 Offline - using cached credit data');
             return;
         }
-        
+
         try {
             const response = await fetch('/admin/api/credit/customers');
             const data = await response.json();
-            
+
             if (data.success && data.customers) {
                 const cache = {};
                 data.customers.forEach(c => {
@@ -2371,7 +2380,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                         last_updated: new Date().toISOString()
                     };
                 });
-                
+
                 localStorage.setItem('credit_cache', JSON.stringify(cache));
                 localStorage.setItem('credit_cache_timestamp', Date.now().toString());
                 console.log('✅ Credit balances cached for offline use:', Object.keys(cache).length, 'customers');
@@ -2413,6 +2422,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         }
     }
 
+    // 4. LOAD CREDIT CUSTOMERS (FIXED - Works offline)
     function loadCreditCustomers() {
         const select = document.getElementById('creditCustomerSelect');
         if (!select) return;
@@ -2442,7 +2452,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                         });
                         localStorage.setItem('credit_cache', JSON.stringify(cache));
                         localStorage.setItem('credit_cache_timestamp', Date.now().toString());
-                        
+
                         populateCustomerSelect(data.customers, select);
                     }
                 })
@@ -2479,12 +2489,12 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         try {
             const cache = JSON.parse(localStorage.getItem('credit_cache') || '{}');
             const customers = Object.values(cache);
-            
+
             if (customers.length === 0) {
                 showToast('📡 Offline - No cached credit customers. Please go online to sync.', 'warning');
                 return;
             }
-            
+
             const activeCustomers = customers.filter(c => c.status === 'active');
             activeCustomers.forEach(c => {
                 const opt = document.createElement('option');
@@ -2501,36 +2511,37 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 opt.dataset.customer_id = c.customer_id;
                 select.appendChild(opt);
             });
-            
+
             const cacheTime = localStorage.getItem('credit_cache_timestamp');
             const timeStr = cacheTime ? new Date(parseInt(cacheTime)).toLocaleString() : 'Unknown';
             showToast(`📡 Offline mode - ${activeCustomers.length} cached customers (from ${timeStr})`, 'warning');
-            
+
         } catch(e) {
             console.log('❌ Error loading credit cache:', e);
             showToast('⚠️ No cached credit data available offline', 'error');
         }
     }
 
+    // 5. PERFORM AUTO SYNC (FIXED - Handles credit orders)
     async function performAutoSync() {
         if (isSyncing) return;
         if (!navigator.onLine) {
-            try { 
+            try {
                 const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
                 const pending = orders.filter(o => o.synced === false);
-                updateUnsyncedCount(pending.length); 
+                updateUnsyncedCount(pending.length);
             } catch {}
             return;
         }
-        
+
         try {
             isSyncing = true;
             updateSyncStatusUI(true);
             showToast('🔄 Syncing offline items...', 'info');
-            
+
             const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
             const pending = orders.filter(o => o.synced === false);
-            
+
             if (!pending.length) {
                 showToast('✅ No offline items to sync', 'success');
                 updateSyncStatusUI(false);
@@ -2538,11 +2549,11 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 isSyncing = false;
                 return;
             }
-            
+
             console.log('📦 Found', pending.length, 'pending orders to sync');
             let synced = 0;
             let failed = 0;
-            
+
             for (const order of pending) {
                 try {
                     if (order.is_credit === true) {
@@ -2553,17 +2564,17 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                             staff_name: order.staff_name || 'System',
                             notes: order.notes || 'Offline credit order sync'
                         };
-                        
+
                         console.log('📤 Syncing credit order:', order.order_id);
-                        
+
                         const res = await fetch('/admin/api/credit/purchase', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(creditData)
                         });
-                        
+
                         const result = await res.json();
-                        
+
                         if (result.success) {
                             order.synced = true;
                             order.synced_at = new Date().toISOString();
@@ -2589,17 +2600,17 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                             tip_amount: order.tip_amount || 0,
                             created_at: order.created_at
                         };
-                        
+
                         console.log('📤 Syncing normal order:', order.order_id);
-                        
+
                         const res = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(body)
                         });
-                        
+
                         const result = await res.json();
-                        
+
                         if (result.success) {
                             order.synced = true;
                             order.synced_at = new Date().toISOString();
@@ -2614,12 +2625,12 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                     failed++;
                     console.log('❌ Error syncing:', order.order_id, error.message);
                 }
-                
+
                 await new Promise(resolve => setTimeout(resolve, 300));
             }
-            
+
             localStorage.setItem('pos_orders', JSON.stringify(orders));
-            
+
             try {
                 for (const order of orders) {
                     if (order.synced === true) {
@@ -2630,22 +2641,22 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
             } catch(e) {
                 console.log('⚠️ Could not update IndexedDB:', e);
             }
-            
+
             const remaining = orders.filter(o => o.synced === false);
             updateUnsyncedCount(remaining.length);
-            
+
             console.log('================================');
             console.log('📊 SYNC COMPLETE:');
             console.log('   ✅ Synced:', synced);
             console.log('   ❌ Failed:', failed);
             console.log('   📦 Remaining:', remaining.length);
-            
+
             if (synced > 0) {
                 showToast(`✅ Synced ${synced} orders${failed > 0 ? `, ${failed} failed` : ''}`, 'success');
             } else if (failed > 0) {
                 showToast(`⚠️ ${failed} orders failed to sync`, 'error');
             }
-            
+
         } catch(e) {
             console.log('❌ Sync error:', e);
             showToast('❌ Sync failed: ' + e.message, 'error');
@@ -2675,7 +2686,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     window.addEventListener('online', function() {
         updateOnlineStatusUI();
         showToast('🔄 Back online! Syncing orders...', 'info');
-        
+
         setTimeout(function() {
             if (typeof performAutoSync === 'function') {
                 performAutoSync();
@@ -2683,7 +2694,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 manualSync();
             }
         }, 2000);
-        
+
         setTimeout(function() {
             cacheCreditBalances();
             loadCreditCustomers();
@@ -2696,227 +2707,137 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     });
 
     // ============================================================
-    // ✅ FIXED: placePOSOrder - WITH DOUBLE ORDER PREVENTION
+    // NORMAL ORDER PROCESSING
     // ============================================================
-
-    function placePOSOrder() {
-        // ✅ PREVENT DOUBLE SUBMISSION
-        if (processingOrder) {
-            showToast('⏳ Order already processing...', 'warning');
-            return;
-        }
-
-        if (!posCart.length) {
-            showToast('⚠️ Cart is empty!', 'warning');
-            return;
-        }
-
-        // Check stock
-        for (const item of posCart) {
-            const product = allProducts.find(p => String(p.id) === String(item.id));
-            if (product && (product.stock || 0) < item.quantity) {
-                showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
-                return;
-            }
-        }
-
-        // ✅ SET PROCESSING FLAG
-        processingOrder = true;
-        
-        // ✅ DISABLE BUTTON
+    function processNormalOrder() {
         const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Processing...';
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-        // CREDIT PAYMENT
-        if (paymentMethod === 'credit') {
-            const select = document.getElementById('creditCustomerSelect');
-            const selected = select.options[select.selectedIndex];
+        const customerName = document.getElementById('posCustomer').value;
+        const customerEmail = document.getElementById('posCustomerEmail').value;
+        const customerPhone = document.getElementById('posCustomerPhone').value;
+        const notes = document.getElementById('orderNotes')?.value || '';
 
-            if (!selected || !selected.value) {
-                showToast('⚠️ Please select a credit customer', 'warning');
-                // ✅ RESET
-                processingOrder = false;
-                btn.disabled = false;
-                btn.innerHTML = '✅ Complete Order';
-                return;
-            }
+        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        const total = Math.max(0, subtotal - discountAmount + tipAmount);
 
-            const customerId = selected.value;
-            const customerName = selected.dataset.name || 'Customer';
-            const balance = parseFloat(selected.dataset.balance) || 0;
-            const limit = parseFloat(selected.dataset.limit) || 0;
+        const orderData = {
+            items: posCart.map(item => ({
+                product_id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity
+            })),
+            subtotal: subtotal,
+            shipping: 0,
+            total: total,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+            customer_address: 'In-store purchase',
+            notes: notes,
+            payment_method: paymentMethod,
+            tip_amount: tipAmount || 0,
+            discount: discountValue,
+            discount_type: discountType,
+            created_at: new Date().toISOString()
+        };
 
-            const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-            const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-            const total = Math.max(0, subtotal - discountAmount + tipAmount);
-
-            if (limit > 0 && (balance + total) > limit) {
-                showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
-                // ✅ RESET
-                processingOrder = false;
-                btn.disabled = false;
-                btn.innerHTML = '✅ Complete Order';
-                return;
-            }
-
-            if (selected.dataset.status === 'inactive') {
-                showToast('⚠️ This customer account is inactive!', 'danger');
-                // ✅ RESET
-                processingOrder = false;
-                btn.disabled = false;
-                btn.innerHTML = '✅ Complete Order';
-                return;
-            }
-
-            if (!confirm(`💳 CREDIT PURCHASE\n\n` +
-                `👤 Customer: ${customerName}\n` +
-                `💰 Total: KSh ${total.toLocaleString()}\n` +
-                `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
-                `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
-                `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
-                `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
-                `Proceed?`)) {
-                // ✅ RESET
-                processingOrder = false;
-                btn.disabled = false;
-                btn.innerHTML = '✅ Complete Order';
-                return;
-            }
-
-            processCreditPurchase(customerId, customerName, total);
+        if (!navigator.onLine) {
+            console.log('📡 Offline detected, saving order locally...');
+            saveOrderOffline(orderData, btn, originalText);
             return;
         }
 
-        // NORMAL ORDER
-        processNormalOrder();
-    }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    // ============================================================
-    // ✅ FIXED: processNormalOrder - WITH CLEANUP
-    // ============================================================
+        fetch('/admin/pos/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData),
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json();
+        })
+        .then(data => {
+            clearTimeout(timeoutId);
+            if (data.success) {
+                posCart.forEach(item => {
+                    const product = allProducts.find(p => String(p.id) === String(item.id));
+                    if (product) {
+                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                    }
+                });
 
-   function processNormalOrder() {
-    const btn = document.getElementById('posPlaceOrderBtn');
-    const originalText = btn.innerHTML;
+                const orderToSave = {
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    items: posCart,
+                    subtotal: subtotal,
+                    shipping: 0,
+                    total: total,
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                    payment_method: paymentMethod,
+                    tip_amount: tipAmount || 0,
+                    notes: notes,
+                    created_at: new Date().toISOString(),
+                    synced: true,
+                    synced_at: new Date().toISOString()
+                };
+                saveOrderToIndexedDB(orderToSave).catch(() => {});
 
-    const customerName = document.getElementById('posCustomer').value;
-    const customerEmail = document.getElementById('posCustomerEmail').value;
-    const customerPhone = document.getElementById('posCustomerPhone').value;
-    const notes = document.getElementById('orderNotes')?.value || '';
+                showToast('✅ Order completed!', 'success');
+                showReceipt({
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    customer_name: customerName,
+                    subtotal: subtotal,
+                    total: total,
+                    items: posCart,
+                    payment_method: paymentMethod,
+                    created_at: new Date().toISOString(),
+                    tip_amount: tipAmount || 0,
+                    discount: discountValue
+                });
 
-    const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-    const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-    const total = Math.max(0, subtotal - discountAmount + tipAmount);
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                updatePOSUI();
+                renderProducts();
+                updateQuickSalesCount();
+                loadSalesStats();
+                loadUserStats();
 
-    // ✅ FIX: Build CLEAN items for receipt (NO HTML, NO DOM)
-    const cleanItems = posCart.map(function(item) {
-        return {
-            name: String(item.name || 'Product'),
-            quantity: Number(item.quantity) || 1,
-            price: Number(item.price) || 0
-        };
-    });
-
-    const orderData = {
-        items: posCart.map(function(item) {
-            return {
-                product_id: String(item.id || ''),
-                name: String(item.name || 'Product'),
-                price: Number(item.price) || 0,
-                quantity: Number(item.quantity) || 1,
-                total: (Number(item.price) || 0) * (Number(item.quantity) || 1)
-            };
-        }),
-        subtotal: subtotal,
-        shipping: 0,
-        total: total,
-        customer_name: String(customerName),
-        customer_email: String(customerEmail),
-        customer_phone: String(customerPhone),
-        customer_address: 'In-store purchase',
-        notes: notes,
-        payment_method: paymentMethod,
-        tip_amount: tipAmount || 0,
-        discount: discountValue,
-        discount_type: discountType,
-        created_at: new Date().toISOString()
-    };
-
-    if (!navigator.onLine) {
-        console.log('📡 Offline detected, saving order locally...');
-        saveOrderOffline(orderData, btn, originalText);
-        return;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(function() { controller.abort(); }, 8000);
-
-    fetch('/admin/pos/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-        signal: controller.signal
-    })
-    .then(function(response) {
-        clearTimeout(timeoutId);
-        return response.json();
-    })
-    .then(function(data) {
-        clearTimeout(timeoutId);
-        if (data.success) {
-            posCart.forEach(function(item) {
-                var product = allProducts.find(function(p) { return String(p.id) === String(item.id); });
-                if (product) {
-                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                }
-            });
-
-            // ✅ FIX: Use CLEAN items for receipt
-            showReceipt({
-                order_id: data.order_id || 'ORD-' + Date.now(),
-                customer_name: customerName,
-                subtotal: subtotal,
-                total: total,
-                items: cleanItems,  // ✅ CLEAN items only
-                payment_method: paymentMethod,
-                created_at: new Date().toISOString(),
-                tip_amount: tipAmount || 0,
-                discount: discountValue
-            });
-
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-            updatePOSUI();
-            renderProducts();
-            updateQuickSalesCount();
-            loadSalesStats();
-            loadUserStats();
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            processingOrder = false;
-        } else {
-            console.log('📡 API error, saving offline:', data.message);
-            showToast('📡 Saving order offline...', 'warning');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } else {
+                console.log('📡 API error, saving offline:', data.message);
+                showToast('📡 Saving order offline...', 'warning');
+                saveOrderOffline(orderData, btn, originalText);
+            }
+        })
+        .catch(err => {
+            clearTimeout(timeoutId);
+            console.log('❌ Network error, saving offline:', err.message);
+            showToast('📡 No connection, saving offline...', 'warning');
             saveOrderOffline(orderData, btn, originalText);
-        }
-    })
-    .catch(function(err) {
-        clearTimeout(timeoutId);
-        console.log('❌ Network error, saving offline:', err.message);
-        showToast('📡 No connection, saving offline...', 'warning');
-        saveOrderOffline(orderData, btn, originalText);
-    });
-}
-    // ============================================================
-    // ✅ FIXED: saveOrderOffline - WITH CLEANUP
-    // ============================================================
+        });
+    }
 
+    // ============================================================
+    // SAVE ORDER OFFLINE (Saves to BOTH IndexedDB AND localStorage)
+    // ============================================================
     function saveOrderOffline(orderData, btn, originalText) {
         const orderToSave = {
             order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
@@ -2986,10 +2907,8 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 updateQuickSalesCount();
                 updateUnsyncedCount();
 
-                // ✅ RESET
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                processingOrder = false;
             })
             .catch((err) => {
                 console.log('❌ IndexedDB failed, trying localStorage:', err.message);
@@ -3023,23 +2942,82 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                     updateQuickSalesCount();
                     updateUnsyncedCount();
 
-                    // ✅ RESET
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    processingOrder = false;
                 } catch(e2) {
                     console.log('❌ All storage failed:', e2.message);
                     showToast('❌ Failed to save order: ' + err.message, 'error');
-                    // ✅ RESET
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    processingOrder = false;
                 }
             });
     }
 
     // ============================================================
-    // ✅ FIXED: processCreditPurchase - WITH CLEANUP
+    // PLACE ORDER - HANDLES CREDIT PURCHASES
+    // ============================================================
+    function placePOSOrder() {
+        if (!posCart.length) {
+            showToast('⚠️ Cart is empty!', 'warning');
+            return;
+        }
+
+        for (const item of posCart) {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product && (product.stock || 0) < item.quantity) {
+                showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
+                return;
+            }
+        }
+
+        if (paymentMethod === 'credit') {
+            const select = document.getElementById('creditCustomerSelect');
+            const selected = select.options[select.selectedIndex];
+
+            if (!selected || !selected.value) {
+                showToast('⚠️ Please select a credit customer', 'warning');
+                return;
+            }
+
+            const customerId = selected.value;
+            const customerName = selected.dataset.name || 'Customer';
+            const balance = parseFloat(selected.dataset.balance) || 0;
+            const limit = parseFloat(selected.dataset.limit) || 0;
+
+            const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+            const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+            const total = Math.max(0, subtotal - discountAmount + tipAmount);
+
+            if (limit > 0 && (balance + total) > limit) {
+                showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
+                return;
+            }
+
+            if (selected.dataset.status === 'inactive') {
+                showToast('⚠️ This customer account is inactive!', 'danger');
+                return;
+            }
+
+            if (!confirm(`💳 CREDIT PURCHASE\n\n` +
+                `👤 Customer: ${customerName}\n` +
+                `💰 Total: KSh ${total.toLocaleString()}\n` +
+                `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
+                `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
+                `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
+                `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
+                `Proceed?`)) {
+                return;
+            }
+
+            processCreditPurchase(customerId, customerName, total);
+            return;
+        }
+
+        processNormalOrder();
+    }
+
+    // ============================================================
+    // PROCESS CREDIT PURCHASE
     // ============================================================
 
     function processCreditPurchase(customerId, customerName, total) {
@@ -3047,6 +3025,8 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
 
         const btn = document.getElementById('posPlaceOrderBtn');
         const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Processing credit...';
+        btn.disabled = true;
 
         posCart.forEach(item => {
             const product = allProducts.find(p => String(p.id) === String(item.id));
@@ -3103,10 +3083,8 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         })
         .then(r => r.json())
         .then(result => {
-            // ✅ RESET
             btn.innerHTML = originalText;
             btn.disabled = false;
-            processingOrder = false;
 
             if (result.success) {
                 showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
@@ -3140,15 +3118,10 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         .catch(err => {
             console.log('📡 FETCH FAILED - Saving credit order locally...');
             saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
-            // ✅ RESET
-            processingOrder = false;
         });
     }
 
-    // ============================================================
-    // ✅ FIXED: saveCreditOrderOffline - WITH CLEANUP
-    // ============================================================
-
+    // ✅ Save credit order offline (Saves to BOTH IndexedDB AND localStorage)
     function saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText) {
         let currentBalance = 0;
         let creditLimit = 0;
@@ -3217,10 +3190,8 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                 updateQuickSalesCount();
                 loadSalesStats();
 
-                // ✅ RESET
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                processingOrder = false;
             })
             .catch((err) => {
                 console.log('❌ IndexedDB failed for credit order, using localStorage:', err.message);
@@ -3248,14 +3219,12 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                     updateQuickSalesCount();
                     loadSalesStats();
 
-                    // ✅ RESET
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    processingOrder = false;
                 } catch(e2) {
                     console.log('❌ All storage failed for credit order:', e2.message);
                     showToast('❌ Failed to save credit order: ' + err.message, 'error');
-                    
+
                     posCart.forEach(item => {
                         const product = allProducts.find(p => String(p.id) === String(item.id));
                         if (product) {
@@ -3263,11 +3232,9 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
                         }
                     });
                     renderProducts();
-                    
-                    // ✅ RESET
+
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    processingOrder = false;
                 }
             });
     }
@@ -3579,12 +3546,7 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         const qty = posCart.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
         if (itemCountEl) itemCountEl.textContent = qty + ' items';
         if (cartStatsEl) cartStatsEl.textContent = qty;
-        if (placeBtn) { 
-            if (!processingOrder) {
-                placeBtn.disabled = !posCart.length; 
-                placeBtn.style.opacity = posCart.length ? '1' : '0.5';
-            }
-        }
+        if (placeBtn) { placeBtn.disabled = !posCart.length; placeBtn.style.opacity = posCart.length ? '1' : '0.5'; }
         if (empty) empty.style.display = posCart.length ? 'none' : 'block';
         if (!list) return;
         if (!posCart.length) { list.innerHTML = ''; return; }
@@ -3614,65 +3576,6 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
         });
         list.innerHTML = html;
     }
-
-    // ============================================================
-    // CHANGE CALCULATOR
-    // ============================================================
-
-    window.calculateChange = function() {
-        console.log('🔄 Calculating change...');
-
-        const totalEl = document.getElementById('posTotal');
-        const paidEl = document.getElementById('amountPaid');
-        const changeEl = document.getElementById('changeAmount');
-        const totalDisplay = document.getElementById('changeTotalDisplay');
-
-        if (!totalEl || !paidEl || !changeEl) {
-            console.log('❌ Elements not found!');
-            return;
-        }
-
-        let total = 0;
-        const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
-        total = parseFloat(totalText) || 0;
-        console.log('💰 Cart Total:', total);
-
-        if (totalDisplay) {
-            totalDisplay.textContent = 'KSh ' + total.toLocaleString();
-        }
-
-        const paidValue = paidEl.value;
-        const paid = parseFloat(paidValue) || 0;
-        console.log('💰 Amount Paid:', paid);
-
-        if (paid <= 0) {
-            changeEl.textContent = 'KSh 0';
-            changeEl.style.color = '#059669';
-            return;
-        }
-
-        const change = paid - total;
-        console.log('💰 Change:', change);
-
-        if (change < 0) {
-            changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
-            changeEl.style.color = '#ef4444';
-        } else {
-            changeEl.textContent = 'KSh ' + change.toLocaleString();
-            changeEl.style.color = '#059669';
-        }
-    };
-
-    window.setQuickAmount = function(amount) {
-        console.log('💰 Quick amount clicked:', amount);
-        const paidEl = document.getElementById('amountPaid');
-        if (paidEl) {
-            paidEl.value = amount;
-            window.calculateChange();
-        }
-    };
-
-    console.log('✅ Change Calculator loaded!');
 
     // ============================================================
     // DISCOUNT
@@ -3877,101 +3780,65 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     updateOnlineStatusUI();
 
     // ============================================================
-// RECEIPT FUNCTIONS - COMPLETELY FIXED
-// ============================================================
-// ============================================================
-// RECEIPT FUNCTIONS - FIXED (NO "med low med" GLITCH)
-// ============================================================
-function showReceipt(orderData) {
-    const modal = document.getElementById('receiptModal');
-    modal.classList.remove('hidden');
+    // RECEIPT FUNCTIONS
+    // ============================================================
+    function showReceipt(orderData) {
+        const modal = document.getElementById('receiptModal');
+        modal.classList.remove('hidden');
 
-    const content = document.getElementById('receiptContent');
-    const date = new Date(orderData.created_at || Date.now()).toLocaleString();
-    
-    // ✅ FIX: Clean items - remove any HTML tags
-    let itemsText = '';
-    if (orderData.items && orderData.items.length > 0) {
-        itemsText = orderData.items.map(function(item) {
-            // ✅ Clean: only name, quantity, price - NO HTML
-            const name = String(item.name || 'Product').replace(/<[^>]*>/g, '').trim();
-            const qty = Number(item.quantity) || 1;
-            const price = Number(item.price) || 0;
-            return name + ' x' + qty + ' = KSh ' + (price * qty).toLocaleString();
+        const content = document.getElementById('receiptContent');
+        const date = new Date(orderData.created_at || Date.now()).toLocaleString();
+        const items = orderData.items.map(function(item) {
+            return item.name + ' x' + item.quantity + ' = KSh ' + (item.price * item.quantity).toLocaleString();
         }).join('\n');
-    } else {
-        itemsText = '  No items';
+
+        const discountAmount = orderData.subtotal - (orderData.total - (orderData.tip_amount || 0));
+        const tip = orderData.tip_amount || 0;
+
+        content.textContent =
+            '╔══════════════════════════════════╗\n' +
+            '║          ACACIAMART POS          ║\n' +
+            '║         📍 RONGAI, Kenya        ║\n' +
+            '╠══════════════════════════════════╣\n' +
+            '║ 📅 ' + date + '                         ║\n' +
+            '║ 👤 ' + (orderData.customer_name || 'Walk-in Customer') + ' ║\n' +
+            '║ 📋 #' + orderData.order_id + '          ║\n' +
+            '║ 💳 ' + (orderData.payment_method || 'cash').toUpperCase() + ' ║\n' +
+            '╠══════════════════════════════════╣\n' +
+            items.split('\n').map(function(line) { return '║ ' + line.padEnd(40) + ' ║'; }).join('\n') + '\n' +
+            '╠══════════════════════════════════╣\n' +
+            '║ Subtotal:    KSh ' + orderData.subtotal.toLocaleString().padStart(12) + ' ║\n' +
+            '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n' +
+            (tip > 0 ? '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n' : '') +
+            '╠══════════════════════════════════╣\n' +
+            '║ TOTAL:       KSh ' + orderData.total.toLocaleString().padStart(12) + ' ║\n' +
+            '╠══════════════════════════════════╣\n' +
+            '║         ✅ THANK YOU!            ║\n' +
+            '║    Have a great day! 😊          ║\n' +
+            '╚══════════════════════════════════╝';
     }
 
-    const subtotal = Number(orderData.subtotal) || 0;
-    const total = Number(orderData.total) || 0;
-    const tip = Number(orderData.tip_amount) || 0;
-    const customer = String(orderData.customer_name || 'Walk-in Customer').replace(/<[^>]*>/g, '').trim();
-    const orderId = String(orderData.order_id || 'ORD-' + Date.now()).trim();
-    const payment = String(orderData.payment_method || 'cash').toUpperCase().trim();
-    
-    const discountAmount = Math.max(0, subtotal - total + tip);
-
-    let receiptText = '';
-    receiptText += '╔══════════════════════════════════╗\n';
-    receiptText += '║          ACACIAMART POS          ║\n';
-    receiptText += '║         📍 RONGAI, Kenya        ║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ 📅 ' + date.padEnd(40) + '║\n';
-    receiptText += '║ 👤 ' + customer.padEnd(40) + '║\n';
-    receiptText += '║ 📋 #' + orderId.padEnd(40) + '║\n';
-    receiptText += '║ 💳 ' + payment.padEnd(40) + '║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    
-    if (itemsText) {
-        itemsText.split('\n').forEach(function(line) {
-            receiptText += '║ ' + line.padEnd(40) + ' ║\n';
-        });
-    }
-    
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ Subtotal:    KSh ' + subtotal.toLocaleString().padStart(12) + ' ║\n';
-    if (discountAmount > 0) {
-        receiptText += '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n';
-    }
-    if (tip > 0) {
-        receiptText += '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n';
-    }
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║ TOTAL:       KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
-    receiptText += '╠══════════════════════════════════╣\n';
-    receiptText += '║         ✅ THANK YOU!            ║\n';
-    receiptText += '║    Have a great day! 😊          ║\n';
-    receiptText += '╚══════════════════════════════════╝';
-
-    content.textContent = receiptText;
-}
-
-function printReceipt() {
-    const content = document.getElementById('receiptContent');
-    if (!content || !content.textContent) {
-        showToast('⚠️ No receipt to print', 'warning');
-        return;
+    function printReceipt() {
+        const content = document.getElementById('receiptContent');
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            showToast('⚠️ Please allow popups for printing', 'warning');
+            return;
+        }
+        printWindow.document.write(
+            '<html><head><title>Receipt</title>' +
+            '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
+            '</head><body><pre>' + content.textContent + '</pre>' +
+            '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
+            '</body></html>'
+        );
+        printWindow.document.close();
     }
 
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
-    if (!printWindow) {
-        showToast('⚠️ Please allow popups for printing', 'warning');
-        return;
+    function closeReceipt() {
+        document.getElementById('receiptModal').classList.add('hidden');
     }
-    printWindow.document.write(
-        '<html><head><title>Receipt</title>' +
-        '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
-        '</head><body><pre>' + content.textContent + '</pre>' +
-        '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
-        '</body></html>'
-    );
-    printWindow.document.close();
-}
 
-function closeReceipt() {
-    document.getElementById('receiptModal').classList.add('hidden');
-}
     // ============================================================
     // QUICK SALES COUNTER
     // ============================================================
@@ -4601,7 +4468,7 @@ function closeReceipt() {
     // INIT
     // ============================================================
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('✅ POS Pro v13.0 - Double Order Prevention Enabled with ' + allProducts.length + ' products');
+        console.log('✅ POS Pro v12.0 - Credit System Enabled with ' + allProducts.length + ' products');
 
         filteredProducts = allProducts.slice(0, 50);
 
@@ -4620,11 +4487,11 @@ function closeReceipt() {
         loadUserStats();
         updateQuickSalesCount();
         loadOrdersForReturn();
-        
+
         if (navigator.onLine) {
             await cacheCreditBalances();
         }
-        
+
         setTimeout(checkUnsyncedOrdersOnLoad, 2000);
     });
 </script>
@@ -4732,6 +4599,10 @@ window.addEventListener('offline', () => {
 // USB THERMAL PRINTER - GLOBAL FUNCTIONS
 // ============================================================
 
+// ============================================================
+// SIMPLE PRINT RECEIPT
+// ============================================================
+
 function printReceipt() {
     const content = document.getElementById('receiptContent');
     if (!content || !content.textContent) {
@@ -4773,7 +4644,6 @@ function printReceipt() {
     `);
     win.document.close();
 }
-
 // ============================================================
 // LOAD CATEGORIES DYNAMICALLY FROM DATABASE
 // ============================================================
@@ -4796,8 +4666,8 @@ function loadCategories() {
     allBtn.onclick = function() { filterByCategory('all', this); };
     container.appendChild(allBtn);
 
-    const SUPABASE_URL = 'https://hzqrdwerkgfmfaufabjr.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld';
+    const SUPABASE_URL = 'https://haqqknmerdnfvwmsnath.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA';
 
     fetch(`${SUPABASE_URL}/rest/v1/products?select=category`, {
         headers: {
@@ -4810,7 +4680,7 @@ function loadCategories() {
         const categories = {};
         products.forEach(p => {
             const cat = p.category || 'Uncategorized';
-            if (cat && cat !== 'Uncategorized' && cat !== 'Test') {
+            if (cat && !['Uncategorized', 'category', 'Test', 'gaming', 'phones', 'Phones'].includes(cat)) {
                 categories[cat] = (categories[cat] || 0) + 1;
             }
         });
@@ -4831,6 +4701,15 @@ function loadCategories() {
     })
     .catch(err => {
         console.error('❌ Error loading categories:', err);
+        const fallback = ['Beverages', 'Accessories', 'Household', 'Personal Care', 'School Supplies'];
+        fallback.forEach(cat => {
+            const pill = document.createElement('span');
+            pill.className = 'category-pill';
+            pill.dataset.category = cat;
+            pill.textContent = cat;
+            pill.onclick = function() { filterByCategory(cat, this); };
+            container.appendChild(pill);
+        });
     });
 }
 
