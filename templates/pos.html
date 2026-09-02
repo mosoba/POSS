@@ -255,7 +255,6 @@
         .bg-warning { background-color: var(--warning); }
         .bg-warning-bg { background-color: var(--warning-bg); }
         .bg-blue-50 { background-color: #eff6ff; }
-        .bg-whatsapp { background-color: #25D366; }
 
         /* Hover */
         .hover\:bg-gray-100:hover { background-color: var(--gray-100); }
@@ -397,20 +396,20 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* ============================================================
-           CHANGE CALCULATOR
-           ============================================================ */
-        .change-calculator input:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 4px rgba(5,150,105,0.08) !important;
-        }
-        .change-calculator .change-result .amount.negative {
-            color: var(--danger) !important;
-        }
-        .change-calculator button:hover {
-            background: var(--primary-bg) !important;
-            border-color: var(--primary) !important;
-            color: var(--primary) !important;
-        }
+   CHANGE CALCULATOR
+   ============================================================ */
+.change-calculator input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(5,150,105,0.08) !important;
+}
+.change-calculator .change-result .amount.negative {
+    color: var(--danger) !important;
+}
+.change-calculator button:hover {
+    background: var(--primary-bg) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
 
         /* ============================================================
            STATS BAR
@@ -672,39 +671,210 @@
             margin-top: 10px;
         }
 
-        /* ============================================================
-           CART PANEL
-           ============================================================ */
-        .cart-panel {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 16px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            position: sticky;
-            top: 80px;
-            max-height: calc(100vh - 120px);
-            display: flex;
-            flex-direction: column;
-        }
-        @media (max-width: 1024px) { .cart-panel { position: static; max-height: none; } }
+       /* ============================================================
+   CART PANEL
+   ============================================================ */
+.cart-panel {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+}
 
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .cart-header h3 { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
-        .cart-header .count { font-size: 0.7rem; color: var(--gray-400); }
+/* For larger screens */
+@media (min-height: 800px) {
+    .cart-panel {
+        max-height: calc(100vh - 80px);
+        min-height: 600px;
+    }
+}
 
-        .customer-select { margin-bottom: 10px; }
-        .customer-select label { font-size: 0.6rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
-        .customer-select .row { display: flex; gap: 6px; }
-        .customer-select select { flex: 1; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.8rem; background: var(--bg-input); outline: none; color: var(--text-primary); }
-        .customer-select select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
-        .customer-select .add-btn { padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-input); cursor: pointer; font-size: 0.8rem; transition: var(--transition); color: var(--text-secondary); }
-        .customer-select .add-btn:hover { border-color: var(--primary); color: var(--primary); }
+@media (max-width: 1024px) { 
+    .cart-panel { 
+        position: static; 
+        max-height: none;
+        min-height: 300px;
+    } 
+}
+
+/* ============================================================
+   CART ITEMS - INCREASED HEIGHT
+   ============================================================ */
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 400px;
+    padding: 4px 0;
+}
+
+/* For larger screens, make it even taller */
+@media (min-width: 1024px) {
+    .cart-items {
+        max-height: 500px;
+        min-height: 300px;
+    }
+}
+
+/* For smaller screens, keep it manageable */
+@media (max-width: 768px) {
+    .cart-items {
+        max-height: 300px;
+        min-height: 150px;
+    }
+}
+
+.cart-items::-webkit-scrollbar { width: 3px; }
+.cart-items::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
+
+.cart-empty { 
+    text-align: center; 
+    padding: 30px 10px; 
+    color: var(--gray-400); 
+}
+.cart-empty .icon { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+/* ============================================================
+   CART ITEM - COMPACT STYLE
+   ============================================================ */
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    margin-bottom: 3px;
+    animation: slideUp 0.25s ease;
+}
+
+.cart-item .item-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.cart-item .item-img img { width: 100%; height: 100%; object-fit: contain; }
+
+.cart-item .item-info { 
+    flex: 1; 
+    min-width: 0; 
+}
+
+.cart-item .item-info .name { 
+    font-size: 0.65rem; 
+    font-weight: 600; 
+    color: var(--text-primary); 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+.cart-item .item-info .price { 
+    font-size: 0.6rem; 
+    color: var(--primary); 
+    font-weight: 600; 
+}
+
+.cart-item .item-info .barcode { 
+    font-size: 0.4rem; 
+    color: var(--gray-400); 
+    font-family: monospace; 
+}
+
+.cart-item .controls { 
+    display: flex; 
+    align-items: center; 
+    gap: 2px; 
+}
+
+.cart-item .controls button {
+    width: 20px;
+    height: 20px;
+    border-radius: 9999px;
+    border: none;
+    background: var(--gray-200);
+    cursor: pointer;
+    font-size: 0.6rem;
+    font-weight: 700;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.cart-item .controls button:hover { background: var(--gray-300); }
+
+.cart-item .controls .qty { 
+    font-size: 0.7rem; 
+    font-weight: 700; 
+    width: 20px; 
+    text-align: center; 
+    color: var(--text-primary); 
+}
+
+.cart-item .controls .remove { 
+    color: var(--gray-400); 
+    background: transparent; 
+    width: 18px; 
+    height: 18px; 
+    font-size: 0.55rem; 
+}
+
+.cart-item .controls .remove:hover { 
+    color: var(--danger); 
+    background: var(--danger-bg); 
+}
+
+/* Stock info text inside cart */
+.cart-item .stock-info-text {
+    font-size: 0.45rem;
+    color: var(--gray-400);
+    margin-top: 1px;
+}
+
+/* ============================================================
+   CART SUMMARY - COMPACT
+   ============================================================ */
+.cart-summary {
+    border-top: 2px solid var(--border-color);
+    padding-top: 8px;
+    margin-top: 6px;
+}
+
+.cart-summary .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.cart-summary .row.total {
+    border-top: 2px solid var(--primary);
+    padding-top: 6px;
+    margin-top: 3px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.cart-summary .row.total .amount { color: var(--primary); }
 
         /* ===== PAYMENT METHOD ===== */
         .payment-method-section {
@@ -976,36 +1146,6 @@
         .btn-outline.hold { border-color: var(--warning); color: var(--warning); }
         .btn-outline.hold:hover { background: var(--warning-bg); }
 
-        /* WhatsApp Button */
-        .btn-whatsapp {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 9999px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            margin-top: 4px;
-        }
-        .btn-whatsapp:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
-            background: #128C7E;
-        }
-        .btn-whatsapp:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
         /* Held Orders */
         .held-orders-panel {
             margin-top: 8px;
@@ -1068,6 +1208,7 @@
         .quick-btn.sync:hover { background: #2563eb; color: white; }
         [data-theme="dark"] .quick-btn.sync { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
         [data-theme="dark"] .quick-btn.sync:hover { background: #3b82f6; color: white; }
+
 
         /* ============================================================
            ADVANCED FEATURES TOGGLE
@@ -1275,6 +1416,69 @@
         .return-item .total { font-weight: 700; color: #dc2626; font-size: 0.8rem; }
 
         /* ============================================================
+           CASH DRAWER STYLES
+           ============================================================ */
+        .cash-drawer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .cash-drawer-grid .btn {
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            color: white;
+        }
+        .cash-drawer-grid .btn:hover { transform: scale(1.02); }
+        .cash-drawer-grid .btn-open { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .cash-drawer-grid .btn-count { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .cash-stats {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .cash-stats .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 2px 0;
+        }
+        .cash-stats .row .value { font-weight: 700; color: var(--primary); }
+
+        /* ============================================================
+           STOCK CHECK
+           ============================================================ */
+        .stock-check-grid {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.7rem;
+        }
+        .stock-item .stock-low { color: #dc2626; font-weight: 600; }
+        .stock-item .stock-medium { color: #d97706; font-weight: 600; }
+        .stock-item .stock-high { color: #059669; font-weight: 600; }
+
+        .stock-summary {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .stock-summary.warning { background: #fef3c7; }
+        .stock-summary.danger { background: #fce4ec; }
+        [data-theme="dark"] .stock-summary.warning { background: #78350f; }
+        [data-theme="dark"] .stock-summary.danger { background: #7f1d1d; }
+
+        /* ============================================================
            TOAST
            ============================================================ */
         .toast {
@@ -1337,32 +1541,39 @@
         }
 
         /* ============================================================
-           WHATSAPP RECEIPT STYLES
+           BARCODE SCANNER
            ============================================================ */
-        #whatsappCustomerPhone {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.8rem;
+        #barcode-reader {
+            width: 100%;
+            min-height: 200px;
             background: var(--bg-input);
-            outline: none;
-            color: var(--text-primary);
+            border-radius: 8px;
+            overflow: hidden;
         }
-        #whatsappCustomerPhone:focus {
-            border-color: #25D366;
-            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+        #barcode-reader video { width: 100% !important; height: auto !important; }
+
+        /* ============================================================
+           SEARCH HINT
+           ============================================================ */
+        .search-hint {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-400);
+            background: var(--bg-input);
+            border-radius: 12px;
+            border: 2px dashed var(--border-color);
         }
-        .whatsapp-status {
+        .search-hint .icon { font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--gray-300); }
+        .search-hint .shortcuts {
             font-size: 0.6rem;
             color: var(--gray-400);
-            margin-top: 4px;
-            min-height: 18px;
+            margin-top: 8px;
+            background: var(--bg-card);
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid var(--border-color);
         }
-        .whatsapp-status.success { color: #059669; }
-        .whatsapp-status.info { color: #3b82f6; }
-        .whatsapp-status.warning { color: #f59e0b; }
-        .whatsapp-status.error { color: #dc2626; }
 
         /* ============================================================
            RECEIPT MODAL - Print Style
@@ -1394,6 +1605,91 @@
                 margin: 0 auto !important;
             }
         }
+
+        /* ============================================================
+           SALES COUNTER
+           ============================================================ */
+        .sales-counter {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sales-counter .count {
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* ============================================================
+           ORDER SELECTOR FOR RETURNS
+           ============================================================ */
+        .order-selector {
+            margin-bottom: 12px;
+        }
+        .order-selector select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+        }
+        .order-selector select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
+        }
+        .order-selector select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .order-selector .order-info {
+            font-size: 0.65rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+            padding: 6px 10px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .order-selector .order-info .sold-badge {
+            background: var(--primary);
+            color: white;
+            padding: 1px 8px;
+            border-radius: 9999px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .order-selector .order-info .returned-badge {
+            background: var(--warning);
+            color: white;
+            padding: 1px 8px;
+            border-radius: 9999px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* ============================================================
+           RETURN STATUS BADGE
+           ============================================================ */
+        .return-status {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .return-status.available { background: var(--primary-bg); color: var(--primary); }
+        .return-status.returned { background: var(--warning-bg); color: var(--warning); }
+        .return-status.partial { background: #dbeafe; color: #2563eb; }
+        .return-status.none { background: var(--danger-bg); color: var(--danger); }
     </style>
 </head>
 <body>
@@ -1620,7 +1916,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== CHANGE CALCULATOR ===== -->
+                                          <!-- ===== CHANGE CALCULATOR ===== -->
                     <div class="change-calculator" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:12px 16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                             <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;min-width:auto;">
@@ -1663,9 +1959,6 @@
 
                 <div class="cart-actions">
                     <button class="btn-primary" id="posPlaceOrderBtn" onclick="placePOSOrder()">✅ Complete Order</button>
-                    <button class="btn-whatsapp" id="whatsappCartBtn" onclick="sendCartAsWhatsApp()" style="display:none;">
-                        <i class="fab fa-whatsapp"></i> Send Order via WhatsApp
-                    </button>
                     <button class="btn-outline hold" onclick="holdOrder()">⏸️ Hold Order</button>
                 </div>
 
@@ -1677,39 +1970,20 @@
         </div>
     </div>
 
-    <!-- ===== RECEIPT MODAL WITH WHATSAPP ===== -->
+    <!-- ===== RECEIPT MODAL ===== -->
     <div id="receiptModal" class="modal-overlay hidden">
-        <div class="modal" style="max-width:450px;">
+        <div class="modal" style="max-width:400px;">
             <button class="close" onclick="closeReceipt()">✕</button>
             <div class="title">🧾 Receipt</div>
             <div id="receiptContent"></div>
-            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                <button onclick="printReceipt()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);">
-                    🖨️ Print
-                </button>
-                <button onclick="sendWhatsAppReceipt()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#25D366,#128C7E);">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </button>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+                <button onclick="printReceipt()" class="btn-primary" style="flex:1;">🖨️ Print</button>
                 <button onclick="closeReceipt()" class="btn-outline" style="flex:1;">Close</button>
-            </div>
-            <!-- Customer phone input for WhatsApp -->
-            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color);">
-                <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">
-                    📱 Customer Phone (for WhatsApp)
-                </label>
-                <div style="display:flex;gap:8px;">
-                    <input type="tel" id="whatsappCustomerPhone" placeholder="e.g., 0712345678" 
-                           style="flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);">
-                    <button onclick="sendWhatsAppReceipt()" class="btn-primary" style="background:linear-gradient(135deg,#25D366,#128C7E);padding:8px 16px;border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;">
-                        📤 Send
-                    </button>
-                </div>
-                <div id="whatsappStatus" class="whatsapp-status"></div>
             </div>
         </div>
     </div>
 
-    <!-- ===== OTHER MODALS (Customer, Discount, Return, Barcode) ===== -->
+    <!-- ===== MODALS ===== -->
     <div id="customerModal" class="modal-overlay hidden" onclick="closeCustomerModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <button class="close" onclick="closeCustomerModal()">✕</button>
@@ -1751,6 +2025,7 @@
         </div>
     </div>
 
+    <!-- ===== RETURN MODAL ===== -->
     <div id="returnModal" class="modal-overlay hidden" onclick="closeReturnModal(event)">
         <div class="modal" onclick="event.stopPropagation()" style="max-width:580px;">
             <button class="close" onclick="closeReturnModal()">✕</button>
@@ -1868,8 +2143,6 @@
     let selectedReturnOrder = null;
     let allOrders = [];
     let creditCustomers = [];
-    let currentReceiptData = null;
-    let lastCustomerPhone = '';
 
     // ============================================================
     // HELPER FUNCTIONS
@@ -1925,216 +2198,6 @@
             clearTimeout(window.toastTimeout);
             window.toastTimeout = setTimeout(function() { toast.classList.add('hidden'); }, 3500);
         } else { console.log('🔔', msg); }
-    }
-
-    // ============================================================
-    // WHATSAPP RECEIPT FUNCTIONS
-    // ============================================================
-
-    // Format receipt for WhatsApp
-    function formatReceiptForWhatsApp(receiptText) {
-        let lines = receiptText.split('\n');
-        let formatted = [];
-        
-        formatted.push('📋 *ACACIAMART RECEIPT*');
-        formatted.push('='.repeat(30));
-        
-        for (let line of lines) {
-            if (!line.trim()) continue;
-            
-            if (line.includes('TOTAL')) {
-                formatted.push('='.repeat(30));
-                formatted.push('💰 *' + line.trim() + '*');
-            } else if (line.includes('THANK YOU')) {
-                formatted.push('='.repeat(30));
-                formatted.push('✅ ' + line.trim());
-            } else if (line.includes('║') || line.includes('╔') || line.includes('╚') || line.includes('╠')) {
-                let clean = line.replace(/[║╔╚╠═╣]/g, '').trim();
-                if (clean) formatted.push(clean);
-            } else {
-                let clean = line.trim();
-                if (clean) formatted.push(clean);
-            }
-        }
-        
-        formatted.push('='.repeat(30));
-        formatted.push('📱 *Thank you for shopping with us!*');
-        formatted.push('📍 ACACIAMART - RONGAI, Kenya');
-        formatted.push('📞 0717365706');
-        
-        return formatted.join('\n');
-    }
-
-    // Send WhatsApp Receipt
-    function sendWhatsAppReceipt() {
-        const content = document.getElementById('receiptContent');
-        const phoneInput = document.getElementById('whatsappCustomerPhone');
-        const statusEl = document.getElementById('whatsappStatus');
-        
-        if (!content || !content.textContent) {
-            showToast('⚠️ No receipt to send', 'warning');
-            return;
-        }
-
-        let phone = phoneInput ? phoneInput.value.trim() : '';
-        
-        if (!phone) {
-            phone = document.getElementById('posCustomerPhone')?.value || '';
-            if (!phone || phone === 'N/A') {
-                const creditSelect = document.getElementById('creditCustomerSelect');
-                if (creditSelect && creditSelect.value) {
-                    const selected = creditSelect.options[creditSelect.selectedIndex];
-                    phone = selected?.dataset?.phone || '';
-                }
-            }
-            if (phoneInput) phoneInput.value = phone;
-        }
-
-        if (!phone || phone === 'N/A' || phone === '') {
-            showToast('⚠️ Please enter customer phone number', 'warning');
-            if (phoneInput) phoneInput.focus();
-            return;
-        }
-
-        let cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('0')) {
-            cleanPhone = '254' + cleanPhone.substring(1);
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
-            cleanPhone = '254' + cleanPhone;
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 10) {
-            cleanPhone = '254' + cleanPhone;
-        }
-
-        if (cleanPhone.length < 10) {
-            showToast('⚠️ Please enter a valid phone number (e.g., 0712345678)', 'warning');
-            if (phoneInput) phoneInput.focus();
-            return;
-        }
-
-        const receiptText = content.textContent;
-        const message = formatReceiptForWhatsApp(receiptText);
-
-        if (statusEl) {
-            statusEl.textContent = '📤 Sending...';
-            statusEl.className = 'whatsapp-status info';
-        }
-
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-        const win = window.open(whatsappUrl, '_blank');
-        
-        if (win) {
-            if (statusEl) {
-                statusEl.textContent = '✅ WhatsApp opened! Send the message.';
-                statusEl.className = 'whatsapp-status success';
-            }
-            showToast('📱 WhatsApp opened! Send the receipt to customer.', 'success');
-            lastCustomerPhone = cleanPhone;
-            localStorage.setItem('last_whatsapp_phone', cleanPhone);
-        } else {
-            window.location.href = whatsappUrl;
-            if (statusEl) {
-                statusEl.textContent = '📱 Redirecting to WhatsApp...';
-                statusEl.className = 'whatsapp-status warning';
-            }
-            showToast('📱 Redirecting to WhatsApp...', 'info');
-        }
-    }
-
-    // Show receipt with WhatsApp option
-    function showReceiptWithWhatsApp(orderData) {
-        currentReceiptData = orderData;
-        
-        const phoneInput = document.getElementById('whatsappCustomerPhone');
-        if (phoneInput) {
-            const phone = orderData.customer_phone || 
-                         document.getElementById('posCustomerPhone')?.value || 
-                         localStorage.getItem('last_whatsapp_phone') || '';
-            phoneInput.value = phone;
-        }
-        
-        showReceipt(orderData);
-        
-        const statusEl = document.getElementById('whatsappStatus');
-        if (statusEl) {
-            const phone = orderData.customer_phone || '';
-            if (phone && phone !== 'N/A') {
-                statusEl.textContent = `📱 WhatsApp will send to ${phone}`;
-                statusEl.className = 'whatsapp-status success';
-            } else {
-                statusEl.textContent = '💡 Enter phone number to send via WhatsApp';
-                statusEl.className = 'whatsapp-status';
-            }
-        }
-    }
-
-    // Send cart as WhatsApp message
-    function sendCartAsWhatsApp() {
-        if (!posCart.length) {
-            showToast('⚠️ Cart is empty', 'warning');
-            return;
-        }
-        
-        const customerName = document.getElementById('posCustomer').value || 'Customer';
-        const phone = document.getElementById('posCustomerPhone')?.value || '';
-        
-        if (!phone || phone === 'N/A') {
-            showToast('⚠️ Please select a customer with phone number', 'warning');
-            return;
-        }
-        
-        const subtotal = posCart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
-        const discountAmt = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-        const total = Math.max(0, subtotal - discountAmt + tipAmount);
-        
-        let message = '🛒 *ACACIAMART - Order Summary*';
-        message += '\n' + '='.repeat(30);
-        message += `\n👤 *Customer:* ${customerName}`;
-        message += `\n📅 *Date:* ${new Date().toLocaleString()}`;
-        message += '\n' + '='.repeat(30);
-        message += '\n📦 *ITEMS:*';
-        
-        posCart.forEach(item => {
-            const price = Number(item.price) || 0;
-            const qty = Number(item.quantity) || 1;
-            const totalItem = price * qty;
-            message += `\n   ${item.name}`;
-            message += `\n   Qty: ${qty} x KSh ${price.toLocaleString()} = KSh ${totalItem.toLocaleString()}`;
-        });
-        
-        message += '\n' + '='.repeat(30);
-        message += `\n💰 *Subtotal:* KSh ${subtotal.toLocaleString()}`;
-        if (discountValue > 0) {
-            message += `\n💸 *Discount:* -KSh ${discountAmt.toLocaleString()}`;
-        }
-        if (tipAmount > 0) {
-            message += `\n💝 *Tip:* KSh ${tipAmount.toLocaleString()}`;
-        }
-        message += `\n💵 *TOTAL:* KSh ${total.toLocaleString()}`;
-        message += '\n' + '='.repeat(30);
-        message += '\n📍 *ACACIAMART - RONGAI, Kenya*';
-        message += '\n📞 0717365706';
-        message += '\n✅ *Thank you for your order!*';
-        
-        let cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('0')) {
-            cleanPhone = '254' + cleanPhone.substring(1);
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
-            cleanPhone = '254' + cleanPhone;
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 10) {
-            cleanPhone = '254' + cleanPhone;
-        }
-        
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-        showToast('📱 Order sent via WhatsApp!', 'success');
-    }
-
-    // Show WhatsApp button when cart has items
-    function updateWhatsAppButtonVisibility() {
-        const btn = document.getElementById('whatsappCartBtn');
-        if (btn) {
-            btn.style.display = posCart.length > 0 ? 'flex' : 'none';
-        }
     }
 
     // ============================================================
@@ -2390,9 +2453,10 @@
     }
 
     // ============================================================
-    // SYNC & OFFLINE CREDIT
+    // SYNC & OFFLINE CREDIT - COMPLETE FIX
     // ============================================================
 
+    // 1. GET UNSYNCED ORDERS (FIXED - Checks localStorage FIRST)
     async function getUnsyncedOrders() {
         try {
             const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
@@ -2420,6 +2484,7 @@
         }
     }
 
+    // 2. UPDATE UNSYNCED COUNT (FIXED - Checks localStorage)
     async function updateUnsyncedCount(count) {
         const el = document.getElementById('syncStatus');
         const cEl = document.getElementById('unsyncedCount');
@@ -2462,6 +2527,7 @@
         }
     }
 
+    // 3. CACHE CREDIT BALANCES FOR OFFLINE USE
     async function cacheCreditBalances() {
         if (!navigator.onLine) {
             console.log('📡 Offline - using cached credit data');
@@ -2527,6 +2593,7 @@
         }
     }
 
+    // 4. LOAD CREDIT CUSTOMERS (FIXED - Works offline)
     function loadCreditCustomers() {
         const select = document.getElementById('creditCustomerSelect');
         if (!select) return;
@@ -2626,6 +2693,7 @@
         }
     }
 
+    // 5. PERFORM AUTO SYNC (FIXED - Handles credit orders)
     async function performAutoSync() {
         if (isSyncing) return;
         if (!navigator.onLine) {
@@ -2783,7 +2851,7 @@
     }
 
     // ============================================================
-    // ONLINE EVENT
+    // ONLINE EVENT - Auto-sync when coming online
     // ============================================================
 
     window.addEventListener('online', function() {
@@ -2898,10 +2966,9 @@
                 saveOrderToIndexedDB(orderToSave).catch(() => {});
 
                 showToast('✅ Order completed!', 'success');
-                showReceiptWithWhatsApp({
+                showReceipt({
                     order_id: data.order_id || 'ORD-' + Date.now(),
                     customer_name: customerName,
-                    customer_phone: customerPhone,
                     subtotal: subtotal,
                     total: total,
                     items: posCart,
@@ -2940,7 +3007,7 @@
     }
 
     // ============================================================
-    // SAVE ORDER OFFLINE
+    // SAVE ORDER OFFLINE (Saves to BOTH IndexedDB AND localStorage)
     // ============================================================
     function saveOrderOffline(orderData, btn, originalText) {
         const orderToSave = {
@@ -2988,10 +3055,9 @@
 
                 showToast('📡 Order saved offline! Will sync when online.', 'warning');
 
-                showReceiptWithWhatsApp({
+                showReceipt({
                     order_id: orderToSave.order_id,
                     customer_name: customer,
-                    customer_phone: orderData.customer_phone,
                     subtotal: orderSubtotal,
                     total: orderTotal,
                     items: cartItems,
@@ -3024,10 +3090,9 @@
 
                     showToast('📡 Order saved to local storage!', 'warning');
 
-                    showReceiptWithWhatsApp({
+                    showReceipt({
                         order_id: orderToSave.order_id,
                         customer_name: customer,
-                        customer_phone: orderData.customer_phone,
                         subtotal: orderSubtotal,
                         total: orderTotal,
                         items: cartItems,
@@ -3060,7 +3125,7 @@
     }
 
     // ============================================================
-    // PLACE ORDER
+    // PLACE ORDER - HANDLES CREDIT PURCHASES
     // ============================================================
     function placePOSOrder() {
         if (!posCart.length) {
@@ -3227,6 +3292,7 @@
         });
     }
 
+    // ✅ Save credit order offline (Saves to BOTH IndexedDB AND localStorage)
     function saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText) {
         let currentBalance = 0;
         let creditLimit = 0;
@@ -3387,74 +3453,15 @@
                 <button class="close" onclick="closeCreditReceipt()">✕</button>
                 <div class="title">🧾 Credit Purchase Receipt</div>
                 <pre id="creditReceiptContent" style="background:var(--bg-input);padding:16px;border-radius:8px;font-family:'Courier New',monospace;font-size:0.7rem;white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow-y:auto;margin:0;border:1px solid var(--border-color);">${receiptText}</pre>
-                <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
-                    <button onclick="printCreditReceipt()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#2563eb,#4f46e5);">
+                <div style="display:flex;gap:10px;margin-top:12px;">
+                    <button onclick="printCreditReceipt()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#7c3aed,#6d28d9);">
                         🖨️ Print
                     </button>
-                    <button onclick="sendCreditReceiptWhatsApp()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#25D366,#128C7E);">
-                        <i class="fab fa-whatsapp"></i> WhatsApp
-                    </button>
                     <button onclick="closeCreditReceipt()" class="btn-outline" style="flex:1;">Close</button>
-                </div>
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color);">
-                    <label style="font-size:0.6rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">
-                        📱 Customer Phone (for WhatsApp)
-                    </label>
-                    <div style="display:flex;gap:8px;">
-                        <input type="tel" id="creditWhatsappPhone" placeholder="e.g., 0712345678" 
-                               style="flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.8rem;background:var(--bg-input);outline:none;color:var(--text-primary);">
-                        <button onclick="sendCreditReceiptWhatsApp()" class="btn-primary" style="background:linear-gradient(135deg,#25D366,#128C7E);padding:8px 16px;border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;">
-                            📤 Send
-                        </button>
-                    </div>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
-    }
-
-    function sendCreditReceiptWhatsApp() {
-        const content = document.getElementById('creditReceiptContent');
-        const phoneInput = document.getElementById('creditWhatsappPhone');
-        
-        if (!content || !content.textContent) {
-            showToast('⚠️ No receipt to send', 'warning');
-            return;
-        }
-
-        let phone = phoneInput ? phoneInput.value.trim() : '';
-        if (!phone) {
-            phone = document.getElementById('posCustomerPhone')?.value || '';
-            if (phoneInput) phoneInput.value = phone;
-        }
-
-        if (!phone || phone === 'N/A' || phone === '') {
-            showToast('⚠️ Please enter customer phone number', 'warning');
-            if (phoneInput) phoneInput.focus();
-            return;
-        }
-
-        let cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('0')) {
-            cleanPhone = '254' + cleanPhone.substring(1);
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 9) {
-            cleanPhone = '254' + cleanPhone;
-        } else if (!cleanPhone.startsWith('254') && cleanPhone.length === 10) {
-            cleanPhone = '254' + cleanPhone;
-        }
-
-        if (cleanPhone.length < 10) {
-            showToast('⚠️ Please enter a valid phone number (e.g., 0712345678)', 'warning');
-            if (phoneInput) phoneInput.focus();
-            return;
-        }
-
-        const receiptText = content.textContent;
-        const message = formatReceiptForWhatsApp(receiptText);
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-        
-        window.open(whatsappUrl, '_blank');
-        showToast('📱 WhatsApp opened! Send the receipt.', 'success');
     }
 
     function printCreditReceipt() {
@@ -3474,35 +3481,40 @@
 
         console.log('🖨️ Printing credit receipt...');
 
-        const win = window.open('', '_blank', 'width=400,height=600');
-        if (!win) {
-            showToast('⚠️ Allow popups for printing', 'warning');
-            return;
+        if (typeof window.printToUSBPrinter === 'function') {
+            window.printToUSBPrinter(receiptText);
+        } else {
+            showToast('⚠️ USB printing not available', 'warning');
+            const win = window.open('', '_blank', 'width=400,height=600');
+            if (!win) {
+                showToast('⚠️ Allow popups for printing', 'warning');
+                return;
+            }
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Credit Receipt - ACACIAMART</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                        pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                        @page { margin: 0; size: 80mm auto; }
+                        @media print { body { padding: 10px; margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <pre>${receiptText}</pre>
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() { window.print(); }, 500);
+                            setTimeout(function() { window.close(); }, 3000);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
         }
-        win.document.write(`
-            <html>
-            <head>
-                <title>Credit Receipt - ACACIAMART</title>
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
-                    pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
-                    @page { margin: 0; size: 80mm auto; }
-                    @media print { body { padding: 10px; margin: 0; } }
-                </style>
-            </head>
-            <body>
-                <pre>${receiptText}</pre>
-                <script>
-                    window.onload = function() {
-                        setTimeout(function() { window.print(); }, 500);
-                        setTimeout(function() { window.close(); }, 3000);
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        win.document.close();
     }
 
     function closeCreditReceipt() {
@@ -3707,9 +3719,6 @@
         if (cartStatsEl) cartStatsEl.textContent = qty;
         if (placeBtn) { placeBtn.disabled = !posCart.length; placeBtn.style.opacity = posCart.length ? '1' : '0.5'; }
         if (empty) empty.style.display = posCart.length ? 'none' : 'block';
-        
-        updateWhatsAppButtonVisibility();
-
         if (!list) return;
         if (!posCart.length) { list.innerHTML = ''; return; }
 
@@ -3739,64 +3748,68 @@
         list.innerHTML = html;
     }
 
-    // ============================================================
-    // CHANGE CALCULATOR
-    // ============================================================
 
-    window.calculateChange = function() {
-        console.log('🔄 Calculating change...');
 
-        const totalEl = document.getElementById('posTotal');
-        const paidEl = document.getElementById('amountPaid');
-        const changeEl = document.getElementById('changeAmount');
-        const totalDisplay = document.getElementById('changeTotalDisplay');
+    
+// ============================================================
+// CHANGE CALCULATOR - FIX
+// ============================================================
 
-        if (!totalEl || !paidEl || !changeEl) {
-            console.log('❌ Elements not found!');
-            return;
-        }
+window.calculateChange = function() {
+    console.log('🔄 Calculating change...');
 
-        let total = 0;
-        const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
-        total = parseFloat(totalText) || 0;
-        console.log('💰 Cart Total:', total);
+    const totalEl = document.getElementById('posTotal');
+    const paidEl = document.getElementById('amountPaid');
+    const changeEl = document.getElementById('changeAmount');
+    const totalDisplay = document.getElementById('changeTotalDisplay');
 
-        if (totalDisplay) {
-            totalDisplay.textContent = 'KSh ' + total.toLocaleString();
-        }
+    if (!totalEl || !paidEl || !changeEl) {
+        console.log('❌ Elements not found!');
+        return;
+    }
 
-        const paidValue = paidEl.value;
-        const paid = parseFloat(paidValue) || 0;
-        console.log('💰 Amount Paid:', paid);
+    let total = 0;
+    const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+    total = parseFloat(totalText) || 0;
+    console.log('💰 Cart Total:', total);
 
-        if (paid <= 0) {
-            changeEl.textContent = 'KSh 0';
-            changeEl.style.color = '#059669';
-            return;
-        }
+    if (totalDisplay) {
+        totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+    }
 
-        const change = paid - total;
-        console.log('💰 Change:', change);
+    const paidValue = paidEl.value;
+    const paid = parseFloat(paidValue) || 0;
+    console.log('💰 Amount Paid:', paid);
 
-        if (change < 0) {
-            changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
-            changeEl.style.color = '#ef4444';
-        } else {
-            changeEl.textContent = 'KSh ' + change.toLocaleString();
-            changeEl.style.color = '#059669';
-        }
-    };
+    if (paid <= 0) {
+        changeEl.textContent = 'KSh 0';
+        changeEl.style.color = '#059669';
+        return;
+    }
 
-    window.setQuickAmount = function(amount) {
-        console.log('💰 Quick amount clicked:', amount);
-        const paidEl = document.getElementById('amountPaid');
-        if (paidEl) {
-            paidEl.value = amount;
-            window.calculateChange();
-        }
-    };
+    const change = paid - total;
+    console.log('💰 Change:', change);
 
-    console.log('✅ Change Calculator loaded!');
+    if (change < 0) {
+        changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+        changeEl.style.color = '#ef4444';
+    } else {
+        changeEl.textContent = 'KSh ' + change.toLocaleString();
+        changeEl.style.color = '#059669';
+    }
+};
+
+window.setQuickAmount = function(amount) {
+    console.log('💰 Quick amount clicked:', amount);
+    const paidEl = document.getElementById('amountPaid');
+    if (paidEl) {
+        paidEl.value = amount;
+        window.calculateChange();
+    }
+};
+
+console.log('✅ Change Calculator loaded!');
+console.log('🔍 Type check:', typeof window.calculateChange);
 
     // ============================================================
     // DISCOUNT
@@ -4041,44 +4054,19 @@
 
     function printReceipt() {
         const content = document.getElementById('receiptContent');
-        if (!content || !content.textContent) {
-            showToast('⚠️ No receipt to print', 'warning');
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            showToast('⚠️ Please allow popups for printing', 'warning');
             return;
         }
-
-        const receiptText = content.textContent;
-        console.log('🖨️ Printing receipt...');
-
-        const win = window.open('', '_blank', 'width=400,height=600');
-        if (!win) {
-            showToast('⚠️ Allow popups for printing', 'warning');
-            return;
-        }
-
-        win.document.write(`
-            <html>
-            <head>
-                <title>Receipt - ACACIAMART</title>
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
-                    pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
-                    @page { margin: 0; size: 80mm auto; }
-                    @media print { body { padding: 10px; margin: 0; } }
-                </style>
-            </head>
-            <body>
-                <pre>${receiptText}</pre>
-                <script>
-                    window.onload = function() {
-                        setTimeout(function() { window.print(); }, 500);
-                        setTimeout(function() { window.close(); }, 3000);
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        win.document.close();
+        printWindow.document.write(
+            '<html><head><title>Receipt</title>' +
+            '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
+            '</head><body><pre>' + content.textContent + '</pre>' +
+            '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
+            '</body></html>'
+        );
+        printWindow.document.close();
     }
 
     function closeReceipt() {
@@ -4714,7 +4702,7 @@
     // INIT
     // ============================================================
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('✅ POS Pro v12.0 - WhatsApp Receipt Enabled with ' + allProducts.length + ' products');
+        console.log('✅ POS Pro v12.0 - Credit System Enabled with ' + allProducts.length + ' products');
 
         filteredProducts = allProducts.slice(0, 50);
 
@@ -4839,6 +4827,121 @@ window.addEventListener('online', () => {
 
 window.addEventListener('offline', () => {
     console.log('🔴 Offline - Orders will be saved locally');
+});
+
+// ============================================================
+// USB THERMAL PRINTER - GLOBAL FUNCTIONS
+// ============================================================
+
+// ============================================================
+// SIMPLE PRINT RECEIPT
+// ============================================================
+
+function printReceipt() {
+    const content = document.getElementById('receiptContent');
+    if (!content || !content.textContent) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
+    }
+
+    const receiptText = content.textContent;
+    console.log('🖨️ Printing receipt...');
+
+    const win = window.open('', '_blank', 'width=400,height=600');
+    if (!win) {
+        showToast('⚠️ Allow popups for printing', 'warning');
+        return;
+    }
+
+    win.document.write(`
+        <html>
+        <head>
+            <title>Receipt - ACACIAMART</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Courier New', monospace; padding: 20px; background: white; color: black; max-width: 80mm; margin: 0 auto; }
+                pre { font-family: 'Courier New', monospace; font-size: 10pt; white-space: pre-wrap; word-wrap: break-word; margin: 0; line-height: 1.4; }
+                @page { margin: 0; size: 80mm auto; }
+                @media print { body { padding: 10px; margin: 0; } }
+            </style>
+        </head>
+        <body>
+            <pre>${receiptText}</pre>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() { window.print(); }, 500);
+                    setTimeout(function() { window.close(); }, 3000);
+                };
+            <\/script>
+        </body>
+        </html>
+    `);
+    win.document.close();
+}
+// ============================================================
+// LOAD CATEGORIES DYNAMICALLY FROM DATABASE
+// ============================================================
+
+function loadCategories() {
+    console.log('🔄 Loading categories dynamically...');
+
+    const container = document.getElementById('categoryFilters');
+    if (!container) {
+        console.log('❌ Category container not found');
+        return;
+    }
+
+    container.innerHTML = '';
+
+    const allBtn = document.createElement('span');
+    allBtn.className = 'category-pill active';
+    allBtn.dataset.category = 'all';
+    allBtn.textContent = 'All';
+    allBtn.onclick = function() { filterByCategory('all', this); };
+    container.appendChild(allBtn);
+
+    // ✅ NEW SUPABASE URL
+    const SUPABASE_URL = 'https://hzqrdwerkgfmfaufabjr.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld';
+
+    fetch(`${SUPABASE_URL}/rest/v1/products?select=category`, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+    })
+    .then(r => r.json())
+    .then(products => {
+        const categories = {};
+        products.forEach(p => {
+            const cat = p.category || 'Uncategorized';
+            // Show ALL categories (keep all)
+            if (cat && cat !== 'Uncategorized' && cat !== 'Test') {
+                categories[cat] = (categories[cat] || 0) + 1;
+            }
+        });
+
+        const sortedCategories = Object.keys(categories).sort();
+        console.log('📊 Categories loaded:', sortedCategories);
+
+        sortedCategories.forEach(cat => {
+            const pill = document.createElement('span');
+            pill.className = 'category-pill';
+            pill.dataset.category = cat;
+            pill.textContent = cat + ' (' + categories[cat] + ')';
+            pill.onclick = function() { filterByCategory(cat, this); };
+            container.appendChild(pill);
+        });
+
+        console.log('✅ Categories loaded: ' + sortedCategories.length);
+    })
+    .catch(err => {
+        console.error('❌ Error loading categories:', err);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadCategories, 300);
 });
 </script>
 </body>
