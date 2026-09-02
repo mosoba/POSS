@@ -3577,6 +3577,69 @@
         list.innerHTML = html;
     }
 
+
+
+
+// ============================================================
+// CHANGE CALCULATOR - FIX
+// ============================================================
+
+window.calculateChange = function() {
+    console.log('🔄 Calculating change...');
+
+    const totalEl = document.getElementById('posTotal');
+    const paidEl = document.getElementById('amountPaid');
+    const changeEl = document.getElementById('changeAmount');
+    const totalDisplay = document.getElementById('changeTotalDisplay');
+
+    if (!totalEl || !paidEl || !changeEl) {
+        console.log('❌ Elements not found!');
+        return;
+    }
+
+    let total = 0;
+    const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+    total = parseFloat(totalText) || 0;
+    console.log('💰 Cart Total:', total);
+
+    if (totalDisplay) {
+        totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+    }
+
+    const paidValue = paidEl.value;
+    const paid = parseFloat(paidValue) || 0;
+    console.log('💰 Amount Paid:', paid);
+
+    if (paid <= 0) {
+        changeEl.textContent = 'KSh 0';
+        changeEl.style.color = '#059669';
+        return;
+    }
+
+    const change = paid - total;
+    console.log('💰 Change:', change);
+
+    if (change < 0) {
+        changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+        changeEl.style.color = '#ef4444';
+    } else {
+        changeEl.textContent = 'KSh ' + change.toLocaleString();
+        changeEl.style.color = '#059669';
+    }
+};
+
+window.setQuickAmount = function(amount) {
+    console.log('💰 Quick amount clicked:', amount);
+    const paidEl = document.getElementById('amountPaid');
+    if (paidEl) {
+        paidEl.value = amount;
+        window.calculateChange();
+    }
+};
+
+console.log('✅ Change Calculator loaded!');
+console.log('🔍 Type check:', typeof window.calculateChange);
+
     // ============================================================
     // DISCOUNT
     // ============================================================
@@ -4666,8 +4729,9 @@ function loadCategories() {
     allBtn.onclick = function() { filterByCategory('all', this); };
     container.appendChild(allBtn);
 
-    const SUPABASE_URL = 'https://haqqknmerdnfvwmsnath.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_fKWHaWSF-h5O8raSZzWMKA_udQTGyAA';
+    // ✅ NEW SUPABASE URL
+    const SUPABASE_URL = 'https://hzqrdwerkgfmfaufabjr.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld';
 
     fetch(`${SUPABASE_URL}/rest/v1/products?select=category`, {
         headers: {
@@ -4680,7 +4744,8 @@ function loadCategories() {
         const categories = {};
         products.forEach(p => {
             const cat = p.category || 'Uncategorized';
-            if (cat && !['Uncategorized', 'category', 'Test', 'gaming', 'phones', 'Phones'].includes(cat)) {
+            // Show ALL categories (keep all)
+            if (cat && cat !== 'Uncategorized' && cat !== 'Test') {
                 categories[cat] = (categories[cat] || 0) + 1;
             }
         });
@@ -4701,15 +4766,6 @@ function loadCategories() {
     })
     .catch(err => {
         console.error('❌ Error loading categories:', err);
-        const fallback = ['Beverages', 'Accessories', 'Household', 'Personal Care', 'School Supplies'];
-        fallback.forEach(cat => {
-            const pill = document.createElement('span');
-            pill.className = 'category-pill';
-            pill.dataset.category = cat;
-            pill.textContent = cat;
-            pill.onclick = function() { filterByCategory(cat, this); };
-            container.appendChild(pill);
-        });
     });
 }
 
