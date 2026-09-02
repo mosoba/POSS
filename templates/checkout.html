@@ -1235,7 +1235,7 @@
         }
 
         // ============================================================
-        // ✅ PLACE ORDER - FIXED with error handling
+        // ✅ PLACE ORDER - FIXED: shippingCost passed to backend
         // ============================================================
         function placeOrder(method) {
             console.log('🛒 Place order called with method:', method);
@@ -1258,7 +1258,8 @@
             });
 
             const data = getCustomerData();
-            console.log('📦 Order data:', data);
+            console.log('📦 Customer data:', data);
+            console.log('📦 Shipping cost being sent:', shippingCost);
             
             const customerName = data.first_name + ' ' + data.last_name;
             const fullAddress = data.address + ', ' + data.city + ', ' + data.country;
@@ -1284,14 +1285,17 @@
             const trackingNumber = generateTrackingNumber();
             const orderId = 'PP-' + Date.now().toString(36).toUpperCase();
 
+            // ============================================================
+            // ✅ CRITICAL FIX: shipping MUST be included and sent to backend!
+            // ============================================================
             const orderData = {
                 order_id: orderId,
                 tracking_number: trackingNumber,
                 items: cartItems,
                 subtotal: subtotal,
-                shipping: shippingCost,
+                shipping: shippingCost,        // ✅ THIS IS THE FIX!
                 shipping_distance: shippingDistance,
-                total: totalAmount,
+                total: totalAmount,            // ✅ total = subtotal + shipping
                 payment_method: method,
                 status: 'processing',
                 source: 'web',
@@ -1319,7 +1323,8 @@
                 }
             };
 
-            console.log('📤 Sending order to server:', orderData);
+            console.log('📤 Sending order to server with shipping:', shippingCost);
+            console.log('📤 Full order data:', orderData);
 
             fetch('/place-order', {
                 method: 'POST',
