@@ -2501,7 +2501,9 @@ def admin_api_analytics():
     monthly_data = analytics.get('monthly_data', {})
     product_sales = analytics.get('product_sales', {})
     
-    # ADD CREDIT DATA
+    # ============================================================
+    # CREDIT DATA - FOR REPORTING ONLY (NOT ADDED TO TOTALS)
+    # ============================================================
     try:
         from utils.credit import get_all_credit_transactions
         
@@ -2520,9 +2522,11 @@ def admin_api_analytics():
                 credit_cost += cost
                 credit_profit += profit
         
-        total_revenue = analytics.get('total_revenue', 0) + credit_sales
-        total_cost = analytics.get('total_cost', 0) + credit_cost
-        total_profit = analytics.get('total_profit', 0) + credit_profit
+        # ✅ FIX: Use analytics totals directly (credit is already in orders)
+        # DO NOT add credit on top of orders - it's already included!
+        total_revenue = analytics.get('total_revenue', 0)
+        total_cost = analytics.get('total_cost', 0)
+        total_profit = analytics.get('total_profit', 0)
         
         analytics['monthly_data'] = monthly_data
         analytics['product_sales'] = product_sales
@@ -2549,7 +2553,6 @@ def admin_api_analytics():
         traceback.print_exc()
     
     return jsonify(analytics)
-
 # ============================================================
 # REVENUE API
 # ============================================================
