@@ -1110,7 +1110,7 @@ def api_record_credit_purchase():
 def api_record_credit_payment():
     """Record a credit payment - API endpoint"""
     try:
-        from utils.credit import record_credit_payment
+        from utils.credit import record_credit_payment, get_customer_balance
         
         data = request.get_json()
         if not data:
@@ -1121,9 +1121,24 @@ def api_record_credit_payment():
             if not data.get(field):
                 return jsonify({'success': False, 'message': f'{field} is required'}), 400
         
+        customer_id = data['customer_id']
+        amount = float(data['amount'])
+        
+        # ✅ FIX: Check if payment exceeds balance
+        balance_info = get_customer_balance(customer_id)
+        if balance_info:
+            current_balance = balance_info.get('current_balance', 0)
+            if amount > current_balance:
+                return jsonify({
+                    'success': False,
+                    'message': f'❌ Payment exceeds balance. Balance: KSh {current_balance:,.2f}',
+                    'current_balance': current_balance,
+                    'payment_amount': amount
+                }), 400
+        
         result = record_credit_payment(
-            customer_id=data['customer_id'],
-            amount=float(data['amount']),
+            customer_id=customer_id,
+            amount=amount,
             staff_name=data['staff_name'],
             notes=data.get('notes', '')
         )
@@ -1131,7 +1146,6 @@ def api_record_credit_payment():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
 
 @admin_bp.route('/admin/api/credit/monthly-report', methods=['GET'])
 @admin_required
@@ -3033,15 +3047,13 @@ def api_offline_status():
 def api_sync_credit_offline():
     """Sync offline credit orders and payments"""
     try:
-        from utils.credit import sync_credit_orders_offline
+        from utils.credit import sync_credit_orders_offline, record_credit_payment, get_customer_balance
         from utils.storage import load_json_data, save_json_data
         
         print("🔄 Syncing offline credit orders...")
         
-        # 1. Sync credit orders
         order_result = sync_credit_orders_offline()
         
-        # 2. Sync offline payments
         json_data = load_json_data()
         payment_queue = json_data.get('credit_payment_queue', [])
         
@@ -3049,27 +3061,36 @@ def api_sync_credit_offline():
         failed_payments = 0
         
         if payment_queue:
-            from utils.credit import record_credit_payment
-            
             for payment in payment_queue:
                 try:
+                    customer_id = payment.get('customer_id')
+                    amount = float(payment.get('amount'))
+                    
+                    # ✅ FIX: Check balance before syncing
+                    balance_info = get_customer_balance(customer_id)
+                    if balance_info:
+                        current_balance = balance_info.get('current_balance', 0)
+                        if amount > current_balance:
+                            print(f"⚠️ Skipping payment {payment.get('payment_id')}: Amount {amount} exceeds balance {current_balance}")
+                            failed_payments += 1
+                            continue
+                    
                     result = record_credit_payment(
-                        customer_id=payment.get('customer_id'),
-                        amount=float(payment.get('amount')),
+                        customer_id=customer_id,
+                        amount=amount,
                         staff_name=payment.get('staff_name', 'System'),
                         notes=payment.get('notes', 'Offline payment')
                     )
                     if result.get('success'):
                         synced_payments += 1
-                        print(f"✅ Synced payment for: {payment.get('customer_id')}")
+                        print(f"✅ Synced payment for: {customer_id}")
                     else:
                         failed_payments += 1
-                        print(f"⚠️ Failed to sync payment for: {payment.get('customer_id')}")
+                        print(f"⚠️ Failed to sync payment for: {customer_id}")
                 except Exception as e:
                     failed_payments += 1
                     print(f"❌ Error syncing payment: {e}")
             
-            # Update queue - remove synced payments
             json_data['credit_payment_queue'] = [p for p in payment_queue if p.get('payment_id') not in synced_payments]
             save_json_data(json_data)
         
