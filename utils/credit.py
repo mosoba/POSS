@@ -315,7 +315,6 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
             'total_cost': total_cost,
             'profit': total_profit,
             'profit_margin': profit_margin
-            # ❌ REMOVED: 'total_items' - column doesn't exist
         }
         
         print(f"📤 Inserting transaction with cost: KSh {total_cost}")
@@ -342,9 +341,9 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'notes': notes or '',
                 'payment_status': 'pending',
                 'created_at': datetime.utcnow().isoformat(),
-                'total_cost': total_cost,      # ✅ ADDED
-                'profit': total_profit,        # ✅ ADDED
-                'profit_margin': profit_margin # ✅ ADDED
+                'total_cost': total_cost,
+                'profit': total_profit,
+                'profit_margin': profit_margin
             }
             
             response = requests.post(
@@ -406,11 +405,11 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
 
 
 # ============================================================
-# ✅ FIXED: CREDIT PAYMENT
+# ✅ FIXED: CREDIT PAYMENT WITH BALANCE CHECK
 # ============================================================
 
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
-    """Record a credit payment"""
+    """Record a credit payment with balance validation"""
     try:
         import uuid
         
@@ -425,10 +424,13 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
         current_balance = float(customer.get('current_balance', 0))
         amount = float(amount)
         
+        # ✅ FIX: Validate payment doesn't exceed balance
         if amount > current_balance:
             return {
                 'success': False,
-                'message': f'Payment exceeds balance. Balance: KSh {current_balance:,.2f}'
+                'message': f'❌ Payment exceeds balance. Balance: KSh {current_balance:,.2f}',
+                'current_balance': current_balance,
+                'payment_amount': amount
             }
         
         new_balance = current_balance - amount
@@ -731,8 +733,12 @@ def get_customer_profit_summary(customer_id):
         print(f"❌ Error getting customer profit summary: {e}")
         return {'success': False, 'message': str(e)}
 
+# ============================================================
+# ✅ FIXED: SUMMARY FUNCTIONS WITH COLLECTION RATE CAPPED AT 100%
+# ============================================================
+
 def get_all_credit_profit_summary():
-    """Get profit summary for all credit customers"""
+    """Get profit summary for all credit customers - Collection rate capped at 100%"""
     try:
         customers = get_all_credit_customers()
         
@@ -750,7 +756,15 @@ def get_all_credit_profit_summary():
             total_payments += float(customer.get('total_payments', 0))
         
         margin = (total_profit / total_sales * 100) if total_sales > 0 else 0
-        collection_rate = (total_payments / total_sales * 100) if total_sales > 0 else 0
+        
+        # ✅ FIX: Cap collection rate at 100%
+        if total_sales > 0:
+            collection_rate = (total_payments / total_sales * 100)
+            if collection_rate > 100:
+                collection_rate = 100
+            collection_rate = round(collection_rate, 1)
+        else:
+            collection_rate = 0
         
         return {
             'success': True,
@@ -760,7 +774,7 @@ def get_all_credit_profit_summary():
             'profit_margin': round(margin, 1),
             'total_outstanding': total_outstanding,
             'total_payments_received': total_payments,
-            'collection_rate': round(collection_rate, 1),
+            'collection_rate': collection_rate,  # ✅ Now capped at 100%
             'total_customers': len(customers),
             'active_customers': len([c for c in customers if c.get('account_status') == 'active'])
         }
@@ -780,13 +794,8 @@ def get_all_credit_profit_summary():
             'active_customers': 0
         }
 
-
-# ============================================================
-# SUMMARY FUNCTIONS
-# ============================================================
-
 def get_credit_summary():
-    """Get credit summary statistics"""
+    """Get credit summary statistics - Collection rate capped at 100%"""
     try:
         customers = get_all_credit_customers()
         
@@ -799,6 +808,18 @@ def get_credit_summary():
         total_cost = sum(c.get('total_cost', 0) for c in customers)
         total_profit = sum(c.get('total_profit', 0) for c in customers)
         
+        # ✅ FIX: Cap collection rate at 100%
+        if total_purchases > 0:
+            collection_rate = (total_payments / total_purchases * 100)
+            if collection_rate > 100:
+                collection_rate = 100
+            collection_rate = round(collection_rate, 1)
+        else:
+            collection_rate = 0
+        
+        # ✅ FIX: Profit margin
+        profit_margin = (total_profit / total_purchases * 100) if total_purchases > 0 else 0
+        
         return {
             'total_customers': total_customers,
             'active_customers': active_customers,
@@ -809,7 +830,8 @@ def get_credit_summary():
             'total_payments': total_payments,
             'total_cost': total_cost,
             'total_profit': total_profit,
-            'profit_margin': (total_profit / total_purchases * 100) if total_purchases > 0 else 0,
+            'profit_margin': round(profit_margin, 1),
+            'collection_rate': collection_rate,  # ✅ Added and capped at 100%
             'average_balance': total_balance / active_customers if active_customers > 0 else 0
         }
         
@@ -826,6 +848,7 @@ def get_credit_summary():
             'total_cost': 0,
             'total_profit': 0,
             'profit_margin': 0,
+            'collection_rate': 0,
             'average_balance': 0
         }
 
@@ -924,3 +947,5 @@ def get_monthly_credit_report(year=None):
     except Exception as e:
         print(f"❌ Error getting monthly credit report: {e}")
         return []
+
+print("✅ Credit module loaded successfully with collection rate capped at 100%!")
