@@ -15,7 +15,7 @@ SUPABASE_HEADERS = {
 }
 
 # ============================================================
-# PROFITABILITY TRACKING - ONLY PAID SALES
+# ✅ FIXED: PROFITABILITY TRACKING - ONLY PAID SALES
 # ============================================================
 
 def get_paid_sales():
@@ -48,7 +48,7 @@ def get_paid_sales():
         
         print(f"💰 Total Orders Revenue: {total_orders}")
         
-        # 2. Get credit PAYMENTS (money actually received from credit customers)
+        # 2. Get ALL credit transactions (purchases AND payments)
         credit_response = requests.get(
             f"{SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type",
             headers=SUPABASE_HEADERS,
@@ -83,13 +83,19 @@ def get_paid_sales():
         total_paid_sales = total_orders + total_credit_paid
         outstanding_credit = total_credit_sales - total_credit_paid
         
-        collection_rate = round((total_credit_paid / total_credit_sales * 100) if total_credit_sales > 0 else 0, 2)
+        # ✅ FIX: Collection rate can't exceed 100%
+        if total_credit_sales > 0:
+            collection_rate = round((total_credit_paid / total_credit_sales) * 100, 2)
+            if collection_rate > 100:
+                collection_rate = 100
+        else:
+            collection_rate = 0
         
         result = {
             'total_paid_sales': total_paid_sales,
             'cash_pos_sales': total_orders,
             'credit_payments_received': total_credit_paid,
-            'total_credit_sales': total_credit_sales,
+            'total_credit_sales': total_credit_sales,  # ✅ FIXED: Now includes all credit sales
             'outstanding_credit': outstanding_credit,
             'collection_rate': collection_rate
         }
@@ -110,6 +116,7 @@ def get_paid_sales():
             'collection_rate': 0
         }
 
+
 def get_profitability_summary():
     """Get profitability based ONLY on PAID sales"""
     try:
@@ -118,19 +125,63 @@ def get_profitability_summary():
         sales_data = get_paid_sales()
         print(f"📊 Sales data: {sales_data}")
         
-        # Cost is 70% of paid revenue
-        cost_of_goods = sales_data['total_paid_sales'] * 0.7
-        total_profit = sales_data['total_paid_sales'] - cost_of_goods
-        profit_margin = round((total_profit / sales_data['total_paid_sales'] * 100) if sales_data['total_paid_sales'] > 0 else 0, 2)
+        # ✅ FIX: Get ACTUAL cost from orders and credit transactions
+        total_cost = 0
+        total_profit = 0
+        
+        # 1. Get cost from orders
+        orders_response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/orders?select=items,status",
+            headers=SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        if orders_response.status_code == 200:
+            orders = orders_response.json()
+            for order in orders:
+                if order.get('status') == 'cancelled':
+                    continue
+                items = order.get('items', [])
+                if isinstance(items, str):
+                    try:
+                        items = json.loads(items)
+                    except:
+                        items = []
+                for item in items:
+                    if isinstance(item, dict):
+                        cost = float(item.get('cost_price', 0) or 0)
+                        qty = int(item.get('quantity', 1))
+                        total_cost += cost * qty
+        
+        # 2. Get cost from credit transactions
+        credit_response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/credit_transactions?select=total_cost,transaction_type",
+            headers=SUPABASE_HEADERS,
+            timeout=30
+        )
+        
+        if credit_response.status_code == 200:
+            transactions = credit_response.json()
+            for tx in transactions:
+                if tx.get('transaction_type') == 'purchase':
+                    total_cost += float(tx.get('total_cost', 0) or 0)
+        
+        total_revenue = sales_data.get('total_paid_sales', 0)
+        total_profit = total_revenue - total_cost
+        
+        if total_revenue > 0:
+            profit_margin = round((total_profit / total_revenue) * 100, 2)
+        else:
+            profit_margin = 0
         
         result = {
-            'total_revenue': sales_data['total_paid_sales'],
-            'cash_pos_revenue': sales_data['cash_pos_sales'],
-            'credit_payments_received': sales_data['credit_payments_received'],
-            'total_credit_sales': sales_data['total_credit_sales'],
-            'outstanding_credit': sales_data['outstanding_credit'],
-            'collection_rate': sales_data['collection_rate'],
-            'cost_of_goods': cost_of_goods,
+            'total_revenue': total_revenue,
+            'cash_pos_revenue': sales_data.get('cash_pos_sales', 0),
+            'credit_payments_received': sales_data.get('credit_payments_received', 0),
+            'total_credit_sales': sales_data.get('total_credit_sales', 0),  # ✅ FIXED
+            'outstanding_credit': sales_data.get('outstanding_credit', 0),
+            'collection_rate': sales_data.get('collection_rate', 0),
+            'total_cost': total_cost,
             'total_profit': total_profit,
             'profit_margin': profit_margin
         }
@@ -149,10 +200,11 @@ def get_profitability_summary():
             'total_credit_sales': 0,
             'outstanding_credit': 0,
             'collection_rate': 0,
-            'cost_of_goods': 0,
+            'total_cost': 0,
             'total_profit': 0,
             'profit_margin': 0
         }
+
 
 def get_monthly_profitability(year=None):
     """Get monthly profitability based ONLY on PAID sales"""
@@ -162,14 +214,14 @@ def get_monthly_profitability(year=None):
         
         # Get orders (Cash + POS)
         orders_response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/orders?select=total,created_at,status",
+            f"{SUPABASE_URL}/rest/v1/orders?select=total,created_at,status,items",
             headers=SUPABASE_HEADERS,
             timeout=30
         )
         
         # Get credit transactions
         credit_response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type,created_at",
+            f"{SUPABASE_URL}/rest/v1/credit_transactions?select=amount,transaction_type,created_at,total_cost",
             headers=SUPABASE_HEADERS,
             timeout=30
         )
@@ -211,10 +263,24 @@ def get_monthly_profitability(year=None):
                         'credit_sales': 0,
                         'outstanding': 0,
                         'profit': 0,
-                        'margin': 0
+                        'margin': 0,
+                        'cost': 0
                     }
                 
                 months[month_key]['cash_pos_sales'] += float(order.get('total', 0))
+                
+                # Calculate cost from items
+                items = order.get('items', [])
+                if isinstance(items, str):
+                    try:
+                        items = json.loads(items)
+                    except:
+                        items = []
+                for item in items:
+                    if isinstance(item, dict):
+                        cost = float(item.get('cost_price', 0) or 0)
+                        qty = int(item.get('quantity', 1))
+                        months[month_key]['cost'] += cost * qty
         
         # Process credit transactions
         if credit_response.status_code == 200:
@@ -247,7 +313,8 @@ def get_monthly_profitability(year=None):
                         'credit_sales': 0,
                         'outstanding': 0,
                         'profit': 0,
-                        'margin': 0
+                        'margin': 0,
+                        'cost': 0
                     }
                 
                 tx_type = tx.get('transaction_type', '').lower()
@@ -255,6 +322,7 @@ def get_monthly_profitability(year=None):
                 
                 if tx_type == 'purchase':
                     months[month_key]['credit_sales'] += amount
+                    months[month_key]['cost'] += float(tx.get('total_cost', 0) or 0)
                 elif tx_type == 'payment':
                     months[month_key]['credit_payments'] += amount
         
@@ -262,7 +330,7 @@ def get_monthly_profitability(year=None):
         for key in months:
             months[key]['total_paid_sales'] = months[key]['cash_pos_sales'] + months[key]['credit_payments']
             months[key]['outstanding'] = months[key]['credit_sales'] - months[key]['credit_payments']
-            months[key]['profit'] = months[key]['total_paid_sales'] * 0.3
+            months[key]['profit'] = months[key]['total_paid_sales'] - months[key]['cost']
             months[key]['margin'] = round((months[key]['profit'] / months[key]['total_paid_sales'] * 100) if months[key]['total_paid_sales'] > 0 else 0, 2)
         
         report = list(months.values())
