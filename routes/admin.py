@@ -288,7 +288,7 @@ def api_product_search():
 
 
 # ============================================================
-# ✅ FIXED: ADMIN DASHBOARD - CONSISTENT DATA SOURCE
+# ✅ COMPLETE FIXED: ADMIN DASHBOARD
 # ============================================================
 
 @admin_bp.route('/admin')
@@ -362,7 +362,7 @@ def admin_dashboard():
         cart = get_cart()
 
         # ============================================================
-        # ✅ FIX: FILTER OUT CANCELLED/RETURNED ORDERS
+        # ✅ FIX 1: FILTER OUT CANCELLED/RETURNED ORDERS
         # ============================================================
         ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
         active_orders = [o for o in all_orders if o.get('status', '') in ACTIVE_STATUSES]
@@ -445,7 +445,7 @@ def admin_dashboard():
         total_customers = len(customers)
 
         # ============================================================
-        # ✅ FIX: REVENUE CALCULATIONS USING ACTIVE ORDERS
+        # ✅ FIX 2: REVENUE CALCULATIONS USING ACTIVE ORDERS
         # ============================================================
         total_orders = len(active_orders)
         total_revenue = sum(o.get('total', 0) for o in active_orders)
@@ -543,7 +543,7 @@ def admin_dashboard():
             month_growth = 100.0 if month_revenue > 0 else 0
 
         # ============================================================
-        # ✅ FIX: ANALYTICS WITH PROPER MARGIN CALCULATION
+        # ✅ FIX 3: ANALYTICS WITH PROPER MARGIN CALCULATION
         # ============================================================
         analytics = get_sales_analytics()
         
@@ -558,7 +558,7 @@ def admin_dashboard():
             margin = 0
 
         # ============================================================
-        # ✅ FIX: PAGINATION
+        # ✅ FIX 4: PAGINATION
         # ============================================================
         total_customer_pages = (total_customers + per_page - 1) // per_page if total_customers > 0 else 1
         if customers_page < 1:
@@ -595,7 +595,7 @@ def admin_dashboard():
         recent_orders = sorted_orders[:3] if sorted_orders else []
 
         # ============================================================
-        # ✅ FIX: STATS WITH CREDIT DATA
+        # ✅ FIX 5: STATS WITH CORRECT DATA
         # ============================================================
         stats = {
             'total_products': total_products,
@@ -624,7 +624,7 @@ def admin_dashboard():
         }
 
         # ============================================================
-        # ✅ FIX: FETCH CREDIT DATA AND MERGE
+        # ✅ FIX 6: FETCH CREDIT DATA CORRECTLY
         # ============================================================
         credit_summary = {
             'total_customers': 0,
@@ -633,13 +633,15 @@ def admin_dashboard():
             'total_purchases': 0,
             'total_payments': 0,
             'total_cost': 0,
-            'total_profit': 0
+            'total_profit': 0,
+            'credit_sales': 0
         }
         credit_customers = []
         overdue_count = 0
         credit_sales = 0
 
         try:
+            # Fetch credit customers
             response = requests.get(
                 f"{Config.SUPABASE_URL}/rest/v1/credit_customers?select=*",
                 headers=Config.SUPABASE_HEADERS,
@@ -650,10 +652,13 @@ def admin_dashboard():
                 credit_customers = response.json()
                 total_cust = len(credit_customers)
                 active_cust = sum(1 for c in credit_customers if c.get('account_status') == 'active')
+                
+                # Get total balance from customers
                 total_balance = sum(c.get('current_balance', 0) for c in credit_customers)
                 total_cost = sum(c.get('total_cost', 0) for c in credit_customers)
                 total_profit = sum(c.get('total_profit', 0) for c in credit_customers)
                 
+                # Fetch transactions to get accurate purchases and payments
                 tx_response = requests.get(
                     f"{Config.SUPABASE_URL}/rest/v1/credit_transactions?select=*",
                     headers=Config.SUPABASE_HEADERS,
@@ -666,9 +671,17 @@ def admin_dashboard():
                     transactions = tx_response.json()
                     total_purchases = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'purchase')
                     total_payments = sum(t.get('amount', 0) for t in transactions if t.get('transaction_type') == 'payment')
+                    
+                    # ✅ CRITICAL FIX: Calculate correct balance from transactions if customers balance is 0
+                    calculated_balance = total_purchases - total_payments
+                    if calculated_balance > 0 and total_balance == 0:
+                        total_balance = calculated_balance
+                        print(f"✅ Updated balance from 0 to {calculated_balance} based on transactions")
+                    elif calculated_balance < 0:
+                        total_balance = 0
+                        print(f"✅ Payments exceed purchases, balance set to 0")
                 
-                # ✅ Calculate credit sales (purchases - payments = outstanding)
-                credit_sales = total_purchases - total_payments
+                credit_sales = total_purchases
                 
                 overdue_count = sum(1 for c in credit_customers if c.get('current_balance', 0) > c.get('credit_limit', 0))
                 
@@ -680,13 +693,15 @@ def admin_dashboard():
                     'total_payments': total_payments,
                     'total_cost': total_cost,
                     'total_profit': total_profit,
-                    'credit_sales': credit_sales  # ✅ Added
+                    'credit_sales': credit_sales
                 }
-                print(f"✅ Loaded {total_cust} credit customers with profit: KSh {total_profit}")
+                
+                print(f"✅ Credit: Customers: {total_cust}, Purchases: {total_purchases}, Payments: {total_payments}, Balance: {total_balance}, Profit: {total_profit}")
             else:
                 print(f"⚠️ Credit customers fetch error: {response.status_code}")
         except Exception as e:
             print(f"❌ Error loading credit data: {e}")
+            traceback.print_exc()
 
         # ✅ Add credit to stats
         stats['credit_sales'] = credit_sales
@@ -835,7 +850,165 @@ def admin_dashboard():
 
 
 # ============================================================
-# CREDIT CUSTOMER MANAGEMENT ROUTES
+# ✅ FIX: CREDIT CUSTOMERS COUNT API
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/customers/count', methods=['GET'])
+@admin_required
+def api_credit_customers_count():
+    """Get count of credit customers"""
+    try:
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/credit_customers?select=count",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            total = len(data) if isinstance(data, list) else 0
+            return jsonify({'success': True, 'total': total})
+        return jsonify({'success': True, 'total': 0})
+    except Exception as e:
+        print(f"❌ Credit count error: {e}")
+        return jsonify({'success': True, 'total': 0})
+
+
+# ============================================================
+# ✅ FIX: SUPPLIERS COUNT API
+# ============================================================
+
+@admin_bp.route('/admin/api/suppliers/count', methods=['GET'])
+@admin_required
+def api_suppliers_count():
+    """Get count of suppliers"""
+    try:
+        response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/suppliers?select=count",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            total = len(data) if isinstance(data, list) else 0
+            return jsonify({'success': True, 'total': total})
+        return jsonify({'success': True, 'total': 0})
+    except Exception as e:
+        print(f"❌ Supplier count error: {e}")
+        return jsonify({'success': True, 'total': 0})
+
+
+# ============================================================
+# ✅ FIX: ORDERS COUNT API
+# ============================================================
+
+@admin_bp.route('/admin/api/orders/count', methods=['GET'])
+@admin_required
+def api_orders_count():
+    """Get count of active orders"""
+    try:
+        orders = load_orders()
+        ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
+        active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
+        return jsonify({'success': True, 'total': len(active_orders)})
+    except Exception as e:
+        print(f"❌ Orders count error: {e}")
+        return jsonify({'success': True, 'total': 0})
+
+
+# ============================================================
+# ✅ FIX: PRODUCTS COUNT API
+# ============================================================
+
+@admin_bp.route('/admin/api/products/count', methods=['GET'])
+@admin_required
+def api_products_count():
+    """Get count of products"""
+    try:
+        products = load_products()
+        return jsonify({'success': True, 'total': len(products)})
+    except Exception as e:
+        print(f"❌ Products count error: {e}")
+        return jsonify({'success': True, 'total': 0})
+
+
+# ============================================================
+# ✅ FIX: CUSTOMERS COUNT API
+# ============================================================
+
+@admin_bp.route('/admin/api/customers/count', methods=['GET'])
+@admin_required
+def api_customers_count():
+    """Get count of unique customers"""
+    try:
+        orders = load_orders()
+        customer_names = set()
+        for order in orders:
+            name = order.get('customer_name')
+            if not name:
+                customer = order.get('customer', {})
+                if isinstance(customer, dict):
+                    name = customer.get('name')
+                elif isinstance(customer, str):
+                    try:
+                        name = json.loads(customer).get('name')
+                    except:
+                        pass
+            if name and name not in ['Walk-in Customer', 'Web Customer', 'Customer', 'Unknown', '']:
+                customer_names.add(name)
+        return jsonify({'success': True, 'total': len(customer_names)})
+    except Exception as e:
+        print(f"❌ Customers count error: {e}")
+        return jsonify({'success': True, 'total': 0})
+
+
+# ============================================================
+# ✅ FIX: SYNC OFFLINE ORDERS
+# ============================================================
+
+@admin_bp.route('/admin/api/sync-order', methods=['POST'])
+@admin_required
+def api_sync_order():
+    """Sync a single offline order"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        order_id = data.get('order_id')
+        if not order_id:
+            return jsonify({'success': False, 'message': 'No order_id provided'}), 400
+        
+        # Check if order already exists
+        check_response = requests.get(
+            f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=10
+        )
+        
+        if check_response.status_code == 200 and check_response.json():
+            return jsonify({'success': True, 'message': 'Order already synced', 'order_id': order_id})
+        
+        # Save order
+        response = requests.post(
+            f"{Config.SUPABASE_URL}/rest/v1/orders",
+            headers=Config.SUPABASE_HEADERS,
+            json=data,
+            timeout=15
+        )
+        
+        if response.status_code in [200, 201]:
+            return jsonify({'success': True, 'message': 'Order synced successfully', 'order_id': order_id})
+        else:
+            return jsonify({'success': False, 'message': f'Failed to sync: {response.status_code}'}), 500
+            
+    except Exception as e:
+        print(f"❌ Sync order error: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ============================================================
+# ✅ CREDIT CUSTOMER MANAGEMENT ROUTES
 # ============================================================
 
 @admin_bp.route('/admin/credit')
@@ -849,6 +1022,14 @@ def admin_credit():
         customers = get_all_credit_customers()
         summary = get_credit_summary()
         overdue = get_overdue_customers()
+        
+        # ✅ Fix: Ensure total_balance is calculated from summary if available
+        total_balance = summary.get('total_balance', 0)
+        if total_balance == 0 and summary.get('total_purchases', 0) > 0:
+            total_balance = summary.get('total_purchases', 0) - summary.get('total_payments', 0)
+            if total_balance < 0:
+                total_balance = 0
+            summary['total_balance'] = total_balance
         
         stats = {
             'total_orders': 0,
@@ -952,7 +1133,7 @@ def api_add_credit_customer():
 @admin_bp.route('/admin/api/credit/customers/<customer_id>', methods=['GET'])
 @admin_required
 def api_get_credit_customer(customer_id):
-    """Get a specific credit customer - FIXED API endpoint"""
+    """Get a specific credit customer - API endpoint"""
     try:
         from utils.credit import get_credit_customer_by_id
         
@@ -1038,13 +1219,13 @@ def api_get_credit_transactions(customer_id):
 
 
 # ============================================================
-# CREDIT PURCHASE ROUTE WITH STOCK DEDUCTION
+# ✅ CREDIT PURCHASE ROUTE WITH STOCK DEDUCTION
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/purchase', methods=['POST'])
 @admin_required
 def api_record_credit_purchase():
-    """Record a credit purchase - FIXED with stock deduction"""
+    """Record a credit purchase with stock deduction"""
     try:
         from utils.credit import record_credit_purchase
         import re
@@ -1062,12 +1243,8 @@ def api_record_credit_purchase():
         print(f"📤 Total amount: {data.get('total_amount')}")
         
         items_data = data.get('items', '')
-        print(f"📦 Items type: {type(items_data)}")
-        print(f"📦 Items: {items_data}")
-        
         if isinstance(items_data, list):
             items_list = items_data
-            print(f"📦 Items is a LIST: {items_list}")
         else:
             items_str = items_data
             items_list = []
@@ -1092,15 +1269,12 @@ def api_record_credit_purchase():
                                 'price': float(products[0].get('price', 0))
                             })
         
-        # STOCK DEDUCTION
-        print(f"📦 Processing {len(items_list)} items for stock deduction...")
-        
+        # Stock deduction
         for item in items_list:
             product_id = item.get('product_id')
             quantity = int(item.get('quantity', 1))
             
             if not product_id:
-                print(f"⚠️ No product_id for item: {item.get('name')}")
                 continue
             
             response = requests.get(
@@ -1115,8 +1289,6 @@ def api_record_credit_purchase():
                     product = products[0]
                     current_stock = product.get('stock', 0)
                     new_stock = max(0, current_stock - quantity)
-                    
-                    print(f"📦 {item.get('name')}: {current_stock} → {new_stock}")
                     
                     update_response = requests.patch(
                         f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
@@ -1214,7 +1386,50 @@ def api_get_credit_summary():
 
 
 # ============================================================
-# UPDATE CREDIT TRANSACTION - FIX COST AND PROFIT
+# ✅ CREDIT PROFIT API ROUTES
+# ============================================================
+
+@admin_bp.route('/admin/api/credit/profit/<customer_id>', methods=['GET'])
+@admin_required
+def api_credit_profit_details(customer_id):
+    """Get profit details for a specific customer"""
+    try:
+        from utils.credit import get_customer_profit_summary, get_customer_transactions
+        
+        summary = get_customer_profit_summary(customer_id)
+        transactions = get_customer_transactions(customer_id)
+        
+        if summary.get('success'):
+            return jsonify({
+                'success': True,
+                'summary': summary,
+                'transactions': transactions[:20]
+            })
+        else:
+            return jsonify({'success': False, 'message': summary.get('message', 'Customer not found')}), 404
+            
+    except Exception as e:
+        print(f"❌ Profit details error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/credit/profit/summary', methods=['GET'])
+@admin_required
+def api_credit_profit_summary():
+    """Get overall credit profit summary"""
+    try:
+        from utils.credit import get_all_credit_profit_summary
+        
+        summary = get_all_credit_profit_summary()
+        return jsonify({'success': True, 'summary': summary})
+        
+    except Exception as e:
+        print(f"❌ Profit summary error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ UPDATE CREDIT TRANSACTION
 # ============================================================
 
 @admin_bp.route('/admin/api/credit/transaction/<transaction_id>', methods=['PUT', 'PATCH'])
@@ -1267,51 +1482,69 @@ def api_update_credit_transaction(transaction_id):
 
 
 # ============================================================
-# PROFITABILITY API - COMBINES ALL PAID SALES
+# ✅ SYNC OFFLINE CREDIT ORDERS
 # ============================================================
 
-@admin_bp.route('/admin/api/profitability/summary', methods=['GET'])
+@admin_bp.route('/admin/api/credit/sync-offline', methods=['GET', 'POST'])
 @admin_required
-def api_profitability_summary():
-    """Get combined profitability from PAID sales only"""
+def api_sync_credit_offline():
+    """Sync offline credit orders and payments"""
     try:
-        from utils.profitability import get_profitability_summary, get_monthly_profitability
+        from utils.credit import sync_credit_orders_offline
+        from utils.storage import load_json_data, save_json_data
         
-        summary = get_profitability_summary()
-        monthly = get_monthly_profitability()
+        print("🔄 Syncing offline credit orders...")
+        
+        order_result = sync_credit_orders_offline()
+        
+        json_data = load_json_data()
+        payment_queue = json_data.get('credit_payment_queue', [])
+        
+        synced_payments = 0
+        failed_payments = 0
+        
+        if payment_queue:
+            from utils.credit import record_credit_payment
+            
+            for payment in payment_queue:
+                try:
+                    result = record_credit_payment(
+                        customer_id=payment.get('customer_id'),
+                        amount=float(payment.get('amount')),
+                        staff_name=payment.get('staff_name', 'System'),
+                        notes=payment.get('notes', 'Offline payment')
+                    )
+                    if result.get('success'):
+                        synced_payments += 1
+                        print(f"✅ Synced payment for: {payment.get('customer_id')}")
+                    else:
+                        failed_payments += 1
+                        print(f"⚠️ Failed to sync payment for: {payment.get('customer_id')}")
+                except Exception as e:
+                    failed_payments += 1
+                    print(f"❌ Error syncing payment: {e}")
+            
+            json_data['credit_payment_queue'] = [p for p in payment_queue if p.get('payment_id') not in synced_payments]
+            save_json_data(json_data)
         
         return jsonify({
             'success': True,
-            'summary': summary,
-            'monthly': monthly
+            'orders_synced': order_result.get('synced', 0),
+            'orders_failed': order_result.get('failed', 0),
+            'payments_synced': synced_payments,
+            'payments_failed': failed_payments,
+            'message': f"Orders: {order_result.get('synced', 0)} synced, {order_result.get('failed', 0)} failed. Payments: {synced_payments} synced, {failed_payments} failed."
         })
         
     except Exception as e:
-        print(f"❌ Profitability API error: {e}")
+        print(f"❌ Sync error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================
-# CLEAR CACHE
-# ============================================================
-
-@admin_bp.route('/admin/api/clear-cache', methods=['GET'])
-@admin_required
-def clear_cache():
-    """Force clear all data caches"""
-    try:
-        import utils.data
-        utils.data.orders_cache = []
-        utils.data.products_cache = []
-        return jsonify({'success': True, 'message': 'Cache cleared successfully'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# SUPPLIER MANAGEMENT ROUTES
+# ✅ SUPPLIER MANAGEMENT ROUTES
 # ============================================================
 
 @admin_bp.route('/admin/suppliers')
@@ -1499,7 +1732,51 @@ def api_get_supplier_summary():
 
 
 # ============================================================
-# POS ROUTE
+# ✅ PROFITABILITY API
+# ============================================================
+
+@admin_bp.route('/admin/api/profitability/summary', methods=['GET'])
+@admin_required
+def api_profitability_summary():
+    """Get combined profitability from PAID sales only"""
+    try:
+        from utils.profitability import get_profitability_summary, get_monthly_profitability
+        
+        summary = get_profitability_summary()
+        monthly = get_monthly_profitability()
+        
+        return jsonify({
+            'success': True,
+            'summary': summary,
+            'monthly': monthly
+        })
+        
+    except Exception as e:
+        print(f"❌ Profitability API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ CLEAR CACHE
+# ============================================================
+
+@admin_bp.route('/admin/api/clear-cache', methods=['GET'])
+@admin_required
+def clear_cache():
+    """Force clear all data caches"""
+    try:
+        import utils.data
+        utils.data.orders_cache = []
+        utils.data.products_cache = []
+        return jsonify({'success': True, 'message': 'Cache cleared successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ POS ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos')
@@ -1555,7 +1832,7 @@ def admin_pos():
 
 
 # ============================================================
-# POS ORDER ROUTE - WITH COST PRICE
+# ✅ POS ORDER ROUTE
 # ============================================================
 
 @admin_bp.route('/admin/pos/place-order', methods=['POST'])
@@ -1758,230 +2035,7 @@ def admin_pos_place_order():
 
 
 # ============================================================
-# SYNC QUEUED ORDERS
-# ============================================================
-
-@admin_bp.route('/admin/api/sync-queue', methods=['POST'])
-def api_sync_queue():
-    try:
-        data = request.get_json()
-        if not data or not data.get('orders'):
-            return jsonify({
-                'success': True,
-                'synced': 0,
-                'failed': 0,
-                'message': 'No orders provided to sync'
-            })
-
-        orders_to_sync = data.get('orders', [])
-        synced = 0
-        failed = 0
-
-        for order in orders_to_sync:
-            try:
-                order_id = order.get('order_id', f'OFF-{uuid.uuid4().hex[:8].upper()}')
-                
-                check_response = requests.get(
-                    f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
-                    headers=Config.SUPABASE_HEADERS,
-                    timeout=10
-                )
-
-                if check_response.status_code == 200 and check_response.json():
-                    synced += 1
-                    continue
-
-                order_data = {
-                    'order_id': order_id,
-                    'items': order.get('items', []),
-                    'subtotal': float(order.get('subtotal', 0)),
-                    'shipping': float(order.get('shipping', 0)),
-                    'total': float(order.get('total', 0)),
-                    'status': order.get('status', 'confirmed'),
-                    'source': order.get('source', 'pos'),
-                    'created_at': order.get('created_at', datetime.utcnow().isoformat()),
-                    'customer_name': order.get('customer_name', 'Walk-in Customer'),
-                    'customer_email': order.get('customer_email', 'walkin@example.com'),
-                    'customer_phone': order.get('customer_phone', 'N/A'),
-                    'customer_address': order.get('customer_address', 'In-store purchase'),
-                    'customer': order.get('customer', {
-                        'name': order.get('customer_name', 'Walk-in Customer'),
-                        'email': order.get('customer_email', 'walkin@example.com'),
-                        'phone': order.get('customer_phone', 'N/A'),
-                        'address': order.get('customer_address', 'In-store purchase')
-                    }),
-                    'user_id': order.get('user_id', 'unknown'),
-                    'user_name': order.get('user_name', 'Unknown User'),
-                    'user_role': order.get('user_role', 'user'),
-                    'staff_name': order.get('staff_name', order.get('user_name', 'Unknown User'))
-                }
-
-                if not isinstance(order_data['items'], list):
-                    order_data['items'] = []
-
-                for item in order_data['items']:
-                    if not isinstance(item, dict):
-                        continue
-                    if 'product_id' not in item:
-                        item['product_id'] = str(uuid.uuid4())
-                    if 'quantity' not in item:
-                        item['quantity'] = 1
-                    if 'price' not in item:
-                        item['price'] = 0
-                    if 'name' not in item:
-                        item['name'] = 'Unknown Product'
-                    if 'total' not in item:
-                        item['total'] = float(item.get('price', 0)) * float(item.get('quantity', 1))
-
-                response = requests.post(
-                    f"{Config.SUPABASE_URL}/rest/v1/orders",
-                    headers=Config.SUPABASE_HEADERS,
-                    json=order_data,
-                    timeout=15
-                )
-
-                if response.status_code in [200, 201]:
-                    synced += 1
-                else:
-                    failed += 1
-
-            except Exception as e:
-                failed += 1
-                print(f"❌ Sync error for {order.get('order_id', 'unknown')}: {e}")
-
-        if synced > 0:
-            import utils.data
-            utils.data.orders_cache = []
-
-        return jsonify({
-            'success': True,
-            'synced': synced,
-            'failed': failed,
-            'message': f"Synced {synced} items, {failed} failed"
-        })
-
-    except Exception as e:
-        print(f"❌ Sync queue error: {e}")
-        traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# PROCESS RETURN
-# ============================================================
-
-@admin_bp.route('/admin/api/process-return', methods=['POST'])
-def api_process_return():
-    if not session.get('admin_logged_in'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
-    try:
-        data = request.get_json()
-
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-
-        items_to_return = data.get('items', [])
-        refund_total = data.get('refund_total', 0)
-        customer_name = data.get('customer_name', 'Customer')
-        reason = data.get('reason', 'Customer return')
-
-        if not items_to_return:
-            return jsonify({'success': False, 'message': 'No items to return'}), 400
-
-        return_items = []
-        for item in items_to_return:
-            item_price = float(item.get('price', 0))
-            item_qty = int(item.get('quantity', 1))
-            return_items.append({
-                'product_id': str(item.get('id', '')),
-                'name': item.get('name', 'Product'),
-                'price': item_price,
-                'quantity': item_qty,
-                'total': item_price * item_qty,
-                'type': 'return'
-            })
-
-        return_order_id = data.get('return_order_id', f'RET-{uuid.uuid4().hex[:8].upper()}')
-
-        return_order_data = {
-            'order_id': return_order_id,
-            'items': return_items,
-            'subtotal': refund_total,
-            'shipping': 0,
-            'total': -refund_total,
-            'status': 'returned',
-            'source': 'pos',
-            'created_at': datetime.utcnow().isoformat(),
-            'customer': {
-                'name': customer_name,
-                'email': 'return@example.com',
-                'phone': 'N/A',
-                'address': 'Return'
-            },
-            'customer_name': customer_name,
-            'customer_email': 'return@example.com',
-            'customer_phone': 'N/A',
-            'customer_address': 'Return',
-            'return_reason': reason,
-            'return_amount': refund_total,
-            'is_return': True
-        }
-
-        # Restock products
-        for item in items_to_return:
-            product_id = str(item.get('id', ''))
-            quantity = int(item.get('quantity', 1))
-            if product_id:
-                try:
-                    products = load_products()
-                    for p in products:
-                        if str(p.get('id')) == product_id:
-                            current_stock = int(p.get('stock', 0))
-                            new_stock = current_stock + quantity
-                            requests.patch(
-                                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
-                                headers=Config.SUPABASE_HEADERS,
-                                json={'stock': new_stock},
-                                timeout=10
-                            )
-                            break
-                except Exception as e:
-                    print(f"⚠️ Error restocking product {product_id}: {e}")
-
-        response = requests.post(
-            f"{Config.SUPABASE_URL}/rest/v1/orders",
-            headers=Config.SUPABASE_HEADERS,
-            json=return_order_data,
-            timeout=10,
-        )
-
-        if response.status_code in [200, 201]:
-            import utils.data
-            utils.data.orders_cache = []
-            utils.data.products_cache = []
-
-            return jsonify({
-                'success': True,
-                'order_id': return_order_id,
-                'message': f'Return processed! Refund: KSh {refund_total:,.2f}',
-                'refund_total': refund_total,
-                'revenue_deducted': refund_total
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': f'Failed to process return: {response.status_code}'
-            }), 500
-
-    except Exception as e:
-        print(f'❌ Return error: {e}')
-        traceback.print_exc()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-# ============================================================
-# ANALYTICS API - MERGED WITH CREDIT
+# ✅ ADMIN API - ANALYTICS
 # ============================================================
 
 @admin_bp.route('/admin/api/analytics')
@@ -1992,11 +2046,11 @@ def admin_api_analytics():
     orders = load_orders()
     analytics = calculate_analytics_from_orders(orders)
     
+    # Add credit data
     try:
         from utils.credit import get_all_credit_transactions, get_all_credit_customers
         
         credit_transactions = get_all_credit_transactions()
-        credit_customers = get_all_credit_customers()
         
         credit_sales = 0
         credit_cost = 0
@@ -2052,7 +2106,6 @@ def admin_api_revenue():
         else:
             last_day_last_month = datetime(today.year, today.month, 1).date() - timedelta(days=1)
 
-        # ✅ FIX: Filter active orders
         ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
         active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
 
@@ -2145,7 +2198,7 @@ def admin_api_revenue():
 
 
 # ============================================================
-# CALCULATE ANALYTICS
+# ✅ CALCULATE ANALYTICS HELPER
 # ============================================================
 
 def calculate_analytics_from_orders(orders):
@@ -2176,7 +2229,6 @@ def calculate_analytics_from_orders(orders):
     category_sales = {}
     monthly_data = {}
 
-    # ✅ FIX: Filter active orders
     ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
     active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
 
@@ -2330,7 +2382,7 @@ def calculate_analytics_from_orders(orders):
 
 
 # ============================================================
-# AJAX PAGINATION API ENDPOINTS
+# ✅ AJAX PAGINATION API ENDPOINTS
 # ============================================================
 
 @admin_bp.route('/admin/api/products', methods=['GET'])
@@ -2606,7 +2658,203 @@ def api_delete_product(product_id):
 
 
 # ============================================================
-# API ROUTES - LEGACY SUPPORT
+# ✅ PRODUCT MANAGEMENT - LEGACY
+# ============================================================
+
+@admin_bp.route('/admin/products', methods=['POST'])
+def admin_products():
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    try:
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = {
+                'id': request.form.get('id', '').strip(),
+                'name': request.form.get('name', '').strip(),
+                'price': float(request.form.get('price', 0) or 0),
+                'cost_price': float(request.form.get('cost_price', 0) or 0),
+                'image': request.form.get('image', '').strip(),
+                'category': request.form.get('category', '').strip(),
+                'description': request.form.get('description', '').strip(),
+                'rating': float(request.form.get('rating', 4.0) or 4.0),
+                'reviews': int(request.form.get('reviews', 0) or 0),
+                'badge': request.form.get('badge', '').strip(),
+                'stock': int(request.form.get('stock', 0) or 0),
+                'original_price': float(request.form.get('original_price', 0) or 0) or None,
+                'specs': [s.strip() for s in request.form.get('specs', '').split(',') if s.strip()],
+                'barcode': request.form.get('barcode', '').strip() or ''
+            }
+
+        product_id = data.get('id', '').strip()
+        if not product_id:
+            return jsonify({'success': False, 'message': 'Product ID is required'}), 400
+
+        response = requests.post(
+            f"{Config.SUPABASE_URL}/rest/v1/products",
+            headers=Config.SUPABASE_HEADERS,
+            json=data,
+            timeout=10,
+        )
+
+        if response.status_code in [200, 201]:
+            import utils.data
+            utils.data.products_cache = []
+            return jsonify({
+                'success': True,
+                'message': 'Product saved successfully!',
+                'product': data
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Error saving product: {response.status_code}'
+            }), 500
+
+    except Exception as exc:
+        print(f'❌ Product save error: {exc}')
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(exc)}), 500
+
+
+@admin_bp.route('/admin/products/<product_id>', methods=['DELETE'])
+def admin_delete_product(product_id):
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    try:
+        response = requests.delete(
+            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+            headers=Config.SUPABASE_HEADERS,
+            timeout=5,
+        )
+        if response.status_code in [200, 204]:
+            import utils.data
+            utils.data.products_cache = []
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Failed to delete'})
+    except Exception as exc:
+        return jsonify({'success': False, 'message': str(exc)})
+
+
+@admin_bp.route('/admin/upload-image', methods=['POST'])
+def upload_image():
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'message': 'No file uploaded'}), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No file selected'}), 400
+    if file and allowed_file(file.filename):
+        filename = f"{uuid.uuid4().hex[:8]}_{secure_filename(file.filename)}"
+        os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        image_url = f"/static/uploads/{filename}"
+        return jsonify({'success': True, 'url': image_url, 'message': 'Image uploaded successfully!'})
+    return jsonify({'success': False, 'message': 'Invalid file type'}), 400
+
+
+@admin_bp.route('/admin/orders/<order_id>/status', methods=['POST'])
+def admin_update_order_status(order_id):
+    if not session.get('admin_logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    try:
+        new_status = request.json.get('status')
+        if not new_status:
+            return jsonify({'success': False, 'message': 'Status required'}), 400
+        response = requests.patch(
+            f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
+            headers=Config.SUPABASE_HEADERS,
+            json={'status': new_status},
+            timeout=5,
+        )
+        if response.status_code in [200, 204]:
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Failed to update status'})
+    except Exception as exc:
+        return jsonify({'success': False, 'message': str(exc)}), 500
+
+
+# ============================================================
+# ✅ PWA ROUTES - PUBLIC
+# ============================================================
+
+@admin_bp.route('/offline.html')
+def offline_page():
+    try:
+        return render_template('offline.html')
+    except Exception as e:
+        print(f"❌ Error serving offline.html: {e}")
+        return "Offline page not found", 404
+
+
+@admin_bp.route('/sw.js')
+def service_worker():
+    try:
+        return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    except Exception as e:
+        print(f"❌ Error serving sw.js: {e}")
+        return "Service Worker not found", 404
+
+
+@admin_bp.route('/manifest.json')
+def manifest():
+    try:
+        return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+    except Exception as e:
+        print(f"❌ Error serving manifest.json: {e}")
+        return "Manifest not found", 404
+
+
+@admin_bp.route('/favicon.ico')
+def favicon():
+    try:
+        return send_from_directory('static/icons', 'favicon.ico', mimetype='image/x-icon')
+    except Exception as e:
+        print(f"⚠️ Favicon not found: {e}")
+        return "", 204
+
+
+@admin_bp.route('/static/<path:filename>')
+def static_files(filename):
+    try:
+        return send_from_directory('static', filename)
+    except Exception as e:
+        print(f"❌ Error serving static file: {e}")
+        return "File not found", 404
+
+
+# ============================================================
+# ✅ OFFLINE STATUS API
+# ============================================================
+
+@admin_bp.route('/api/offline-status', methods=['GET'])
+def api_offline_status():
+    """Check offline status - returns count of offline orders/payments"""
+    try:
+        from utils.storage import load_json_data
+        json_data = load_json_data()
+        
+        credit_queue = json_data.get('credit_order_queue', [])
+        payment_queue = json_data.get('credit_payment_queue', [])
+        order_queue = json_data.get('order_queue', [])
+        
+        return jsonify({
+            'success': True,
+            'credit_order_queue': credit_queue,
+            'credit_payment_queue': payment_queue,
+            'order_queue': order_queue,
+            'total_offline': len(credit_queue) + len(payment_queue) + len(order_queue)
+        })
+    except Exception as e:
+        print(f"❌ Offline status error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ API ROUTES - LEGACY SUPPORT
 # ============================================================
 
 @admin_bp.route('/api/products/<product_id>', methods=['GET'])
@@ -2770,7 +3018,6 @@ def api_sales_stats():
         today_return_amount = 0
         all_customers = set()
 
-        # ✅ FIX: Filter active orders
         ACTIVE_STATUSES = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'completed']
         active_orders = [o for o in orders if o.get('status', '') in ACTIVE_STATUSES]
 
@@ -2845,301 +3092,226 @@ def api_sales_stats():
 
 
 # ============================================================
-# PRODUCT MANAGEMENT - LEGACY
+# ✅ SYNC QUEUED ORDERS
 # ============================================================
 
-@admin_bp.route('/admin/products', methods=['POST'])
-def admin_products():
+@admin_bp.route('/admin/api/sync-queue', methods=['POST'])
+def api_sync_queue():
+    try:
+        data = request.get_json()
+        if not data or not data.get('orders'):
+            return jsonify({
+                'success': True,
+                'synced': 0,
+                'failed': 0,
+                'message': 'No orders provided to sync'
+            })
+
+        orders_to_sync = data.get('orders', [])
+        synced = 0
+        failed = 0
+
+        for order in orders_to_sync:
+            try:
+                order_id = order.get('order_id', f'OFF-{uuid.uuid4().hex[:8].upper()}')
+                
+                check_response = requests.get(
+                    f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
+                    headers=Config.SUPABASE_HEADERS,
+                    timeout=10
+                )
+
+                if check_response.status_code == 200 and check_response.json():
+                    synced += 1
+                    continue
+
+                order_data = {
+                    'order_id': order_id,
+                    'items': order.get('items', []),
+                    'subtotal': float(order.get('subtotal', 0)),
+                    'shipping': float(order.get('shipping', 0)),
+                    'total': float(order.get('total', 0)),
+                    'status': order.get('status', 'confirmed'),
+                    'source': order.get('source', 'pos'),
+                    'created_at': order.get('created_at', datetime.utcnow().isoformat()),
+                    'customer_name': order.get('customer_name', 'Walk-in Customer'),
+                    'customer_email': order.get('customer_email', 'walkin@example.com'),
+                    'customer_phone': order.get('customer_phone', 'N/A'),
+                    'customer_address': order.get('customer_address', 'In-store purchase'),
+                    'customer': order.get('customer', {
+                        'name': order.get('customer_name', 'Walk-in Customer'),
+                        'email': order.get('customer_email', 'walkin@example.com'),
+                        'phone': order.get('customer_phone', 'N/A'),
+                        'address': order.get('customer_address', 'In-store purchase')
+                    }),
+                    'user_id': order.get('user_id', 'unknown'),
+                    'user_name': order.get('user_name', 'Unknown User'),
+                    'user_role': order.get('user_role', 'user'),
+                    'staff_name': order.get('staff_name', order.get('user_name', 'Unknown User'))
+                }
+
+                if not isinstance(order_data['items'], list):
+                    order_data['items'] = []
+
+                for item in order_data['items']:
+                    if not isinstance(item, dict):
+                        continue
+                    if 'product_id' not in item:
+                        item['product_id'] = str(uuid.uuid4())
+                    if 'quantity' not in item:
+                        item['quantity'] = 1
+                    if 'price' not in item:
+                        item['price'] = 0
+                    if 'name' not in item:
+                        item['name'] = 'Unknown Product'
+                    if 'total' not in item:
+                        item['total'] = float(item.get('price', 0)) * float(item.get('quantity', 1))
+
+                response = requests.post(
+                    f"{Config.SUPABASE_URL}/rest/v1/orders",
+                    headers=Config.SUPABASE_HEADERS,
+                    json=order_data,
+                    timeout=15
+                )
+
+                if response.status_code in [200, 201]:
+                    synced += 1
+                else:
+                    failed += 1
+
+            except Exception as e:
+                failed += 1
+                print(f"❌ Sync error for {order.get('order_id', 'unknown')}: {e}")
+
+        if synced > 0:
+            import utils.data
+            utils.data.orders_cache = []
+
+        return jsonify({
+            'success': True,
+            'synced': synced,
+            'failed': failed,
+            'message': f"Synced {synced} items, {failed} failed"
+        })
+
+    except Exception as e:
+        print(f"❌ Sync queue error: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ PROCESS RETURN
+# ============================================================
+
+@admin_bp.route('/admin/api/process-return', methods=['POST'])
+def api_process_return():
     if not session.get('admin_logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     try:
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = {
-                'id': request.form.get('id', '').strip(),
-                'name': request.form.get('name', '').strip(),
-                'price': float(request.form.get('price', 0) or 0),
-                'cost_price': float(request.form.get('cost_price', 0) or 0),
-                'image': request.form.get('image', '').strip(),
-                'category': request.form.get('category', '').strip(),
-                'description': request.form.get('description', '').strip(),
-                'rating': float(request.form.get('rating', 4.0) or 4.0),
-                'reviews': int(request.form.get('reviews', 0) or 0),
-                'badge': request.form.get('badge', '').strip(),
-                'stock': int(request.form.get('stock', 0) or 0),
-                'original_price': float(request.form.get('original_price', 0) or 0) or None,
-                'specs': [s.strip() for s in request.form.get('specs', '').split(',') if s.strip()],
-                'barcode': request.form.get('barcode', '').strip() or ''
-            }
+        data = request.get_json()
 
-        product_id = data.get('id', '').strip()
-        if not product_id:
-            return jsonify({'success': False, 'message': 'Product ID is required'}), 400
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        items_to_return = data.get('items', [])
+        refund_total = data.get('refund_total', 0)
+        customer_name = data.get('customer_name', 'Customer')
+        reason = data.get('reason', 'Customer return')
+
+        if not items_to_return:
+            return jsonify({'success': False, 'message': 'No items to return'}), 400
+
+        return_items = []
+        for item in items_to_return:
+            item_price = float(item.get('price', 0))
+            item_qty = int(item.get('quantity', 1))
+            return_items.append({
+                'product_id': str(item.get('id', '')),
+                'name': item.get('name', 'Product'),
+                'price': item_price,
+                'quantity': item_qty,
+                'total': item_price * item_qty,
+                'type': 'return'
+            })
+
+        return_order_id = data.get('return_order_id', f'RET-{uuid.uuid4().hex[:8].upper()}')
+
+        return_order_data = {
+            'order_id': return_order_id,
+            'items': return_items,
+            'subtotal': refund_total,
+            'shipping': 0,
+            'total': -refund_total,
+            'status': 'returned',
+            'source': 'pos',
+            'created_at': datetime.utcnow().isoformat(),
+            'customer': {
+                'name': customer_name,
+                'email': 'return@example.com',
+                'phone': 'N/A',
+                'address': 'Return'
+            },
+            'customer_name': customer_name,
+            'customer_email': 'return@example.com',
+            'customer_phone': 'N/A',
+            'customer_address': 'Return',
+            'return_reason': reason,
+            'return_amount': refund_total,
+            'is_return': True
+        }
+
+        # Restock products
+        for item in items_to_return:
+            product_id = str(item.get('id', ''))
+            quantity = int(item.get('quantity', 1))
+            if product_id:
+                try:
+                    products = load_products()
+                    for p in products:
+                        if str(p.get('id')) == product_id:
+                            current_stock = int(p.get('stock', 0))
+                            new_stock = current_stock + quantity
+                            requests.patch(
+                                f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
+                                headers=Config.SUPABASE_HEADERS,
+                                json={'stock': new_stock},
+                                timeout=10
+                            )
+                            break
+                except Exception as e:
+                    print(f"⚠️ Error restocking product {product_id}: {e}")
 
         response = requests.post(
-            f"{Config.SUPABASE_URL}/rest/v1/products",
+            f"{Config.SUPABASE_URL}/rest/v1/orders",
             headers=Config.SUPABASE_HEADERS,
-            json=data,
+            json=return_order_data,
             timeout=10,
         )
 
         if response.status_code in [200, 201]:
             import utils.data
+            utils.data.orders_cache = []
             utils.data.products_cache = []
+
             return jsonify({
                 'success': True,
-                'message': 'Product saved successfully!',
-                'product': data
+                'order_id': return_order_id,
+                'message': f'Return processed! Refund: KSh {refund_total:,.2f}',
+                'refund_total': refund_total,
+                'revenue_deducted': refund_total
             })
         else:
             return jsonify({
                 'success': False,
-                'message': f'Error saving product: {response.status_code}'
+                'message': f'Failed to process return: {response.status_code}'
             }), 500
 
-    except Exception as exc:
-        print(f'❌ Product save error: {exc}')
+    except Exception as e:
+        print(f'❌ Return error: {e}')
         traceback.print_exc()
-        return jsonify({'success': False, 'message': str(exc)}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
-@admin_bp.route('/admin/products/<product_id>', methods=['DELETE'])
-def admin_delete_product(product_id):
-    if not session.get('admin_logged_in'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-    try:
-        response = requests.delete(
-            f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}",
-            headers=Config.SUPABASE_HEADERS,
-            timeout=5,
-        )
-        if response.status_code in [200, 204]:
-            import utils.data
-            utils.data.products_cache = []
-            return jsonify({'success': True})
-        return jsonify({'success': False, 'message': 'Failed to delete'})
-    except Exception as exc:
-        return jsonify({'success': False, 'message': str(exc)})
-
-
-@admin_bp.route('/admin/upload-image', methods=['POST'])
-def upload_image():
-    if not session.get('admin_logged_in'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-    if 'image' not in request.files:
-        return jsonify({'success': False, 'message': 'No file uploaded'}), 400
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No file selected'}), 400
-    if file and allowed_file(file.filename):
-        filename = f"{uuid.uuid4().hex[:8]}_{secure_filename(file.filename)}"
-        os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-        file.save(filepath)
-        image_url = f"/static/uploads/{filename}"
-        return jsonify({'success': True, 'url': image_url, 'message': 'Image uploaded successfully!'})
-    return jsonify({'success': False, 'message': 'Invalid file type'}), 400
-
-
-@admin_bp.route('/admin/orders/<order_id>/status', methods=['POST'])
-def admin_update_order_status(order_id):
-    if not session.get('admin_logged_in'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-    try:
-        new_status = request.json.get('status')
-        if not new_status:
-            return jsonify({'success': False, 'message': 'Status required'}), 400
-        response = requests.patch(
-            f"{Config.SUPABASE_URL}/rest/v1/orders?order_id=eq.{order_id}",
-            headers=Config.SUPABASE_HEADERS,
-            json={'status': new_status},
-            timeout=5,
-        )
-        if response.status_code in [200, 204]:
-            return jsonify({'success': True})
-        return jsonify({'success': False, 'message': 'Failed to update status'})
-    except Exception as exc:
-        return jsonify({'success': False, 'message': str(exc)}), 500
-
-
-# ============================================================
-# PWA ROUTES - PUBLIC
-# ============================================================
-
-@admin_bp.route('/offline.html')
-def offline_page():
-    try:
-        return render_template('offline.html')
-    except Exception as e:
-        print(f"❌ Error serving offline.html: {e}")
-        return "Offline page not found", 404
-
-
-@admin_bp.route('/sw.js')
-def service_worker():
-    try:
-        return send_from_directory('static', 'sw.js', mimetype='application/javascript')
-    except Exception as e:
-        print(f"❌ Error serving sw.js: {e}")
-        return "Service Worker not found", 404
-
-
-@admin_bp.route('/manifest.json')
-def manifest():
-    try:
-        return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
-    except Exception as e:
-        print(f"❌ Error serving manifest.json: {e}")
-        return "Manifest not found", 404
-
-
-@admin_bp.route('/favicon.ico')
-def favicon():
-    try:
-        return send_from_directory('static/icons', 'favicon.ico', mimetype='image/x-icon')
-    except Exception as e:
-        print(f"⚠️ Favicon not found: {e}")
-        return "", 204
-
-
-@admin_bp.route('/static/<path:filename>')
-def static_files(filename):
-    try:
-        return send_from_directory('static', filename)
-    except Exception as e:
-        print(f"❌ Error serving static file: {e}")
-        return "File not found", 404
-
-
-# ============================================================
-# OFFLINE STATUS API
-# ============================================================
-
-@admin_bp.route('/api/offline-status', methods=['GET'])
-def api_offline_status():
-    """Check offline status - returns count of offline orders/payments"""
-    try:
-        from utils.storage import load_json_data
-        json_data = load_json_data()
-        
-        credit_queue = json_data.get('credit_order_queue', [])
-        payment_queue = json_data.get('credit_payment_queue', [])
-        order_queue = json_data.get('order_queue', [])
-        
-        return jsonify({
-            'success': True,
-            'credit_order_queue': credit_queue,
-            'credit_payment_queue': payment_queue,
-            'order_queue': order_queue,
-            'total_offline': len(credit_queue) + len(payment_queue) + len(order_queue)
-        })
-    except Exception as e:
-        print(f"❌ Offline status error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# SYNC OFFLINE CREDIT ORDERS
-# ============================================================
-
-@admin_bp.route('/admin/api/credit/sync-offline', methods=['GET', 'POST'])
-@admin_required
-def api_sync_credit_offline():
-    """Sync offline credit orders and payments"""
-    try:
-        from utils.credit import sync_credit_orders_offline
-        from utils.storage import load_json_data, save_json_data
-        
-        print("🔄 Syncing offline credit orders...")
-        
-        order_result = sync_credit_orders_offline()
-        
-        json_data = load_json_data()
-        payment_queue = json_data.get('credit_payment_queue', [])
-        
-        synced_payments = 0
-        failed_payments = 0
-        
-        if payment_queue:
-            from utils.credit import record_credit_payment
-            
-            for payment in payment_queue:
-                try:
-                    result = record_credit_payment(
-                        customer_id=payment.get('customer_id'),
-                        amount=float(payment.get('amount')),
-                        staff_name=payment.get('staff_name', 'System'),
-                        notes=payment.get('notes', 'Offline payment')
-                    )
-                    if result.get('success'):
-                        synced_payments += 1
-                        print(f"✅ Synced payment for: {payment.get('customer_id')}")
-                    else:
-                        failed_payments += 1
-                        print(f"⚠️ Failed to sync payment for: {payment.get('customer_id')}")
-                except Exception as e:
-                    failed_payments += 1
-                    print(f"❌ Error syncing payment: {e}")
-            
-            json_data['credit_payment_queue'] = [p for p in payment_queue if p.get('payment_id') not in synced_payments]
-            save_json_data(json_data)
-        
-        return jsonify({
-            'success': True,
-            'orders_synced': order_result.get('synced', 0),
-            'orders_failed': order_result.get('failed', 0),
-            'payments_synced': synced_payments,
-            'payments_failed': failed_payments,
-            'message': f"Orders: {order_result.get('synced', 0)} synced, {order_result.get('failed', 0)} failed. Payments: {synced_payments} synced, {failed_payments} failed."
-        })
-        
-    except Exception as e:
-        print(f"❌ Sync error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ============================================================
-# CREDIT PROFIT API ROUTES
-# ============================================================
-
-@admin_bp.route('/admin/api/credit/profit/<customer_id>', methods=['GET'])
-@admin_required
-def api_credit_profit_details(customer_id):
-    """Get profit details for a specific customer"""
-    try:
-        from utils.credit import get_customer_profit_summary, get_customer_transactions
-        
-        summary = get_customer_profit_summary(customer_id)
-        transactions = get_customer_transactions(customer_id)
-        
-        if summary.get('success'):
-            return jsonify({
-                'success': True,
-                'summary': summary,
-                'transactions': transactions[:20]
-            })
-        else:
-            return jsonify({'success': False, 'message': summary.get('message', 'Customer not found')}), 404
-            
-    except Exception as e:
-        print(f"❌ Profit details error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@admin_bp.route('/admin/api/credit/profit/summary', methods=['GET'])
-@admin_required
-def api_credit_profit_summary():
-    """Get overall credit profit summary"""
-    try:
-        from utils.credit import get_all_credit_profit_summary
-        
-        summary = get_all_credit_profit_summary()
-        return jsonify({'success': True, 'summary': summary})
-        
-    except Exception as e:
-        print(f"❌ Profit summary error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+print("✅ Admin routes loaded successfully!")
