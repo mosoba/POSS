@@ -2708,181 +2708,217 @@
 
     // ============================================================
     // NORMAL ORDER PROCESSING
-    // ============================================================
     function processNormalOrder() {
-        const btn = document.getElementById('posPlaceOrderBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Processing...';
-        btn.disabled = true;
+    const btn = document.getElementById('posPlaceOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Processing...';
+    btn.disabled = true;
 
-        const customerName = document.getElementById('posCustomer').value;
-        const customerEmail = document.getElementById('posCustomerEmail').value;
-        const customerPhone = document.getElementById('posCustomerPhone').value;
-        const notes = document.getElementById('orderNotes')?.value || '';
+    const customerName = document.getElementById('posCustomer').value;
+    const customerEmail = document.getElementById('posCustomerEmail').value;
+    const customerPhone = document.getElementById('posCustomerPhone').value;
+    const notes = document.getElementById('orderNotes')?.value || '';
 
-        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-        const total = Math.max(0, subtotal - discountAmount + tipAmount);
+    const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+    const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+    const total = Math.max(0, subtotal - discountAmount + tipAmount);
 
-        const orderData = {
-            items: posCart.map(item => ({
-                product_id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                total: item.price * item.quantity
-            })),
-            subtotal: subtotal,
-            shipping: 0,
-            total: total,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone,
-            customer_address: 'In-store purchase',
-            notes: notes,
-            payment_method: paymentMethod,
-            tip_amount: tipAmount || 0,
-            discount: discountValue,
-            discount_type: discountType,
-            created_at: new Date().toISOString()
-        };
+    const orderData = {
+        items: posCart.map(item => ({
+            product_id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.price * item.quantity
+        })),
+        subtotal: subtotal,
+        shipping: 0,
+        total: total,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        customer_address: 'In-store purchase',
+        notes: notes,
+        payment_method: paymentMethod,
+        tip_amount: tipAmount || 0,
+        discount: discountValue,
+        discount_type: discountType,
+        created_at: new Date().toISOString()
+    };
 
-        if (!navigator.onLine) {
-            console.log('📡 Offline detected, saving order locally...');
-            saveOrderOffline(orderData, btn, originalText);
-            return;
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        fetch('/admin/pos/place-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData),
-            signal: controller.signal
-        })
-        .then(response => {
-            clearTimeout(timeoutId);
-            return response.json();
-        })
-        .then(data => {
-            clearTimeout(timeoutId);
-            if (data.success) {
-                posCart.forEach(item => {
-                    const product = allProducts.find(p => String(p.id) === String(item.id));
-                    if (product) {
-                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                    }
-                });
-
-                const orderToSave = {
-                    order_id: data.order_id || 'ORD-' + Date.now(),
-                    items: posCart,
-                    subtotal: subtotal,
-                    shipping: 0,
-                    total: total,
-                    customer_name: customerName,
-                    customer_email: customerEmail,
-                    customer_phone: customerPhone,
-                    payment_method: paymentMethod,
-                    tip_amount: tipAmount || 0,
-                    notes: notes,
-                    created_at: new Date().toISOString(),
-                    synced: true,
-                    synced_at: new Date().toISOString()
-                };
-                saveOrderToIndexedDB(orderToSave).catch(() => {});
-
-                showToast('✅ Order completed!', 'success');
-                showReceipt({
-                    order_id: data.order_id || 'ORD-' + Date.now(),
-                    customer_name: customerName,
-                    subtotal: subtotal,
-                    total: total,
-                    items: posCart,
-                    payment_method: paymentMethod,
-                    created_at: new Date().toISOString(),
-                    tip_amount: tipAmount || 0,
-                    discount: discountValue
-                });
-
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                updatePOSUI();
-                renderProducts();
-                updateQuickSalesCount();
-                loadSalesStats();
-                loadUserStats();
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            } else {
-                console.log('📡 API error, saving offline:', data.message);
-                showToast('📡 Saving order offline...', 'warning');
-                saveOrderOffline(orderData, btn, originalText);
-            }
-        })
-        .catch(err => {
-            clearTimeout(timeoutId);
-            console.log('❌ Network error, saving offline:', err.message);
-            showToast('📡 No connection, saving offline...', 'warning');
-            saveOrderOffline(orderData, btn, originalText);
-        });
+    if (!navigator.onLine) {
+        console.log('📡 Offline detected, saving order locally...');
+        saveOrderOffline(orderData, btn, originalText);
+        return;
     }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    fetch('/admin/pos/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+        signal: controller.signal
+    })
+    .then(response => {
+        clearTimeout(timeoutId);
+        return response.json();
+    })
+    .then(data => {
+        clearTimeout(timeoutId);
+        if (data.success) {
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                }
+            });
+
+            const orderToSave = {
+                order_id: data.order_id || 'ORD-' + Date.now(),
+                items: posCart,
+                subtotal: subtotal,
+                shipping: 0,
+                total: total,
+                customer_name: customerName,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
+                payment_method: paymentMethod,
+                tip_amount: tipAmount || 0,
+                notes: notes,
+                created_at: new Date().toISOString(),
+                synced: true,
+                synced_at: new Date().toISOString()
+            };
+            saveOrderToIndexedDB(orderToSave).catch(() => {});
+
+            showToast('✅ Order completed!', 'success');
+            showReceipt({
+                order_id: data.order_id || 'ORD-' + Date.now(),
+                customer_name: customerName,
+                subtotal: subtotal,
+                total: total,
+                items: posCart,
+                payment_method: paymentMethod,
+                created_at: new Date().toISOString(),
+                tip_amount: tipAmount || 0,
+                discount: discountValue
+            });
+
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            updatePOSUI();
+            renderProducts();
+            updateQuickSalesCount();
+            loadSalesStats();
+            loadUserStats();
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            placePOSOrder._processing = false;
+        } else {
+            console.log('📡 API error, saving offline:', data.message);
+            showToast('📡 Saving order offline...', 'warning');
+            saveOrderOffline(orderData, btn, originalText);
+        }
+    })
+    .catch(err => {
+        clearTimeout(timeoutId);
+        console.log('❌ Network error, saving offline:', err.message);
+        showToast('📡 No connection, saving offline...', 'warning');
+        saveOrderOffline(orderData, btn, originalText);
+    });
+}
 
     // ============================================================
     // SAVE ORDER OFFLINE (Saves to BOTH IndexedDB AND localStorage)
     // ============================================================
     function saveOrderOffline(orderData, btn, originalText) {
-        const orderToSave = {
-            order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-            items: orderData.items,
-            subtotal: orderData.subtotal,
-            shipping: 0,
-            total: orderData.total,
-            customer_name: orderData.customer_name,
-            customer_email: orderData.customer_email,
-            customer_phone: orderData.customer_phone,
-            payment_method: orderData.payment_method || 'cash',
-            tip_amount: orderData.tip_amount || 0,
-            notes: orderData.notes || '',
-            created_at: new Date().toISOString(),
-            synced: false,
-            synced_at: null,
-            status: 'confirmed'
-        };
+    const orderToSave = {
+        order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        shipping: 0,
+        total: orderData.total,
+        customer_name: orderData.customer_name,
+        customer_email: orderData.customer_email,
+        customer_phone: orderData.customer_phone,
+        payment_method: orderData.payment_method || 'cash',
+        tip_amount: orderData.tip_amount || 0,
+        notes: orderData.notes || '',
+        created_at: new Date().toISOString(),
+        synced: false,
+        synced_at: null,
+        status: 'confirmed'
+    };
 
-        posCart.forEach(item => {
-            const product = allProducts.find(p => String(p.id) === String(item.id));
-            if (product) {
-                product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-            }
-        });
+    posCart.forEach(item => {
+        const product = allProducts.find(p => String(p.id) === String(item.id));
+        if (product) {
+            product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+        }
+    });
 
-        const cartItems = [...posCart];
-        const orderTotal = orderData.total;
-        const orderSubtotal = orderData.subtotal;
-        const customer = orderData.customer_name;
-        const payment = orderData.payment_method || 'cash';
-        const tip = orderData.tip_amount || 0;
-        const disc = discountValue;
+    const cartItems = [...posCart];
+    const orderTotal = orderData.total;
+    const orderSubtotal = orderData.subtotal;
+    const customer = orderData.customer_name;
+    const payment = orderData.payment_method || 'cash';
+    const tip = orderData.tip_amount || 0;
+    const disc = discountValue;
 
-        saveOrderToIndexedDB(orderToSave)
-            .then(() => {
-                console.log('✅ Order saved to IndexedDB');
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                    console.log('✅ Order also saved to localStorage');
-                } catch(e) {}
+    saveOrderToIndexedDB(orderToSave)
+        .then(() => {
+            console.log('✅ Order saved to IndexedDB');
+            try {
+                const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                localOrders.push(orderToSave);
+                localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+                console.log('✅ Order also saved to localStorage');
+            } catch(e) {}
 
-                showToast('📡 Order saved offline! Will sync when online.', 'warning');
+            showToast('📡 Order saved offline! Will sync when online.', 'warning');
+
+            showReceipt({
+                order_id: orderToSave.order_id,
+                customer_name: customer,
+                subtotal: orderSubtotal,
+                total: orderTotal,
+                items: cartItems,
+                payment_method: payment,
+                created_at: new Date().toISOString(),
+                tip_amount: tip,
+                discount: disc
+            });
+
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+            updatePOSUI();
+            renderProducts();
+            updateQuickSalesCount();
+            updateUnsyncedCount();
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            placePOSOrder._processing = false;
+        })
+        .catch((err) => {
+            console.log('❌ IndexedDB failed, trying localStorage:', err.message);
+            try {
+                const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                localOrders.push(orderToSave);
+                localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+
+                showToast('📡 Order saved to local storage!', 'warning');
 
                 showReceipt({
                     order_id: orderToSave.order_id,
@@ -2909,49 +2945,16 @@
 
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            })
-            .catch((err) => {
-                console.log('❌ IndexedDB failed, trying localStorage:', err.message);
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-
-                    showToast('📡 Order saved to local storage!', 'warning');
-
-                    showReceipt({
-                        order_id: orderToSave.order_id,
-                        customer_name: customer,
-                        subtotal: orderSubtotal,
-                        total: orderTotal,
-                        items: cartItems,
-                        payment_method: payment,
-                        created_at: new Date().toISOString(),
-                        tip_amount: tip,
-                        discount: disc
-                    });
-
-                    posCart = [];
-                    discountValue = 0;
-                    tipAmount = 0;
-                    document.getElementById('discountDisplay').textContent = '0%';
-                    document.getElementById('tipDisplay').textContent = 'KSh 0';
-                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-                    updatePOSUI();
-                    renderProducts();
-                    updateQuickSalesCount();
-                    updateUnsyncedCount();
-
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                } catch(e2) {
-                    console.log('❌ All storage failed:', e2.message);
-                    showToast('❌ Failed to save order: ' + err.message, 'error');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            });
-    }
+                placePOSOrder._processing = false;
+            } catch(e2) {
+                console.log('❌ All storage failed:', e2.message);
+                showToast('❌ Failed to save order: ' + err.message, 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                placePOSOrder._processing = false;
+            }
+        });
+}
 
     // ============================================================
     // PLACE ORDER - HANDLES CREDIT PURCHASES
@@ -3040,223 +3043,107 @@ function placePOSOrder() {
     // ============================================================
 
     function processCreditPurchase(customerId, customerName, total) {
-        console.log('🔄 processCreditPurchase called');
+    console.log('🔄 processCreditPurchase called');
 
-        const btn = document.getElementById('posPlaceOrderBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Processing credit...';
-        btn.disabled = true;
+    const btn = document.getElementById('posPlaceOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Processing credit...';
+    btn.disabled = true;
 
-        posCart.forEach(item => {
-            const product = allProducts.find(p => String(p.id) === String(item.id));
-            if (product) {
-                const before = product.stock || 0;
-                product.stock = Math.max(0, before - item.quantity);
-            }
-        });
+    posCart.forEach(item => {
+        const product = allProducts.find(p => String(p.id) === String(item.id));
+        if (product) {
+            const before = product.stock || 0;
+            product.stock = Math.max(0, before - item.quantity);
+        }
+    });
 
-        updatePOSUI();
-        renderProducts();
+    updatePOSUI();
+    renderProducts();
 
-        const itemsWithIds = posCart.map(item => ({
-            product_id: item.id,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price
-        }));
+    const itemsWithIds = posCart.map(item => ({
+        product_id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+    }));
 
-        const notes = document.getElementById('orderNotes')?.value || '';
+    const notes = document.getElementById('orderNotes')?.value || '';
 
-        function getCleanStaffName() {
-            const userTag = document.querySelector('.user-tag');
-            if (userTag) {
-                const text = userTag.textContent || '';
-                const clean = text.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
-                const match = clean.match(/^([^\s(]+)/);
-                if (match) return match[1];
-                return 'POS';
-            }
+    function getCleanStaffName() {
+        const userTag = document.querySelector('.user-tag');
+        if (userTag) {
+            const text = userTag.textContent || '';
+            const clean = text.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+            const match = clean.match(/^([^\s(]+)/);
+            if (match) return match[1];
             return 'POS';
         }
-
-        const data = {
-            customer_id: String(customerId),
-            items: itemsWithIds,
-            total_amount: total,
-            staff_name: getCleanStaffName(),
-            notes: notes + ' (Credit purchase via POS)'
-        };
-
-        console.log('📤 Sending credit purchase:', data);
-
-        if (!navigator.onLine) {
-            console.log('📡 OFFLINE DETECTED - Saving credit order locally...');
-            saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
-            return;
-        }
-
-        fetch('/admin/api/credit/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(r => r.json())
-        .then(result => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-
-            if (result.success) {
-                showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
-                showCreditReceipt(customerName, total, result);
-
-                updateCachedBalance(customerId, result.balance_after);
-
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-
-                updatePOSUI();
-                renderProducts();
-                loadCreditCustomers();
-                updateQuickSalesCount();
-                loadSalesStats();
-            } else {
-                posCart.forEach(item => {
-                    const product = allProducts.find(p => String(p.id) === String(item.id));
-                    if (product) {
-                        product.stock = (product.stock || 0) + item.quantity;
-                    }
-                });
-                renderProducts();
-                showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
-            }
-        })
-        .catch(err => {
-            console.log('📡 FETCH FAILED - Saving credit order locally...');
-            saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
-        });
+        return 'POS';
     }
 
-    // ✅ Save credit order offline (Saves to BOTH IndexedDB AND localStorage)
-    function saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText) {
-        let currentBalance = 0;
-        let creditLimit = 0;
-        try {
-            const cache = JSON.parse(localStorage.getItem('credit_cache') || '{}');
-            if (cache[data.customer_id]) {
-                currentBalance = cache[data.customer_id].balance || 0;
-                creditLimit = cache[data.customer_id].limit || 0;
-            }
-        } catch(e) {}
+    const data = {
+        customer_id: String(customerId),
+        items: itemsWithIds,
+        total_amount: total,
+        staff_name: getCleanStaffName(),
+        notes: notes + ' (Credit purchase via POS)'
+    };
 
-        const newBalance = currentBalance + total;
+    console.log('📤 Sending credit purchase:', data);
 
-        const orderToSave = {
-            order_id: 'CREDIT-OFFLINE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-            items: itemsWithIds,
-            subtotal: total,
-            shipping: 0,
-            total: total,
-            customer_name: customerName || 'Credit Customer',
-            customer_email: 'credit@example.com',
-            customer_phone: '',
-            payment_method: 'credit',
-            tip_amount: 0,
-            notes: notes + ' (Offline credit order)',
-            created_at: new Date().toISOString(),
-            synced: false,
-            synced_at: null,
-            status: 'confirmed',
-            is_credit: true,
-            customer_id: data.customer_id,
-            staff_name: data.staff_name,
-            balance_before: currentBalance,
-            balance_after: newBalance,
-            credit_limit: creditLimit
-        };
+    if (!navigator.onLine) {
+        console.log('📡 OFFLINE DETECTED - Saving credit order locally...');
+        saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
+        return;
+    }
 
-        saveOrderToIndexedDB(orderToSave)
-            .then(() => {
-                console.log('✅ Credit order saved to IndexedDB');
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                    console.log('✅ Credit order also saved to localStorage');
-                } catch(e) {}
+    fetch('/admin/api/credit/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        placePOSOrder._processing = false;
 
-                updateCachedBalance(data.customer_id, newBalance);
+        if (result.success) {
+            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+            showCreditReceipt(customerName, total, result);
 
-                console.log('✅ Credit order saved offline!');
-                console.log('💰 Balance before:', currentBalance, 'After:', newBalance);
+            updateCachedBalance(customerId, result.balance_after);
 
-                showToast('📡 Credit order saved offline! Balance: KSh ' + newBalance.toLocaleString(), 'warning');
-                updateUnsyncedCount();
+            posCart = [];
+            discountValue = 0;
+            tipAmount = 0;
+            document.getElementById('discountDisplay').textContent = '0%';
+            document.getElementById('tipDisplay').textContent = 'KSh 0';
+            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
 
-                posCart = [];
-                discountValue = 0;
-                tipAmount = 0;
-                document.getElementById('discountDisplay').textContent = '0%';
-                document.getElementById('tipDisplay').textContent = 'KSh 0';
-                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-
-                updatePOSUI();
-                renderProducts();
-                loadCreditCustomers();
-                updateQuickSalesCount();
-                loadSalesStats();
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            })
-            .catch((err) => {
-                console.log('❌ IndexedDB failed for credit order, using localStorage:', err.message);
-                try {
-                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                    localOrders.push(orderToSave);
-                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-
-                    updateCachedBalance(data.customer_id, newBalance);
-
-                    console.log('✅ Credit order saved to localStorage only!');
-                    showToast('📡 Credit order saved offline! Balance: KSh ' + newBalance.toLocaleString(), 'warning');
-                    updateUnsyncedCount();
-
-                    posCart = [];
-                    discountValue = 0;
-                    tipAmount = 0;
-                    document.getElementById('discountDisplay').textContent = '0%';
-                    document.getElementById('tipDisplay').textContent = 'KSh 0';
-                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-
-                    updatePOSUI();
-                    renderProducts();
-                    loadCreditCustomers();
-                    updateQuickSalesCount();
-                    loadSalesStats();
-
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                } catch(e2) {
-                    console.log('❌ All storage failed for credit order:', e2.message);
-                    showToast('❌ Failed to save credit order: ' + err.message, 'error');
-                    
-                    posCart.forEach(item => {
-                        const product = allProducts.find(p => String(p.id) === String(item.id));
-                        if (product) {
-                            product.stock = (product.stock || 0) + item.quantity;
-                        }
-                    });
-                    renderProducts();
-                    
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+            updatePOSUI();
+            renderProducts();
+            loadCreditCustomers();
+            updateQuickSalesCount();
+            loadSalesStats();
+        } else {
+            posCart.forEach(item => {
+                const product = allProducts.find(p => String(p.id) === String(item.id));
+                if (product) {
+                    product.stock = (product.stock || 0) + item.quantity;
                 }
             });
-    }
+            renderProducts();
+            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+        }
+    })
+    .catch(err => {
+        console.log('📡 FETCH FAILED - Saving credit order locally...');
+        saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
+        placePOSOrder._processing = false;
+    });
+}
 
     // ============================================================
     // CREDIT RECEIPT
