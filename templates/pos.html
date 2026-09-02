@@ -3877,64 +3877,102 @@ CART SUMMARY - FIXED AT BOTTOM (Order Notes Removed)
     updateOnlineStatusUI();
 
     // ============================================================
-    // RECEIPT FUNCTIONS
-    // ============================================================
-    function showReceipt(orderData) {
-        const modal = document.getElementById('receiptModal');
-        modal.classList.remove('hidden');
+// RECEIPT FUNCTIONS - COMPLETELY FIXED
+// ============================================================
+function showReceipt(orderData) {
+    const modal = document.getElementById('receiptModal');
+    modal.classList.remove('hidden');
 
-        const content = document.getElementById('receiptContent');
-        const date = new Date(orderData.created_at || Date.now()).toLocaleString();
-        const items = orderData.items.map(function(item) {
-            return item.name + ' x' + item.quantity + ' = KSh ' + (item.price * item.quantity).toLocaleString();
+    const content = document.getElementById('receiptContent');
+    const date = new Date(orderData.created_at || Date.now()).toLocaleString();
+    
+    // ✅ FIX: Build items from orderData ONLY - NO HTML
+    let itemsText = '';
+    if (orderData.items && orderData.items.length > 0) {
+        itemsText = orderData.items.map(function(item) {
+            // ✅ Clean each item - only name, quantity, price
+            const itemName = String(item.name || 'Product').trim();
+            const itemQty = Number(item.quantity) || 1;
+            const itemPrice = Number(item.price) || 0;
+            const itemTotal = itemPrice * itemQty;
+            return itemName + ' x' + itemQty + ' = KSh ' + itemTotal.toLocaleString();
         }).join('\n');
-
-        const discountAmount = orderData.subtotal - (orderData.total - (orderData.tip_amount || 0));
-        const tip = orderData.tip_amount || 0;
-
-        content.textContent =
-            '╔══════════════════════════════════╗\n' +
-            '║          ACACIAMART POS          ║\n' +
-            '║         📍 RONGAI, Kenya        ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║ 📅 ' + date + '                         ║\n' +
-            '║ 👤 ' + (orderData.customer_name || 'Walk-in Customer') + ' ║\n' +
-            '║ 📋 #' + orderData.order_id + '          ║\n' +
-            '║ 💳 ' + (orderData.payment_method || 'cash').toUpperCase() + ' ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            items.split('\n').map(function(line) { return '║ ' + line.padEnd(40) + ' ║'; }).join('\n') + '\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║ Subtotal:    KSh ' + orderData.subtotal.toLocaleString().padStart(12) + ' ║\n' +
-            '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n' +
-            (tip > 0 ? '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n' : '') +
-            '╠══════════════════════════════════╣\n' +
-            '║ TOTAL:       KSh ' + orderData.total.toLocaleString().padStart(12) + ' ║\n' +
-            '╠══════════════════════════════════╣\n' +
-            '║         ✅ THANK YOU!            ║\n' +
-            '║    Have a great day! 😊          ║\n' +
-            '╚══════════════════════════════════╝';
+    } else {
+        itemsText = '  No items';
     }
 
-    function printReceipt() {
-        const content = document.getElementById('receiptContent');
-        const printWindow = window.open('', '_blank', 'width=400,height=600');
-        if (!printWindow) {
-            showToast('⚠️ Please allow popups for printing', 'warning');
-            return;
-        }
-        printWindow.document.write(
-            '<html><head><title>Receipt</title>' +
-            '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
-            '</head><body><pre>' + content.textContent + '</pre>' +
-            '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
-            '</body></html>'
-        );
-        printWindow.document.close();
+    const subtotal = Number(orderData.subtotal) || 0;
+    const total = Number(orderData.total) || 0;
+    const tip = Number(orderData.tip_amount) || 0;
+    const customer = String(orderData.customer_name || 'Walk-in Customer').trim();
+    const orderId = String(orderData.order_id || 'ORD-' + Date.now()).trim();
+    const payment = String(orderData.payment_method || 'cash').toUpperCase().trim();
+    
+    // Calculate discount properly
+    const discountAmount = Math.max(0, subtotal - total + tip);
+
+    // ✅ Build receipt with clean data only
+    let receiptText = '';
+    receiptText += '╔══════════════════════════════════╗\n';
+    receiptText += '║          ACACIAMART POS          ║\n';
+    receiptText += '║         📍 RONGAI, Kenya        ║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ 📅 ' + date.padEnd(40) + '║\n';
+    receiptText += '║ 👤 ' + customer.padEnd(40) + '║\n';
+    receiptText += '║ 📋 #' + orderId.padEnd(40) + '║\n';
+    receiptText += '║ 💳 ' + payment.padEnd(40) + '║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    
+    // Items
+    if (itemsText) {
+        itemsText.split('\n').forEach(function(line) {
+            receiptText += '║ ' + line.padEnd(40) + ' ║\n';
+        });
+    }
+    
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ Subtotal:    KSh ' + subtotal.toLocaleString().padStart(12) + ' ║\n';
+    if (discountAmount > 0) {
+        receiptText += '║ Discount:   -KSh ' + discountAmount.toLocaleString().padStart(12) + ' ║\n';
+    }
+    if (tip > 0) {
+        receiptText += '║ Tip:         KSh ' + tip.toLocaleString().padStart(12) + ' ║\n';
+    }
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║ TOTAL:       KSh ' + total.toLocaleString().padStart(12) + ' ║\n';
+    receiptText += '╠══════════════════════════════════╣\n';
+    receiptText += '║         ✅ THANK YOU!            ║\n';
+    receiptText += '║    Have a great day! 😊          ║\n';
+    receiptText += '╚══════════════════════════════════╝';
+
+    content.textContent = receiptText;
+}
+
+function printReceipt() {
+    const content = document.getElementById('receiptContent');
+    if (!content || !content.textContent) {
+        showToast('⚠️ No receipt to print', 'warning');
+        return;
     }
 
-    function closeReceipt() {
-        document.getElementById('receiptModal').classList.add('hidden');
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+        showToast('⚠️ Please allow popups for printing', 'warning');
+        return;
     }
+    printWindow.document.write(
+        '<html><head><title>Receipt</title>' +
+        '<style>body{font-family:"Courier New",monospace;padding:20px;margin:0;background:white;color:black;}pre{font-family:"Courier New",monospace;font-size:0.65rem;white-space:pre-wrap;word-wrap:break-word;margin:0;line-height:1.4;}@page{margin:0;size:80mm auto;}@media print{body{padding:10px;}}</style>' +
+        '</head><body><pre>' + content.textContent + '</pre>' +
+        '<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1000);};<\/script>' +
+        '</body></html>'
+    );
+    printWindow.document.close();
+}
+
+function closeReceipt() {
+    document.getElementById('receiptModal').classList.add('hidden');
+}
 
     // ============================================================
     // QUICK SALES COUNTER
