@@ -182,11 +182,11 @@ def delete_credit_customer(customer_id):
     return update_credit_customer(customer_id, {'account_status': 'inactive'})
 
 # ============================================================
-# ✅ FIXED: CREDIT PURCHASE WITH PROFIT TRACKING
+# ✅ UPDATED: CREDIT PURCHASE WITH ORDER CREATION
 # ============================================================
 
 def record_credit_purchase(customer_id, items, total_amount, staff_name, notes=""):
-    """Record a credit purchase with profit tracking"""
+    """Record a credit purchase with profit tracking AND create order entry"""
     try:
         import json
         import uuid
@@ -220,6 +220,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         total_cost = 0
         total_profit = 0
         item_details = []
+        order_items = []  # For order table
         
         # Parse items
         if isinstance(items, list):
@@ -232,37 +233,52 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         else:
             item_list = [{'name': str(items), 'quantity': 1, 'price': total_amount}]
         
-        # Process each item - SAME APPROACH AS NORMAL ORDERS
+        # Process each item - FETCH CURRENT COST FROM PRODUCT TABLE
         for item in item_list:
             product_name = item.get('name', 'Unknown')
             quantity = int(item.get('quantity', 1))
             price = float(item.get('price', 0))
+            product_id = item.get('product_id')
             
-            # ✅ ALWAYS FETCH CURRENT COST FROM PRODUCT TABLE - SAME AS NORMAL ORDER
+            # ✅ ALWAYS FETCH CURRENT COST FROM PRODUCT TABLE
             cost_price = 0
             
             try:
-                # Try to find product by name (SAME AS POS NORMAL ORDER)
-                prod_response = requests.get(
-                    f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25",
-                    headers=Config.SUPABASE_HEADERS,
-                    timeout=10
-                )
-                if prod_response.status_code == 200:
-                    products = prod_response.json()
-                    if products:
-                        # ✅ USE CURRENT COST FROM PRODUCT TABLE - SAME AS POS
-                        cost_price = float(products[0].get('cost_price', 0))
-                        print(f"✅ Found product: {product_name}, Current Cost: KSh {cost_price}")
+                if product_id:
+                    # Try by product_id first (more accurate)
+                    prod_response = requests.get(
+                        f"{Config.SUPABASE_URL}/rest/v1/products?id=eq.{product_id}&select=cost_price",
+                        headers=Config.SUPABASE_HEADERS,
+                        timeout=10
+                    )
+                    if prod_response.status_code == 200:
+                        products = prod_response.json()
+                        if products:
+                            cost_price = float(products[0].get('cost_price', 0))
+                            print(f"✅ Found product by ID: {product_id}, Cost: KSh {cost_price}")
+                
+                # If not found by ID, try by name
+                if cost_price == 0:
+                    prod_response = requests.get(
+                        f"{Config.SUPABASE_URL}/rest/v1/products?name=ilike.%25{product_name}%25&select=cost_price",
+                        headers=Config.SUPABASE_HEADERS,
+                        timeout=10
+                    )
+                    if prod_response.status_code == 200:
+                        products = prod_response.json()
+                        if products:
+                            cost_price = float(products[0].get('cost_price', 0))
+                            print(f"✅ Found product by name: {product_name}, Cost: KSh {cost_price}")
+                            
             except Exception as e:
                 print(f"⚠️ Error fetching product cost: {e}")
             
-            # If still 0, estimate at 70%
+            # If still 0, estimate at 70% (fallback)
             if cost_price == 0:
                 cost_price = price * 0.7
                 print(f"⚠️ No cost found, using estimate: KSh {cost_price}")
             
-            # ✅ OVERRIDE with current cost from product table (SAME AS POS)
+            # Store cost in item
             item['cost_price'] = cost_price
             
             item_cost = cost_price * quantity
@@ -280,6 +296,16 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'total_cost': item_cost,
                 'profit': item_profit,
                 'margin': round(item_margin, 1)
+            })
+            
+            # ✅ Build order items for orders table
+            order_items.append({
+                'product_id': product_id,
+                'name': product_name,
+                'price': price,
+                'quantity': quantity,
+                'total': price * quantity,
+                'cost_price': cost_price
             })
         
         profit_margin = (total_profit / total_amount * 100) if total_amount > 0 else 0
@@ -329,7 +355,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
         print(f"📥 Response status: {response.status_code}")
         
         if response.status_code not in [200, 201]:
-            # ✅ FIXED: Add cost to fallback transaction
+            # Fallback - try with simple data
             simple_transaction = {
                 'transaction_id': transaction_id,
                 'customer_id': customer_id,
@@ -384,11 +410,71 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
                 'message': f'Transaction saved but failed to update balance: {update_response.status_code}'
             }
         
+        # ============================================================
+        # ✅ CREATE ORDER ENTRY FOR CREDIT PURCHASE
+        # ============================================================
+        order_id = f"CREDIT-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        
+        order_data = {
+            'order_id': order_id,
+            'items': order_items,
+            'subtotal': total_amount,
+            'shipping': 0,
+            'total': total_amount,
+            'status': 'confirmed',
+            'source': 'credit',
+            'created_at': datetime.utcnow().isoformat(),
+            'customer_name': customer.get('full_name', 'Credit Customer'),
+            'customer_email': f"credit_{customer_id}@example.com",
+            'customer_phone': customer.get('phone', ''),
+            'customer_address': 'Credit Purchase',
+            'customer': {
+                'name': customer.get('full_name', 'Credit Customer'),
+                'email': f"credit_{customer_id}@example.com",
+                'phone': customer.get('phone', ''),
+                'address': 'Credit Purchase'
+            },
+            'user_id': staff_name,
+            'user_name': staff_name,
+            'user_role': 'admin',
+            'staff_name': staff_name,
+            'is_credit': True,
+            'credit_customer_id': customer_id,
+            'credit_transaction_id': transaction_id,
+            'payment_method': 'credit'
+        }
+        
+        print(f"📤 Creating credit order entry: {order_id}")
+        
+        order_response = requests.post(
+            f"{Config.SUPABASE_URL}/rest/v1/orders",
+            headers=Config.SUPABASE_HEADERS,
+            json=order_data,
+            timeout=15
+        )
+        
+        if order_response.status_code in [200, 201]:
+            print(f"✅ Credit order created: {order_id}")
+            order_created = True
+        else:
+            print(f"⚠️ Could not create credit order: {order_response.status_code}")
+            order_created = False
+        
+        # Clear caches
+        try:
+            import utils.data
+            utils.data.orders_cache = []
+            utils.data.products_cache = []
+        except:
+            pass
+        
         return {
             'success': True,
             'balance_after': new_balance,
             'customer_name': customer.get('full_name'),
             'transaction_id': transaction_id,
+            'order_id': order_id if order_created else None,
+            'order_created': order_created,
             'total_amount': total_amount,
             'total_cost': total_cost,
             'total_profit': total_profit,
@@ -405,7 +491,7 @@ def record_credit_purchase(customer_id, items, total_amount, staff_name, notes="
 
 
 # ============================================================
-# ✅ FIXED: CREDIT PAYMENT WITH BALANCE CHECK
+# CREDIT PAYMENT
 # ============================================================
 
 def record_credit_payment(customer_id, amount, staff_name, notes=""):
@@ -508,7 +594,7 @@ def record_credit_payment(customer_id, amount, staff_name, notes=""):
 
 
 # ============================================================
-# ✅ OFFLINE CREDIT ORDER SUPPORT
+# OFFLINE CREDIT ORDER SUPPORT
 # ============================================================
 
 def save_credit_order_offline(order_data):
@@ -734,7 +820,7 @@ def get_customer_profit_summary(customer_id):
         return {'success': False, 'message': str(e)}
 
 # ============================================================
-# ✅ FIXED: SUMMARY FUNCTIONS WITH COLLECTION RATE CAPPED AT 100%
+# SUMMARY FUNCTIONS WITH COLLECTION RATE CAPPED AT 100%
 # ============================================================
 
 def get_all_credit_profit_summary():
@@ -774,7 +860,7 @@ def get_all_credit_profit_summary():
             'profit_margin': round(margin, 1),
             'total_outstanding': total_outstanding,
             'total_payments_received': total_payments,
-            'collection_rate': collection_rate,  # ✅ Now capped at 100%
+            'collection_rate': collection_rate,
             'total_customers': len(customers),
             'active_customers': len([c for c in customers if c.get('account_status') == 'active'])
         }
@@ -831,7 +917,7 @@ def get_credit_summary():
             'total_cost': total_cost,
             'total_profit': total_profit,
             'profit_margin': round(profit_margin, 1),
-            'collection_rate': collection_rate,  # ✅ Added and capped at 100%
+            'collection_rate': collection_rate,
             'average_balance': total_balance / active_customers if active_customers > 0 else 0
         }
         
@@ -948,4 +1034,4 @@ def get_monthly_credit_report(year=None):
         print(f"❌ Error getting monthly credit report: {e}")
         return []
 
-print("✅ Credit module loaded successfully with collection rate capped at 100%!")
+print("✅ Credit module loaded successfully with order creation for credit purchases!")
