@@ -1950,7 +1950,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT
+    JAVASCRIPT - COMPLETE WORKING VERSION
     ============================================================ -->
    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
@@ -1972,6 +1972,11 @@
     let selectedReturnOrder = null;
     let allOrders = [];
     let creditCustomers = [];
+
+    // ============================================================
+    // GLOBAL PROCESSING FLAG - PREVENTS DOUBLE ORDERS
+    // ============================================================
+    let processingOrder = false;
 
     // ============================================================
     // HELPER FUNCTIONS
@@ -2282,10 +2287,9 @@
     }
 
     // ============================================================
-    // SYNC & OFFLINE CREDIT - COMPLETE FIX
+    // SYNC & OFFLINE CREDIT
     // ============================================================
 
-    // 1. GET UNSYNCED ORDERS (FIXED - Checks localStorage FIRST)
     async function getUnsyncedOrders() {
         try {
             const orders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
@@ -2313,7 +2317,6 @@
         }
     }
 
-    // 2. UPDATE UNSYNCED COUNT (FIXED - Checks localStorage)
     async function updateUnsyncedCount(count) {
         const el = document.getElementById('syncStatus');
         const cEl = document.getElementById('unsyncedCount');
@@ -2356,7 +2359,6 @@
         }
     }
 
-    // 3. CACHE CREDIT BALANCES FOR OFFLINE USE
     async function cacheCreditBalances() {
         if (!navigator.onLine) {
             console.log('📡 Offline - using cached credit data');
@@ -2422,7 +2424,6 @@
         }
     }
 
-    // 4. LOAD CREDIT CUSTOMERS (FIXED - Works offline)
     function loadCreditCustomers() {
         const select = document.getElementById('creditCustomerSelect');
         if (!select) return;
@@ -2522,7 +2523,6 @@
         }
     }
 
-    // 5. PERFORM AUTO SYNC (FIXED - Handles credit orders)
     async function performAutoSync() {
         if (isSyncing) return;
         if (!navigator.onLine) {
@@ -2707,218 +2707,281 @@
     });
 
     // ============================================================
-    // NORMAL ORDER PROCESSING
-    function processNormalOrder() {
-    const btn = document.getElementById('posPlaceOrderBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Processing...';
-    btn.disabled = true;
+    // ✅ FIXED: placePOSOrder - WITH DOUBLE ORDER PREVENTION
+    // ============================================================
 
-    const customerName = document.getElementById('posCustomer').value;
-    const customerEmail = document.getElementById('posCustomerEmail').value;
-    const customerPhone = document.getElementById('posCustomerPhone').value;
-    const notes = document.getElementById('orderNotes')?.value || '';
+    function placePOSOrder() {
+        // ✅ PREVENT DOUBLE SUBMISSION
+        if (processingOrder) {
+            showToast('⏳ Order already processing...', 'warning');
+            return;
+        }
 
-    const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-    const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-    const total = Math.max(0, subtotal - discountAmount + tipAmount);
+        if (!posCart.length) {
+            showToast('⚠️ Cart is empty!', 'warning');
+            return;
+        }
 
-    const orderData = {
-        items: posCart.map(item => ({
-            product_id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            total: item.price * item.quantity
-        })),
-        subtotal: subtotal,
-        shipping: 0,
-        total: total,
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        customer_address: 'In-store purchase',
-        notes: notes,
-        payment_method: paymentMethod,
-        tip_amount: tipAmount || 0,
-        discount: discountValue,
-        discount_type: discountType,
-        created_at: new Date().toISOString()
-    };
+        // Check stock
+        for (const item of posCart) {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product && (product.stock || 0) < item.quantity) {
+                showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
+                return;
+            }
+        }
 
-    if (!navigator.onLine) {
-        console.log('📡 Offline detected, saving order locally...');
-        saveOrderOffline(orderData, btn, originalText);
-        return;
+        // ✅ SET PROCESSING FLAG
+        processingOrder = true;
+        
+        // ✅ DISABLE BUTTON
+        const btn = document.getElementById('posPlaceOrderBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        // CREDIT PAYMENT
+        if (paymentMethod === 'credit') {
+            const select = document.getElementById('creditCustomerSelect');
+            const selected = select.options[select.selectedIndex];
+
+            if (!selected || !selected.value) {
+                showToast('⚠️ Please select a credit customer', 'warning');
+                // ✅ RESET
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+
+            const customerId = selected.value;
+            const customerName = selected.dataset.name || 'Customer';
+            const balance = parseFloat(selected.dataset.balance) || 0;
+            const limit = parseFloat(selected.dataset.limit) || 0;
+
+            const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+            const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+            const total = Math.max(0, subtotal - discountAmount + tipAmount);
+
+            if (limit > 0 && (balance + total) > limit) {
+                showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
+                // ✅ RESET
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+
+            if (selected.dataset.status === 'inactive') {
+                showToast('⚠️ This customer account is inactive!', 'danger');
+                // ✅ RESET
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+
+            if (!confirm(`💳 CREDIT PURCHASE\n\n` +
+                `👤 Customer: ${customerName}\n` +
+                `💰 Total: KSh ${total.toLocaleString()}\n` +
+                `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
+                `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
+                `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
+                `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
+                `Proceed?`)) {
+                // ✅ RESET
+                processingOrder = false;
+                btn.disabled = false;
+                btn.innerHTML = '✅ Complete Order';
+                return;
+            }
+
+            processCreditPurchase(customerId, customerName, total);
+            return;
+        }
+
+        // NORMAL ORDER
+        processNormalOrder();
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    // ============================================================
+    // ✅ FIXED: processNormalOrder - WITH CLEANUP
+    // ============================================================
 
-    fetch('/admin/pos/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-        signal: controller.signal
-    })
-    .then(response => {
-        clearTimeout(timeoutId);
-        return response.json();
-    })
-    .then(data => {
-        clearTimeout(timeoutId);
-        if (data.success) {
-            posCart.forEach(item => {
-                const product = allProducts.find(p => String(p.id) === String(item.id));
-                if (product) {
-                    product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-                }
-            });
+    function processNormalOrder() {
+        const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
 
-            const orderToSave = {
-                order_id: data.order_id || 'ORD-' + Date.now(),
-                items: posCart,
-                subtotal: subtotal,
-                shipping: 0,
-                total: total,
-                customer_name: customerName,
-                customer_email: customerEmail,
-                customer_phone: customerPhone,
-                payment_method: paymentMethod,
-                tip_amount: tipAmount || 0,
-                notes: notes,
-                created_at: new Date().toISOString(),
-                synced: true,
-                synced_at: new Date().toISOString()
-            };
-            saveOrderToIndexedDB(orderToSave).catch(() => {});
+        const customerName = document.getElementById('posCustomer').value;
+        const customerEmail = document.getElementById('posCustomerEmail').value;
+        const customerPhone = document.getElementById('posCustomerPhone').value;
+        const notes = document.getElementById('orderNotes')?.value || '';
 
-            showToast('✅ Order completed!', 'success');
-            showReceipt({
-                order_id: data.order_id || 'ORD-' + Date.now(),
-                customer_name: customerName,
-                subtotal: subtotal,
-                total: total,
-                items: posCart,
-                payment_method: paymentMethod,
-                created_at: new Date().toISOString(),
-                tip_amount: tipAmount || 0,
-                discount: discountValue
-            });
+        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
+        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
+        const total = Math.max(0, subtotal - discountAmount + tipAmount);
 
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-            updatePOSUI();
-            renderProducts();
-            updateQuickSalesCount();
-            loadSalesStats();
-            loadUserStats();
+        const orderData = {
+            items: posCart.map(item => ({
+                product_id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity
+            })),
+            subtotal: subtotal,
+            shipping: 0,
+            total: total,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+            customer_address: 'In-store purchase',
+            notes: notes,
+            payment_method: paymentMethod,
+            tip_amount: tipAmount || 0,
+            discount: discountValue,
+            discount_type: discountType,
+            created_at: new Date().toISOString()
+        };
 
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            placePOSOrder._processing = false;
-        } else {
-            console.log('📡 API error, saving offline:', data.message);
-            showToast('📡 Saving order offline...', 'warning');
+        if (!navigator.onLine) {
+            console.log('📡 Offline detected, saving order locally...');
             saveOrderOffline(orderData, btn, originalText);
+            return;
         }
-    })
-    .catch(err => {
-        clearTimeout(timeoutId);
-        console.log('❌ Network error, saving offline:', err.message);
-        showToast('📡 No connection, saving offline...', 'warning');
-        saveOrderOffline(orderData, btn, originalText);
-    });
-}
 
-    // ============================================================
-    // SAVE ORDER OFFLINE (Saves to BOTH IndexedDB AND localStorage)
-    // ============================================================
-    function saveOrderOffline(orderData, btn, originalText) {
-    const orderToSave = {
-        order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-        items: orderData.items,
-        subtotal: orderData.subtotal,
-        shipping: 0,
-        total: orderData.total,
-        customer_name: orderData.customer_name,
-        customer_email: orderData.customer_email,
-        customer_phone: orderData.customer_phone,
-        payment_method: orderData.payment_method || 'cash',
-        tip_amount: orderData.tip_amount || 0,
-        notes: orderData.notes || '',
-        created_at: new Date().toISOString(),
-        synced: false,
-        synced_at: null,
-        status: 'confirmed'
-    };
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    posCart.forEach(item => {
-        const product = allProducts.find(p => String(p.id) === String(item.id));
-        if (product) {
-            product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-        }
-    });
-
-    const cartItems = [...posCart];
-    const orderTotal = orderData.total;
-    const orderSubtotal = orderData.subtotal;
-    const customer = orderData.customer_name;
-    const payment = orderData.payment_method || 'cash';
-    const tip = orderData.tip_amount || 0;
-    const disc = discountValue;
-
-    saveOrderToIndexedDB(orderToSave)
-        .then(() => {
-            console.log('✅ Order saved to IndexedDB');
-            try {
-                const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                localOrders.push(orderToSave);
-                localStorage.setItem('pos_orders', JSON.stringify(localOrders));
-                console.log('✅ Order also saved to localStorage');
-            } catch(e) {}
-
-            showToast('📡 Order saved offline! Will sync when online.', 'warning');
-
-            showReceipt({
-                order_id: orderToSave.order_id,
-                customer_name: customer,
-                subtotal: orderSubtotal,
-                total: orderTotal,
-                items: cartItems,
-                payment_method: payment,
-                created_at: new Date().toISOString(),
-                tip_amount: tip,
-                discount: disc
-            });
-
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
-            updatePOSUI();
-            renderProducts();
-            updateQuickSalesCount();
-            updateUnsyncedCount();
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            placePOSOrder._processing = false;
+        fetch('/admin/pos/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData),
+            signal: controller.signal
         })
-        .catch((err) => {
-            console.log('❌ IndexedDB failed, trying localStorage:', err.message);
-            try {
-                const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
-                localOrders.push(orderToSave);
-                localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json();
+        })
+        .then(data => {
+            clearTimeout(timeoutId);
+            if (data.success) {
+                posCart.forEach(item => {
+                    const product = allProducts.find(p => String(p.id) === String(item.id));
+                    if (product) {
+                        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+                    }
+                });
 
-                showToast('📡 Order saved to local storage!', 'warning');
+                const orderToSave = {
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    items: posCart,
+                    subtotal: subtotal,
+                    shipping: 0,
+                    total: total,
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                    payment_method: paymentMethod,
+                    tip_amount: tipAmount || 0,
+                    notes: notes,
+                    created_at: new Date().toISOString(),
+                    synced: true,
+                    synced_at: new Date().toISOString()
+                };
+                saveOrderToIndexedDB(orderToSave).catch(() => {});
+
+                showToast('✅ Order completed!', 'success');
+                showReceipt({
+                    order_id: data.order_id || 'ORD-' + Date.now(),
+                    customer_name: customerName,
+                    subtotal: subtotal,
+                    total: total,
+                    items: posCart,
+                    payment_method: paymentMethod,
+                    created_at: new Date().toISOString(),
+                    tip_amount: tipAmount || 0,
+                    discount: discountValue
+                });
+
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                updatePOSUI();
+                renderProducts();
+                updateQuickSalesCount();
+                loadSalesStats();
+                loadUserStats();
+
+                // ✅ RESET
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                processingOrder = false;
+            } else {
+                console.log('📡 API error, saving offline:', data.message);
+                showToast('📡 Saving order offline...', 'warning');
+                saveOrderOffline(orderData, btn, originalText);
+            }
+        })
+        .catch(err => {
+            clearTimeout(timeoutId);
+            console.log('❌ Network error, saving offline:', err.message);
+            showToast('📡 No connection, saving offline...', 'warning');
+            saveOrderOffline(orderData, btn, originalText);
+        });
+    }
+
+    // ============================================================
+    // ✅ FIXED: saveOrderOffline - WITH CLEANUP
+    // ============================================================
+
+    function saveOrderOffline(orderData, btn, originalText) {
+        const orderToSave = {
+            order_id: 'OFF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+            items: orderData.items,
+            subtotal: orderData.subtotal,
+            shipping: 0,
+            total: orderData.total,
+            customer_name: orderData.customer_name,
+            customer_email: orderData.customer_email,
+            customer_phone: orderData.customer_phone,
+            payment_method: orderData.payment_method || 'cash',
+            tip_amount: orderData.tip_amount || 0,
+            notes: orderData.notes || '',
+            created_at: new Date().toISOString(),
+            synced: false,
+            synced_at: null,
+            status: 'confirmed'
+        };
+
+        posCart.forEach(item => {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product) {
+                product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+            }
+        });
+
+        const cartItems = [...posCart];
+        const orderTotal = orderData.total;
+        const orderSubtotal = orderData.subtotal;
+        const customer = orderData.customer_name;
+        const payment = orderData.payment_method || 'cash';
+        const tip = orderData.tip_amount || 0;
+        const disc = discountValue;
+
+        saveOrderToIndexedDB(orderToSave)
+            .then(() => {
+                console.log('✅ Order saved to IndexedDB');
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+                    console.log('✅ Order also saved to localStorage');
+                } catch(e) {}
+
+                showToast('📡 Order saved offline! Will sync when online.', 'warning');
 
                 showReceipt({
                     order_id: orderToSave.order_id,
@@ -2943,207 +3006,291 @@
                 updateQuickSalesCount();
                 updateUnsyncedCount();
 
+                // ✅ RESET
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                placePOSOrder._processing = false;
-            } catch(e2) {
-                console.log('❌ All storage failed:', e2.message);
-                showToast('❌ Failed to save order: ' + err.message, 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                placePOSOrder._processing = false;
-            }
-        });
-}
+                processingOrder = false;
+            })
+            .catch((err) => {
+                console.log('❌ IndexedDB failed, trying localStorage:', err.message);
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
 
-    // ============================================================
-    // PLACE ORDER - HANDLES CREDIT PURCHASES
-    // ============================================================
-    // ============================================================
-// REPLACE YOUR ENTIRE placePOSOrder FUNCTION WITH THIS
-// ============================================================
+                    showToast('📡 Order saved to local storage!', 'warning');
 
-function placePOSOrder() {
-    // ✅ SINGLE FIX: Prevent double submission
-    if (this._processing) return;
-    this._processing = true;
+                    showReceipt({
+                        order_id: orderToSave.order_id,
+                        customer_name: customer,
+                        subtotal: orderSubtotal,
+                        total: orderTotal,
+                        items: cartItems,
+                        payment_method: payment,
+                        created_at: new Date().toISOString(),
+                        tip_amount: tip,
+                        discount: disc
+                    });
 
-    if (!posCart.length) {
-        showToast('⚠️ Cart is empty!', 'warning');
-        this._processing = false;
-        return;
+                    posCart = [];
+                    discountValue = 0;
+                    tipAmount = 0;
+                    document.getElementById('discountDisplay').textContent = '0%';
+                    document.getElementById('tipDisplay').textContent = 'KSh 0';
+                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                    updatePOSUI();
+                    renderProducts();
+                    updateQuickSalesCount();
+                    updateUnsyncedCount();
+
+                    // ✅ RESET
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    processingOrder = false;
+                } catch(e2) {
+                    console.log('❌ All storage failed:', e2.message);
+                    showToast('❌ Failed to save order: ' + err.message, 'error');
+                    // ✅ RESET
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    processingOrder = false;
+                }
+            });
     }
 
-    // Check stock
-    for (const item of posCart) {
-        const product = allProducts.find(p => String(p.id) === String(item.id));
-        if (product && (product.stock || 0) < item.quantity) {
-            showToast('⚠️ Not enough stock for ' + item.name + ' (Only ' + product.stock + ' left)', 'warning');
-            this._processing = false;
-            return;
-        }
-    }
-
-    // CREDIT PAYMENT
-    if (paymentMethod === 'credit') {
-        const select = document.getElementById('creditCustomerSelect');
-        const selected = select.options[select.selectedIndex];
-
-        if (!selected || !selected.value) {
-            showToast('⚠️ Please select a credit customer', 'warning');
-            this._processing = false;
-            return;
-        }
-
-        const customerId = selected.value;
-        const customerName = selected.dataset.name || 'Customer';
-        const balance = parseFloat(selected.dataset.balance) || 0;
-        const limit = parseFloat(selected.dataset.limit) || 0;
-
-        const subtotal = posCart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0), 0);
-        const discountAmount = discountType === 'percentage' ? (subtotal * discountValue / 100) : discountValue;
-        const total = Math.max(0, subtotal - discountAmount + tipAmount);
-
-        if (limit > 0 && (balance + total) > limit) {
-            showToast(`⚠️ Credit limit exceeded! Available: KSh ${(limit - balance).toLocaleString()}`, 'warning');
-            this._processing = false;
-            return;
-        }
-
-        if (selected.dataset.status === 'inactive') {
-            showToast('⚠️ This customer account is inactive!', 'danger');
-            this._processing = false;
-            return;
-        }
-
-        if (!confirm(`💳 CREDIT PURCHASE\n\n` +
-            `👤 Customer: ${customerName}\n` +
-            `💰 Total: KSh ${total.toLocaleString()}\n` +
-            `📊 Current Balance: KSh ${balance.toLocaleString()}\n` +
-            `📈 New Balance: KSh ${(balance + total).toLocaleString()}\n` +
-            `📊 Credit Limit: KSh ${limit.toLocaleString()}\n` +
-            `✅ Available: KSh ${(limit - balance).toLocaleString()}\n\n` +
-            `Proceed?`)) {
-            this._processing = false;
-            return;
-        }
-
-        processCreditPurchase(customerId, customerName, total);
-        this._processing = false;
-        return;
-    }
-
-    // NORMAL ORDER
-    processNormalOrder();
-    this._processing = false;
-}
-
     // ============================================================
-    // PROCESS CREDIT PURCHASE
+    // ✅ FIXED: processCreditPurchase - WITH CLEANUP
     // ============================================================
 
     function processCreditPurchase(customerId, customerName, total) {
-    console.log('🔄 processCreditPurchase called');
+        console.log('🔄 processCreditPurchase called');
 
-    const btn = document.getElementById('posPlaceOrderBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Processing credit...';
-    btn.disabled = true;
+        const btn = document.getElementById('posPlaceOrderBtn');
+        const originalText = btn.innerHTML;
 
-    posCart.forEach(item => {
-        const product = allProducts.find(p => String(p.id) === String(item.id));
-        if (product) {
-            const before = product.stock || 0;
-            product.stock = Math.max(0, before - item.quantity);
-        }
-    });
+        posCart.forEach(item => {
+            const product = allProducts.find(p => String(p.id) === String(item.id));
+            if (product) {
+                const before = product.stock || 0;
+                product.stock = Math.max(0, before - item.quantity);
+            }
+        });
 
-    updatePOSUI();
-    renderProducts();
+        updatePOSUI();
+        renderProducts();
 
-    const itemsWithIds = posCart.map(item => ({
-        product_id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-    }));
+        const itemsWithIds = posCart.map(item => ({
+            product_id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+        }));
 
-    const notes = document.getElementById('orderNotes')?.value || '';
+        const notes = document.getElementById('orderNotes')?.value || '';
 
-    function getCleanStaffName() {
-        const userTag = document.querySelector('.user-tag');
-        if (userTag) {
-            const text = userTag.textContent || '';
-            const clean = text.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
-            const match = clean.match(/^([^\s(]+)/);
-            if (match) return match[1];
+        function getCleanStaffName() {
+            const userTag = document.querySelector('.user-tag');
+            if (userTag) {
+                const text = userTag.textContent || '';
+                const clean = text.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+                const match = clean.match(/^([^\s(]+)/);
+                if (match) return match[1];
+                return 'POS';
+            }
             return 'POS';
         }
-        return 'POS';
+
+        const data = {
+            customer_id: String(customerId),
+            items: itemsWithIds,
+            total_amount: total,
+            staff_name: getCleanStaffName(),
+            notes: notes + ' (Credit purchase via POS)'
+        };
+
+        console.log('📤 Sending credit purchase:', data);
+
+        if (!navigator.onLine) {
+            console.log('📡 OFFLINE DETECTED - Saving credit order locally...');
+            saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
+            return;
+        }
+
+        fetch('/admin/api/credit/purchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(result => {
+            // ✅ RESET
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            processingOrder = false;
+
+            if (result.success) {
+                showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
+                showCreditReceipt(customerName, total, result);
+
+                updateCachedBalance(customerId, result.balance_after);
+
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+
+                updatePOSUI();
+                renderProducts();
+                loadCreditCustomers();
+                updateQuickSalesCount();
+                loadSalesStats();
+            } else {
+                posCart.forEach(item => {
+                    const product = allProducts.find(p => String(p.id) === String(item.id));
+                    if (product) {
+                        product.stock = (product.stock || 0) + item.quantity;
+                    }
+                });
+                renderProducts();
+                showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(err => {
+            console.log('📡 FETCH FAILED - Saving credit order locally...');
+            saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
+            // ✅ RESET
+            processingOrder = false;
+        });
     }
 
-    const data = {
-        customer_id: String(customerId),
-        items: itemsWithIds,
-        total_amount: total,
-        staff_name: getCleanStaffName(),
-        notes: notes + ' (Credit purchase via POS)'
-    };
+    // ============================================================
+    // ✅ FIXED: saveCreditOrderOffline - WITH CLEANUP
+    // ============================================================
 
-    console.log('📤 Sending credit purchase:', data);
+    function saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText) {
+        let currentBalance = 0;
+        let creditLimit = 0;
+        try {
+            const cache = JSON.parse(localStorage.getItem('credit_cache') || '{}');
+            if (cache[data.customer_id]) {
+                currentBalance = cache[data.customer_id].balance || 0;
+                creditLimit = cache[data.customer_id].limit || 0;
+            }
+        } catch(e) {}
 
-    if (!navigator.onLine) {
-        console.log('📡 OFFLINE DETECTED - Saving credit order locally...');
-        saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
-        return;
-    }
+        const newBalance = currentBalance + total;
 
-    fetch('/admin/api/credit/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(r => r.json())
-    .then(result => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        placePOSOrder._processing = false;
+        const orderToSave = {
+            order_id: 'CREDIT-OFFLINE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+            items: itemsWithIds,
+            subtotal: total,
+            shipping: 0,
+            total: total,
+            customer_name: customerName || 'Credit Customer',
+            customer_email: 'credit@example.com',
+            customer_phone: '',
+            payment_method: 'credit',
+            tip_amount: 0,
+            notes: notes + ' (Offline credit order)',
+            created_at: new Date().toISOString(),
+            synced: false,
+            synced_at: null,
+            status: 'confirmed',
+            is_credit: true,
+            customer_id: data.customer_id,
+            staff_name: data.staff_name,
+            balance_before: currentBalance,
+            balance_after: newBalance,
+            credit_limit: creditLimit
+        };
 
-        if (result.success) {
-            showToast('✅ Credit purchase recorded! New balance: KSh ' + (result.balance_after || 0).toLocaleString(), 'success');
-            showCreditReceipt(customerName, total, result);
+        saveOrderToIndexedDB(orderToSave)
+            .then(() => {
+                console.log('✅ Credit order saved to IndexedDB');
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+                    console.log('✅ Credit order also saved to localStorage');
+                } catch(e) {}
 
-            updateCachedBalance(customerId, result.balance_after);
+                updateCachedBalance(data.customer_id, newBalance);
 
-            posCart = [];
-            discountValue = 0;
-            tipAmount = 0;
-            document.getElementById('discountDisplay').textContent = '0%';
-            document.getElementById('tipDisplay').textContent = 'KSh 0';
-            if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+                console.log('✅ Credit order saved offline!');
+                console.log('💰 Balance before:', currentBalance, 'After:', newBalance);
 
-            updatePOSUI();
-            renderProducts();
-            loadCreditCustomers();
-            updateQuickSalesCount();
-            loadSalesStats();
-        } else {
-            posCart.forEach(item => {
-                const product = allProducts.find(p => String(p.id) === String(item.id));
-                if (product) {
-                    product.stock = (product.stock || 0) + item.quantity;
+                showToast('📡 Credit order saved offline! Balance: KSh ' + newBalance.toLocaleString(), 'warning');
+                updateUnsyncedCount();
+
+                posCart = [];
+                discountValue = 0;
+                tipAmount = 0;
+                document.getElementById('discountDisplay').textContent = '0%';
+                document.getElementById('tipDisplay').textContent = 'KSh 0';
+                if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+
+                updatePOSUI();
+                renderProducts();
+                loadCreditCustomers();
+                updateQuickSalesCount();
+                loadSalesStats();
+
+                // ✅ RESET
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                processingOrder = false;
+            })
+            .catch((err) => {
+                console.log('❌ IndexedDB failed for credit order, using localStorage:', err.message);
+                try {
+                    const localOrders = JSON.parse(localStorage.getItem('pos_orders') || '[]');
+                    localOrders.push(orderToSave);
+                    localStorage.setItem('pos_orders', JSON.stringify(localOrders));
+
+                    updateCachedBalance(data.customer_id, newBalance);
+
+                    console.log('✅ Credit order saved to localStorage only!');
+                    showToast('📡 Credit order saved offline! Balance: KSh ' + newBalance.toLocaleString(), 'warning');
+                    updateUnsyncedCount();
+
+                    posCart = [];
+                    discountValue = 0;
+                    tipAmount = 0;
+                    document.getElementById('discountDisplay').textContent = '0%';
+                    document.getElementById('tipDisplay').textContent = 'KSh 0';
+                    if (document.getElementById('orderNotes')) document.getElementById('orderNotes').value = '';
+
+                    updatePOSUI();
+                    renderProducts();
+                    loadCreditCustomers();
+                    updateQuickSalesCount();
+                    loadSalesStats();
+
+                    // ✅ RESET
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    processingOrder = false;
+                } catch(e2) {
+                    console.log('❌ All storage failed for credit order:', e2.message);
+                    showToast('❌ Failed to save credit order: ' + err.message, 'error');
+                    
+                    posCart.forEach(item => {
+                        const product = allProducts.find(p => String(p.id) === String(item.id));
+                        if (product) {
+                            product.stock = (product.stock || 0) + item.quantity;
+                        }
+                    });
+                    renderProducts();
+                    
+                    // ✅ RESET
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    processingOrder = false;
                 }
             });
-            renderProducts();
-            showToast('❌ Credit purchase failed: ' + (result.message || 'Unknown error'), 'error');
-        }
-    })
-    .catch(err => {
-        console.log('📡 FETCH FAILED - Saving credit order locally...');
-        saveCreditOrderOffline(data, customerName, total, itemsWithIds, notes, btn, originalText);
-        placePOSOrder._processing = false;
-    });
-}
+    }
 
     // ============================================================
     // CREDIT RECEIPT
@@ -3452,7 +3599,12 @@ function placePOSOrder() {
         const qty = posCart.reduce((s, i) => s + (Number(i.quantity) || 0), 0);
         if (itemCountEl) itemCountEl.textContent = qty + ' items';
         if (cartStatsEl) cartStatsEl.textContent = qty;
-        if (placeBtn) { placeBtn.disabled = !posCart.length; placeBtn.style.opacity = posCart.length ? '1' : '0.5'; }
+        if (placeBtn) { 
+            if (!processingOrder) {
+                placeBtn.disabled = !posCart.length; 
+                placeBtn.style.opacity = posCart.length ? '1' : '0.5';
+            }
+        }
         if (empty) empty.style.display = posCart.length ? 'none' : 'block';
         if (!list) return;
         if (!posCart.length) { list.innerHTML = ''; return; }
@@ -3483,68 +3635,64 @@ function placePOSOrder() {
         list.innerHTML = html;
     }
 
+    // ============================================================
+    // CHANGE CALCULATOR
+    // ============================================================
 
+    window.calculateChange = function() {
+        console.log('🔄 Calculating change...');
 
-    
-// ============================================================
-// CHANGE CALCULATOR - FIX
-// ============================================================
+        const totalEl = document.getElementById('posTotal');
+        const paidEl = document.getElementById('amountPaid');
+        const changeEl = document.getElementById('changeAmount');
+        const totalDisplay = document.getElementById('changeTotalDisplay');
 
-window.calculateChange = function() {
-    console.log('🔄 Calculating change...');
+        if (!totalEl || !paidEl || !changeEl) {
+            console.log('❌ Elements not found!');
+            return;
+        }
 
-    const totalEl = document.getElementById('posTotal');
-    const paidEl = document.getElementById('amountPaid');
-    const changeEl = document.getElementById('changeAmount');
-    const totalDisplay = document.getElementById('changeTotalDisplay');
+        let total = 0;
+        const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
+        total = parseFloat(totalText) || 0;
+        console.log('💰 Cart Total:', total);
 
-    if (!totalEl || !paidEl || !changeEl) {
-        console.log('❌ Elements not found!');
-        return;
-    }
+        if (totalDisplay) {
+            totalDisplay.textContent = 'KSh ' + total.toLocaleString();
+        }
 
-    let total = 0;
-    const totalText = totalEl.textContent.replace('KSh ', '').replace(/,/g, '').trim();
-    total = parseFloat(totalText) || 0;
-    console.log('💰 Cart Total:', total);
+        const paidValue = paidEl.value;
+        const paid = parseFloat(paidValue) || 0;
+        console.log('💰 Amount Paid:', paid);
 
-    if (totalDisplay) {
-        totalDisplay.textContent = 'KSh ' + total.toLocaleString();
-    }
+        if (paid <= 0) {
+            changeEl.textContent = 'KSh 0';
+            changeEl.style.color = '#059669';
+            return;
+        }
 
-    const paidValue = paidEl.value;
-    const paid = parseFloat(paidValue) || 0;
-    console.log('💰 Amount Paid:', paid);
+        const change = paid - total;
+        console.log('💰 Change:', change);
 
-    if (paid <= 0) {
-        changeEl.textContent = 'KSh 0';
-        changeEl.style.color = '#059669';
-        return;
-    }
+        if (change < 0) {
+            changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
+            changeEl.style.color = '#ef4444';
+        } else {
+            changeEl.textContent = 'KSh ' + change.toLocaleString();
+            changeEl.style.color = '#059669';
+        }
+    };
 
-    const change = paid - total;
-    console.log('💰 Change:', change);
+    window.setQuickAmount = function(amount) {
+        console.log('💰 Quick amount clicked:', amount);
+        const paidEl = document.getElementById('amountPaid');
+        if (paidEl) {
+            paidEl.value = amount;
+            window.calculateChange();
+        }
+    };
 
-    if (change < 0) {
-        changeEl.textContent = 'KSh ' + Math.abs(change).toLocaleString() + ' (Short)';
-        changeEl.style.color = '#ef4444';
-    } else {
-        changeEl.textContent = 'KSh ' + change.toLocaleString();
-        changeEl.style.color = '#059669';
-    }
-};
-
-window.setQuickAmount = function(amount) {
-    console.log('💰 Quick amount clicked:', amount);
-    const paidEl = document.getElementById('amountPaid');
-    if (paidEl) {
-        paidEl.value = amount;
-        window.calculateChange();
-    }
-};
-
-console.log('✅ Change Calculator loaded!');
-console.log('🔍 Type check:', typeof window.calculateChange);
+    console.log('✅ Change Calculator loaded!');
 
     // ============================================================
     // DISCOUNT
@@ -4437,7 +4585,7 @@ console.log('🔍 Type check:', typeof window.calculateChange);
     // INIT
     // ============================================================
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('✅ POS Pro v12.0 - Credit System Enabled with ' + allProducts.length + ' products');
+        console.log('✅ POS Pro v13.0 - Double Order Prevention Enabled with ' + allProducts.length + ' products');
 
         filteredProducts = allProducts.slice(0, 50);
 
@@ -4568,10 +4716,6 @@ window.addEventListener('offline', () => {
 // USB THERMAL PRINTER - GLOBAL FUNCTIONS
 // ============================================================
 
-// ============================================================
-// SIMPLE PRINT RECEIPT
-// ============================================================
-
 function printReceipt() {
     const content = document.getElementById('receiptContent');
     if (!content || !content.textContent) {
@@ -4613,6 +4757,7 @@ function printReceipt() {
     `);
     win.document.close();
 }
+
 // ============================================================
 // LOAD CATEGORIES DYNAMICALLY FROM DATABASE
 // ============================================================
@@ -4635,7 +4780,6 @@ function loadCategories() {
     allBtn.onclick = function() { filterByCategory('all', this); };
     container.appendChild(allBtn);
 
-    // ✅ NEW SUPABASE URL
     const SUPABASE_URL = 'https://hzqrdwerkgfmfaufabjr.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_tnBOmCO7EFfIoXfNjEH_Tg_D7WX-zld';
 
@@ -4650,7 +4794,6 @@ function loadCategories() {
         const categories = {};
         products.forEach(p => {
             const cat = p.category || 'Uncategorized';
-            // Show ALL categories (keep all)
             if (cat && cat !== 'Uncategorized' && cat !== 'Test') {
                 categories[cat] = (categories[cat] || 0) + 1;
             }
