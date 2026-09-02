@@ -175,26 +175,20 @@ def admin_logout():
 
 
 # ============================================================
-# ✅ PRODUCT SEARCH API - SEARCH ACROSS ALL PAGES
+# ✅ ENHANCED PRODUCT SEARCH API - SEARCH ACROSS ALL PAGES
 # ============================================================
 
 @admin_bp.route('/admin/api/products/search', methods=['GET'])
 @admin_required
 def api_product_search():
-    """Search products across all pages - returns ALL matching products"""
+    """Search products across ALL pages with filters"""
     try:
         query = request.args.get('q', '').strip()
         limit = int(request.args.get('limit', 500))
+        filter_low_stock = request.args.get('low_stock', 'false').lower() == 'true'
+        filter_out_of_stock = request.args.get('out_of_stock', 'false').lower() == 'true'
         
-        if not query:
-            return jsonify({
-                'success': True,
-                'products': [],
-                'total': 0,
-                'query': ''
-            })
-        
-        print(f"🔍 Searching products for: '{query}'")
+        print(f"🔍 Searching products: query='{query}', low_stock={filter_low_stock}, out_of_stock={filter_out_of_stock}")
         
         all_products = load_products()
         query_lower = query.lower()
@@ -208,7 +202,29 @@ def api_product_search():
             barcode = str(product.get('barcode', '')).lower()
             product_id = str(product.get('id', '')).lower()
             
-            # ✅ FIX: Handle specs safely
+            # Get stock safely
+            stock = product.get('stock', 0)
+            if isinstance(stock, str):
+                try:
+                    stock = int(stock)
+                except:
+                    stock = 0
+            if stock is None:
+                stock = 0
+            
+            # Apply stock filters
+            if filter_low_stock and stock >= 10:
+                continue
+            if filter_out_of_stock and stock > 0:
+                continue
+            
+            # If no query, just return filtered results
+            if not query:
+                product['_stock'] = stock
+                results.append(product)
+                continue
+            
+            # Handle specs safely
             specs = product.get('specs')
             specs_match = False
             if specs is not None:
@@ -244,25 +260,36 @@ def api_product_search():
                     score += 2
                 
                 product['_score'] = score
+                product['_stock'] = stock
                 results.append(product)
         
-        # Sort by relevance
-        results.sort(key=lambda x: x.get('_score', 0), reverse=True)
+        # Sort by relevance (or stock for low stock filter)
+        if query:
+            results.sort(key=lambda x: x.get('_score', 0), reverse=True)
+        elif filter_low_stock or filter_out_of_stock:
+            results.sort(key=lambda x: x.get('_stock', 999))
+        else:
+            results.sort(key=lambda x: x.get('name', ''))
         
-        # Remove temporary score
+        # Remove temporary fields
         for r in results:
             r.pop('_score', None)
+            r.pop('_stock', None)
         
         results = results[:limit]
         
-        print(f"✅ Found {len(results)} products matching '{query}'")
+        print(f"✅ Found {len(results)} products matching query" + 
+              (f" with low stock" if filter_low_stock else "") +
+              (f" out of stock" if filter_out_of_stock else ""))
         
         return jsonify({
             'success': True,
             'products': results,
             'total': len(results),
             'query': query,
-            'limit': limit
+            'limit': limit,
+            'filter_low_stock': filter_low_stock,
+            'filter_out_of_stock': filter_out_of_stock
         })
         
     except Exception as e:
@@ -275,6 +302,139 @@ def api_product_search():
             'products': [],
             'total': 0
         }), 500
+
+
+# ============================================================
+# ✅ ENHANCED PRODUCTS API WITH PAGINATION AND FILTERS
+# ============================================================
+
+@admin_bp.route('/admin/api/products', methods=['GET'])
+@admin_required
+def api_products_paginated():
+    """Get paginated products with search and filter support"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        search = request.args.get('search', '').strip()
+        filter_low_stock = request.args.get('low_stock', 'false').lower() == 'true'
+        filter_out_of_stock = request.args.get('out_of_stock', 'false').lower() == 'true'
+        
+        all_products = load_products()
+        
+        # Apply filters
+        filtered_products = []
+        search_lower = search.lower() if search else ''
+        
+        for product in all_products:
+            # Get stock safely
+            stock = product.get('stock', 0)
+            if isinstance(stock, str):
+                try:
+                    stock = int(stock)
+                except:
+                    stock = 0
+            if stock is None:
+                stock = 0
+            
+            # Apply stock filters
+            if filter_low_stock and stock >= 10:
+                continue
+            if filter_out_of_stock and stock > 0:
+                continue
+            
+            # Apply search filter
+            if search:
+                name = str(product.get('name', '')).lower()
+                category = str(product.get('category', '')).lower()
+                description = str(product.get('description', '')).lower()
+                barcode = str(product.get('barcode', '')).lower()
+                product_id = str(product.get('id', '')).lower()
+                
+                if not (search_lower in name or 
+                       search_lower in category or 
+                       search_lower in description or 
+                       search_lower in barcode or 
+                       search_lower in product_id):
+                    continue
+            
+            filtered_products.append(product)
+        
+        # Sort by stock if low stock filter is applied
+        if filter_low_stock or filter_out_of_stock:
+            filtered_products.sort(key=lambda x: x.get('stock', 0))
+        else:
+            filtered_products.sort(key=lambda x: x.get('name', ''))
+        
+        total = len(filtered_products)
+        start = (page - 1) * per_page
+        end = start + per_page
+        products = filtered_products[start:end]
+        
+        return jsonify({
+            'success': True,
+            'products': products,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page if total > 0 else 1,
+            'start': start + 1 if products else 0,
+            'end': min(end, total),
+            'filter_low_stock': filter_low_stock,
+            'filter_out_of_stock': filter_out_of_stock,
+            'search': search
+        })
+    except Exception as e:
+        print(f"❌ Products API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================
+# ✅ LOW STOCK PRODUCTS API
+# ============================================================
+
+@admin_bp.route('/admin/api/products/low-stock', methods=['GET'])
+@admin_required
+def api_low_stock_products():
+    """Get all low stock products (stock < 10)"""
+    try:
+        all_products = load_products()
+        low_stock = []
+        out_of_stock = []
+        
+        for product in all_products:
+            stock = product.get('stock', 0)
+            if isinstance(stock, str):
+                try:
+                    stock = int(stock)
+                except:
+                    stock = 0
+            if stock is None:
+                stock = 0
+            
+            if stock == 0:
+                out_of_stock.append(product)
+            elif stock < 10:
+                low_stock.append(product)
+        
+        # Sort by stock (lowest first)
+        low_stock.sort(key=lambda x: x.get('stock', 0))
+        out_of_stock.sort(key=lambda x: x.get('name', ''))
+        
+        return jsonify({
+            'success': True,
+            'low_stock': low_stock,
+            'out_of_stock': out_of_stock,
+            'low_stock_count': len(low_stock),
+            'out_of_stock_count': len(out_of_stock),
+            'total_low_stock': len(low_stock) + len(out_of_stock)
+        })
+    except Exception as e:
+        print(f"❌ Low stock API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ============================================================
@@ -431,12 +591,15 @@ def admin_dashboard():
         pending_orders = len([o for o in all_orders if o.get('status') == 'pending'])
         
         low_stock_items = 0
+        out_of_stock_items = 0
         for p in all_products:
             stock = p.get('stock', 0)
             if stock is None:
                 stock = 0
-            if stock < 10:
+            if stock < 10 and stock > 0:
                 low_stock_items += 1
+            elif stock == 0:
+                out_of_stock_items += 1
 
         now = datetime.utcnow()
         today = now.date()
@@ -561,6 +724,7 @@ def admin_dashboard():
             'total_bundles': len(bundles),
             'total_cart_items': sum(cart.values()) if cart else 0,
             'low_stock': low_stock_items,
+            'out_of_stock': out_of_stock_items,
             'total_orders': total_orders,
             'pending_orders': pending_orders,
             'pos_orders': pos_count,
@@ -714,7 +878,8 @@ def admin_dashboard():
             overdue_count=overdue_count,
             supplier_summary=supplier_summary,
             suppliers=suppliers,
-            low_stock_count=low_stock_count
+            low_stock_count=low_stock_count,
+            out_of_stock_count=out_of_stock_items
         )
 
     except Exception as exc:
@@ -733,6 +898,7 @@ def admin_dashboard():
                 'total_bundles': 0,
                 'total_cart_items': 0,
                 'low_stock': 0,
+                'out_of_stock': 0,
                 'total_orders': 0,
                 'pending_orders': 0,
                 'pos_orders': 0,
@@ -769,7 +935,8 @@ def admin_dashboard():
             overdue_count=0,
             supplier_summary={'total_suppliers': 0, 'active_suppliers': 0, 'total_products': 0},
             suppliers=[],
-            low_stock_count=0
+            low_stock_count=0,
+            out_of_stock_count=0
         )
 
 
@@ -1086,6 +1253,7 @@ def api_record_credit_purchase():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @admin_bp.route('/admin/api/credit/payment', methods=['POST'])
 @admin_required
 def api_record_credit_payment():
@@ -1128,6 +1296,7 @@ def api_record_credit_payment():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @admin_bp.route('/admin/api/credit/monthly-report', methods=['GET'])
 @admin_required
 def api_get_monthly_credit_report():
@@ -1169,9 +1338,8 @@ def api_get_credit_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-  
 
- # ============================================================
+# ============================================================
 # UPDATE CREDIT TRANSACTION - FIX COST AND PROFIT
 # ============================================================
 
@@ -1224,6 +1392,7 @@ def api_update_credit_transaction(transaction_id):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ============================================================
 # PROFITABILITY API - COMBINES ALL PAID SALES
@@ -1942,6 +2111,8 @@ def api_process_return():
 
 # ============================================================
 # ANALYTICS API - MERGED WITH CREDIT
+# ============================================================
+
 @admin_bp.route('/admin/api/analytics')
 def admin_api_analytics():
     if not session.get('admin_logged_in'):
@@ -2311,23 +2482,70 @@ def calculate_analytics_from_orders(orders):
 
 
 # ============================================================
-# AJAX PAGINATION API ENDPOINTS
+# AJAX PAGINATION API ENDPOINTS (UPDATED)
 # ============================================================
 
 @admin_bp.route('/admin/api/products', methods=['GET'])
 @admin_required
-def api_products_paginated():
-    """Get paginated products for AJAX"""
+def api_products_paginated_v2():
+    """Get paginated products with search and filter support"""
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+        search = request.args.get('search', '').strip()
+        filter_low_stock = request.args.get('low_stock', 'false').lower() == 'true'
+        filter_out_of_stock = request.args.get('out_of_stock', 'false').lower() == 'true'
         
         all_products = load_products()
         
-        total = len(all_products)
+        # Apply filters
+        filtered_products = []
+        search_lower = search.lower() if search else ''
+        
+        for product in all_products:
+            # Get stock safely
+            stock = product.get('stock', 0)
+            if isinstance(stock, str):
+                try:
+                    stock = int(stock)
+                except:
+                    stock = 0
+            if stock is None:
+                stock = 0
+            
+            # Apply stock filters
+            if filter_low_stock and stock >= 10:
+                continue
+            if filter_out_of_stock and stock > 0:
+                continue
+            
+            # Apply search filter
+            if search:
+                name = str(product.get('name', '')).lower()
+                category = str(product.get('category', '')).lower()
+                description = str(product.get('description', '')).lower()
+                barcode = str(product.get('barcode', '')).lower()
+                product_id = str(product.get('id', '')).lower()
+                
+                if not (search_lower in name or 
+                       search_lower in category or 
+                       search_lower in description or 
+                       search_lower in barcode or 
+                       search_lower in product_id):
+                    continue
+            
+            filtered_products.append(product)
+        
+        # Sort by stock if low stock filter is applied
+        if filter_low_stock or filter_out_of_stock:
+            filtered_products.sort(key=lambda x: x.get('stock', 0))
+        else:
+            filtered_products.sort(key=lambda x: x.get('name', ''))
+        
+        total = len(filtered_products)
         start = (page - 1) * per_page
         end = start + per_page
-        products = all_products[start:end]
+        products = filtered_products[start:end]
         
         return jsonify({
             'success': True,
@@ -2335,11 +2553,17 @@ def api_products_paginated():
             'total': total,
             'page': page,
             'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page,
+            'total_pages': (total + per_page - 1) // per_page if total > 0 else 1,
             'start': start + 1 if products else 0,
-            'end': min(end, total)
+            'end': min(end, total),
+            'filter_low_stock': filter_low_stock,
+            'filter_out_of_stock': filter_out_of_stock,
+            'search': search
         })
     except Exception as e:
+        print(f"❌ Products API error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -2806,6 +3030,18 @@ def api_sales_stats():
                 continue
 
         total_products = len(products)
+        
+        # Count low stock
+        low_stock_count = 0
+        out_of_stock_count = 0
+        for p in products:
+            stock = p.get('stock', 0)
+            if stock is None:
+                stock = 0
+            if stock < 10 and stock > 0:
+                low_stock_count += 1
+            elif stock == 0:
+                out_of_stock_count += 1
 
         return jsonify({
             'success': True,
@@ -2814,7 +3050,9 @@ def api_sales_stats():
             'today_returns': today_returns,
             'today_return_amount': today_return_amount,
             'total_customers': len(all_customers),
-            'total_products': total_products
+            'total_products': total_products,
+            'low_stock_count': low_stock_count,
+            'out_of_stock_count': out_of_stock_count
         })
     except Exception as e:
         print(f"❌ Sales stats error: {e}")
